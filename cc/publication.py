@@ -101,3 +101,57 @@ class Publication( object ):
     # Publication Analysis
     ########################################################################
 
+    def process_bibtex_annotations( self, bibtex_fp=None ):
+
+        # Load the data
+        if bibtex_fp is None:
+            annotation = self.citation['annote']
+        else:
+            self.read_citation( bibtex_fp )
+            annotation = self.citation['annote']
+
+        # Process the annotation
+        self.key_points = annotation.split( '\n' )
+
+    ########################################################################
+
+    def process_annotation( self, point, notes={} ):
+
+        ### Parse key concepts
+        # Find boundaries
+        def find_char_inds( char ):
+            inds = []
+            i = 0
+            while True:
+                ind = point.find( char, i )
+                if ind == -1:
+                    break
+                inds.append( ind )
+                i = ind + 1
+            return inds
+        starts = find_char_inds( '[' )
+        ends = find_char_inds( ']' )
+        # Find nested ends
+        pair_inds = []
+        for i in range( len( starts ) - 1 ):
+            j = i
+            while ends[j] < starts[i+1]:
+                j += 1
+            pair_inds.append( ( starts[i], ends[j] ) )
+        # Store
+        key_concepts = []
+        for start, end in zip( *[ starts, ends] ):
+            key_concepts.append( point[start+1:end] )
+        if 'key_concepts' not in notes:
+            notes['key_concepts'] = key_concepts
+        else:
+            notes['key_concepts'] += key_concepts
+
+        # Store as a key point if recognized as one
+        if len( starts ) > 0 and len( ends ) > 0:
+            if 'key_points' not in notes:
+                notes['key_points'] = [ point, ]
+            else:
+                notes['key_points'].append( point )
+            
+        return notes
