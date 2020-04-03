@@ -13,25 +13,36 @@ class Publication( object ):
         pass
 
     ########################################################################
+    # Data Retrieval
+    ########################################################################
 
-    def get_ads_data( self, arxiv_number ):
+    def get_ads_data( self, **kwargs ):
         '''Retrieve all data the NASA Astrophysical Data System has regarding
         a paper.
 
         NOTE: For this to work you MUST have your ADS API key
         saved to ~/.ads/dev_key
 
-        Args:
-            arxiv_number (str):
-                Arxiv number to search ads for.
+        Keyword Args:
+            kwargs (str):
+                Unique identifiers of the publication, e.g. the arXiv number
+                with arxiv='1811.11753'.
 
         Returns:
             self.ads_data (ads.search.Article):
                 Class containing ADS data.
         '''
 
-        self.ads_query = ads.SearchQuery(arxiv=arxiv_number)
-        self.ads_data = list( self.ads_query )[0]
+        self.ads_query = ads.SearchQuery( **kwargs )
+        query_list = list( self.ads_query )
+
+        # Parse results of search
+        if len( query_list ) < 1:
+            raise Exception( 'No matching papers found in ADS' )
+        elif len( query_list ) > 1:
+            raise Exception( 'Multiple papers found with identifying data.' )
+
+        self.ads_data = query_list[0]
 
         return self.ads_data
 
@@ -85,3 +96,8 @@ class Publication( object ):
         with open( tex_fp ) as f:
             for line in f:
                 self.full_text.append( line )  
+
+    ########################################################################
+    # Publication Analysis
+    ########################################################################
+

@@ -17,7 +17,7 @@ class TestRetrieveMetadata( unittest.TestCase ):
         # Load
         p = cc.publication.Publication( 'Hafen2019' )
 
-        p.get_ads_data( '1811.11753' )
+        p.get_ads_data( arxiv='1811.11753' )
 
         assert p.ads_data.title == ['The origins of the circumgalactic medium in the FIRE simulations']
 
@@ -46,3 +46,11 @@ class TestTex( unittest.TestCase ):
         p.load_full_tex( filepath )
 
         assert p.full_text[0] == '% mnras_template.tex \n'
+
+########################################################################
+
+# class TestPublicationAnalysis( unittest.TestCase ):
+# 
+#     def test_generate_abstract_points( self ):
+# 
+#         assert False
