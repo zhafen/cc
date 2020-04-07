@@ -151,6 +151,12 @@ class Publication( object ):
             return notes
         # Key lines
         elif '[' in line and ']' in line:
+
+            assert (
+                line.count( '[' ) == line.count( ']' ),
+                'Mismatch in number of brackets ([) for line {}'.format( line )
+            )
+
             # Parse key concepts, including nested brackets
             key_concepts = []
             stack = []
