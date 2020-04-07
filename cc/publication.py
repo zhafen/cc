@@ -111,47 +111,53 @@ class Publication( object ):
             annotation = self.citation['annote']
 
         # Process the annotation
-        self.key_points = annotation.split( '\n' )
+        annote_lines = annotation.split( '\n' )
+
+        # Process the annotation
+        self.notes = {}
+        for line in annote_lines:
+            self.notes = self.process_annotation_line( line, self.notes )
 
     ########################################################################
 
-    def process_annotation( self, point, notes={} ):
+    def process_annotation_line( self, line, notes={} ):
 
-        ### Parse key concepts
-        # Find boundaries
-        def find_char_inds( char ):
-            inds = []
-            i = 0
-            while True:
-                ind = point.find( char, i )
-                if ind == -1:
-                    break
-                inds.append( ind )
-                i = ind + 1
-            return inds
-        starts = find_char_inds( '[' )
-        ends = find_char_inds( ']' )
-        # Find nested ends
-        pair_inds = []
-        for i in range( len( starts ) - 1 ):
-            j = i
-            while ends[j] < starts[i+1]:
-                j += 1
-            pair_inds.append( ( starts[i], ends[j] ) )
-        # Store
-        key_concepts = []
-        for start, end in zip( *[ starts, ends] ):
-            key_concepts.append( point[start+1:end] )
-        if 'key_concepts' not in notes:
-            notes['key_concepts'] = key_concepts
-        else:
-            notes['key_concepts'] += key_concepts
-
-        # Store as a key point if recognized as one
-        if len( starts ) > 0 and len( ends ) > 0:
-            if 'key_points' not in notes:
-                notes['key_points'] = [ point, ]
+        # Empty lines
+        if line == '':
+            return notes
+        # Key lines
+        elif '[' in line and ']' in line:
+            # Parse key concepts, including nested brackets
+            key_concepts = []
+            stack = []
+            for i, char in enumerate( line ):
+                if char == '[':
+                    stack.append( i )
+                elif char == ']' and stack:
+                    start = stack.pop()
+                    key_concept = line[start+1:i]
+                    key_concept = key_concept.replace( '[', '' )
+                    key_concept = key_concept.replace( ']', '' )
+                    key_concepts.append( key_concept )
+            # Store
+            if 'key_concepts' not in notes:
+                notes['key_concepts'] = key_concepts
             else:
-                notes['key_points'].append( point )
-            
+                notes['key_concepts'] += key_concepts
+            notes['key_concepts'] = list( set( notes['key_concepts'] ) )
+            if 'key_points' not in notes:
+                notes['key_points'] = [ line, ]
+            else:
+                notes['key_points'].append( line )
+        # For flags
+        elif line[0] == '!':
+            variable, value = line[1:].split( '=' )
+            notes[variable] = value
+        # Otherwise
+        else:
+            if 'uncategorized' not in notes:
+                notes['uncategorized'] = [ line, ]
+            else:
+                notes['uncategorized'].append( line )
+
         return notes

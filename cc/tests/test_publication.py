@@ -95,7 +95,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
             'winds',
             'subgrid metal diffusion',
         ]
-        assert sorted( expected_key_concepts ) == p.notes['key_concepts']
+        assert sorted( expected_key_concepts ) == sorted( p.notes['key_concepts'] )
 
         assert p.notes['read'] == 'author'
 
@@ -112,20 +112,24 @@ class TestPublicationAnalysis( unittest.TestCase ):
         point = r'Uses a [particle-tracking] analysis applied to the [FIRE-2 simulations] to study the [origins of the [CGM]], including [IGM accretion], [galactic wind], and [satellite wind] ([extra [brackets [here] for testing]]).'
 
         # Run
-        actual = p.process_annotation( point )
+        actual = p.process_annotation_line( point )
         expected = {
             'key_points': [ point, ],
             'key_concepts': [
                 'particle-tracking',
                 'FIRE-2 simulations',
-                'origins of the CGM',
                 'CGM',
+                'origins of the CGM',
                 'IGM accretion',
                 'galactic wind',
                 'satellite wind',
+                'here',
+                'brackets here for testing',
+                'extra brackets here for testing',
             ],
         }
 
         # Check
-        for key, item in expected.items():
-            assert actual[key] == item
+        assert sorted( actual['key_points'] ) == sorted( expected['key_points'] )
+        assert sorted( actual['key_concepts'] ) == sorted( expected['key_concepts'] )
+        
