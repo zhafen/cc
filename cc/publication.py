@@ -102,6 +102,17 @@ class Publication( object ):
     ########################################################################
 
     def process_bibtex_annotations( self, bibtex_fp=None ):
+        '''Process notes residing in a .bib file.
+
+        Args:
+            bibtex_fp (str):
+                Filepath of the .bib file. Defaults to assuming one
+                is already loaded.
+
+        Modifies:
+            self.notes (dict):
+                Dictionary containing processed bibtex annotations.
+        '''
 
         # Load the data
         if bibtex_fp is None:
@@ -121,6 +132,19 @@ class Publication( object ):
     ########################################################################
 
     def process_annotation_line( self, line, notes={} ):
+        '''Process a line of annotation to extract more information.
+
+        Args:
+            line (str):
+                The line of annotation to process.
+
+            notes (dict):
+                The dictionary storing notes on various lines.
+
+        Returns:
+            notes (dict):
+                A dictionary containing updates notes on annotations.
+        '''
 
         # Empty lines
         if line == '':
