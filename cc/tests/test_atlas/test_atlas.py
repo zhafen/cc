@@ -26,3 +26,43 @@ class TestRetrieveData( unittest.TestCase ):
 
         assert self.a.data['Hafen2019'].citation['eprint'] == '1811.11753'
 
+########################################################################
+
+class TestKeyConcepts( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.a = atlas.Atlas( './tests/data/example_atlas' )
+
+    ########################################################################
+
+    def test_unique_key_concepts( self ):
+
+        self.a._all_key_concepts = [
+            'dog',
+            'dogs',
+            'kitty cat',
+        ]
+
+        expected = set( [
+            'dog',
+            'kitti cat',
+        ] )
+        assert self.a.get_unique_key_concepts() == expected
+
+    ########################################################################
+
+    def test_unique_key_concepts_forgotten_space( self ):
+
+        self.a._all_key_concepts = [
+            'dog',
+            'dogs',
+            'kittycat',
+            'kitty cat',
+        ]
+
+        expected = set( [
+            'dog',
+            'kitti cat',
+        ] )
+        assert self.a.get_unique_key_concepts() == expected
