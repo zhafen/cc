@@ -28,7 +28,7 @@ class TestRetrieveMetadata( unittest.TestCase ):
         # Load
         p = cc.publication.Publication( 'Hafen2019' )
 
-        bibtex_fp = './tests/data/example.bib'
+        bibtex_fp = './tests/data/example_atlas/example.bib'
 
         p.read_citation( bibtex_fp )
 
@@ -55,7 +55,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
 
         # Run the function
         p = cc.publication.Publication( 'Hafen2019' )
-        bibtex_fp = './tests/data/example.bib'
+        bibtex_fp = './tests/data/example_atlas/example.bib'
         p.process_bibtex_annotations( bibtex_fp )
 
         # Check that we got the key points right
@@ -74,28 +74,57 @@ class TestPublicationAnalysis( unittest.TestCase ):
 
         # Check that we got the key concepts right
         expected_key_concepts = [
-            'particle-tracking',
-            'FIRE-2 simulations',
-            'origins of the CGM',
-            'CGM',
-            'IGM accretion',
-            'galactic wind',
-            'satellite wind',
-            'stellar feedback',
-            'L* halos',
-            'baryon budget',
-            'metal budget',
-            'lifetime',
-            'hot halo',
-            'low-redshift',
-            'cool CGM gas',
-            'galaxy plane',
-            'halo-to-halo variability',
-            'metallicity',
-            'winds',
-            'subgrid metal diffusion',
+            [
+                'particle-tracking',
+                'FIRE-2 simulations',
+                'origins of the CGM',
+                'CGM',
+                'IGM accretion',
+                'galactic wind',
+                'satellite wind',
+            ],
+            [
+                'stellar feedback',
+                'L* halos',
+                'baryon budget',
+            ],
+            [
+                'metal budget',
+            ],
+            [
+                'CGM',
+                'IGM accretion',
+            ],
+            [
+                'CGM',
+                'galactic wind',
+            ],
+            [
+                'L* halos',
+                'CGM',
+                'satellite wind',
+            ],
+            [
+                'lifetime',
+                'CGM',
+                'hot halo',
+            ],
+            [
+                'low-redshift',
+                'cool CGM gas',
+                'galaxy plane',
+                'halo-to-halo variability',
+                'L* halos',
+            ],
+            [
+                'metallicity',
+                'IGM accretion',
+                'winds',
+                'subgrid metal diffusion',
+            ],
         ]
-        assert sorted( expected_key_concepts ) == sorted( p.notes['key_concepts'] )
+        for i, e_kc in enumerate( expected_key_concepts ):
+            assert sorted( e_kc ) == sorted( p.notes['key_concepts'][i] )
 
         assert p.notes['read'] == 'author'
 
@@ -115,7 +144,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
         actual = p.process_annotation_line( point )
         expected = {
             'key_points': [ point, ],
-            'key_concepts': [
+            'key_concepts': [ [
                 'particle-tracking',
                 'FIRE-2 simulations',
                 'CGM',
@@ -126,10 +155,10 @@ class TestPublicationAnalysis( unittest.TestCase ):
                 'here',
                 'brackets here for testing',
                 'extra brackets here for testing',
-            ],
+            ], ],
         }
 
         # Check
         assert sorted( actual['key_points'] ) == sorted( expected['key_points'] )
-        assert sorted( actual['key_concepts'] ) == sorted( expected['key_concepts'] )
+        assert sorted( actual['key_concepts'][0] ) == sorted( expected['key_concepts'][0] )
         

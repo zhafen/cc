@@ -171,10 +171,14 @@ class Publication( object ):
                     key_concepts.append( key_concept )
             # Store
             if 'key_concepts' not in notes:
-                notes['key_concepts'] = key_concepts
+                notes['key_concepts'] = [ key_concepts, ]
             else:
-                notes['key_concepts'] += key_concepts
-            notes['key_concepts'] = list( set( notes['key_concepts'] ) )
+                notes['key_concepts'].append( key_concepts )
+            notes['key_concepts'] = [
+                list( set( key_concepts ) )
+                for key_concepts in
+                notes['key_concepts']
+            ]
             if 'key_points' not in notes:
                 notes['key_points'] = [ line, ]
             else:

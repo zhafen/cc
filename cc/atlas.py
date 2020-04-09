@@ -9,7 +9,7 @@ import os
 import augment
 import verdict
 
-from .. import publication
+from . import publication
 
 ########################################################################
 
@@ -20,15 +20,22 @@ class Atlas( object ):
         
         self.data = verdict.Dict( {} )
 
+        # Load bibtex data
         if bibtex_fp is None:
             bibtex_fp = os.path.join( atlas_dir, '*.bib' )
             bibtex_fps = glob.glob( bibtex_fp )
             if len( bibtex_fps ) > 1:
-                raise FileError( "Multiple possible BibTex files. Please specify." )
+                raise FileError( 'Multiple possible BibTex files. Please specify.' )
             if len( bibtex_fps ) == 0:
-                raise FileError( "No *.bib file found in {}".format( atlas_dir ) )
+                raise FileError( 'No *.bib file found in {}'.format( atlas_dir ) )
             bibtex_fp = bibtex_fps[0]
         self.import_bibtex(  bibtex_fp )
+
+    ########################################################################
+
+    def __getitem__( self, key ):
+
+        return self.data[key]
 
     ########################################################################
 
@@ -68,16 +75,31 @@ class Atlas( object ):
     ########################################################################
 
     @property
+    def key_points( self ):
+        '''Easier access for key_points. Must be loaded for individual
+        publications first.
+        '''
+
+        try:
+            return self.data.notes.inner_item( 'key_points' )
+        except KeyError:
+            self.data.process_bibtex_annotations()
+            return self.data.notes.inner_item( 'key_points' )
+
+    ########################################################################
+
+    @property
     def all_key_concepts( self ):
         '''A set of all key concepts across publications.
         '''
 
         if not hasattr( self, '_all_key_concepts' ):
-            list_key_concepts = list( self.key_concepts.values() )
 
+            # Flatten
             self._all_key_concepts = []
-            for l in list_key_concepts:
-                self._all_key_concepts += l
+            for kcs in self.key_concepts.values():
+                for kcs_point in kcs:
+                    self._all_key_concepts += kcs_point
 
             self._all_key_concepts = set( self._all_key_concepts )
 
@@ -131,3 +153,56 @@ class Atlas( object ):
         self.unique_key_concepts = ukcs
 
         return ukcs
+
+    ########################################################################
+
+    def concept_search( self, concept, max_edit_distance=2 ):
+        '''Search all publications for those that are noted as discussing
+        a given concept.
+
+        Args:
+            concept (str):
+                Concept to search for.
+
+            max_edit_distance (int):
+                Maximum Levenshtein edit-distance between two concepts for them
+                to count as the same concept.
+
+        Returns:
+            dict:
+                Dictionary with list of points discussing the concept per
+                publication.
+        '''
+
+        # Stem the searched concept
+        s = nltk.stem.SnowballStemmer( 'english' )
+        words = nltk.word_tokenize( concept )
+        stemmed_words = [ s.stem( w ) for w in words ]
+        concept = ' '.join( stemmed_words )
+
+        # Retrieve data
+        self.data.process_bibtex_annotations()
+
+        # Search through all
+        result = {}
+        for cite_key, kcs_p in self.key_concepts.items():
+            for i, kcs in enumerate( kcs_p ):
+                n_matches = 0
+                for kc in kcs:
+                    # Make the key concept into a stemmed version
+                    words = nltk.word_tokenize( kc )
+                    stemmed_words = [ s.stem( w ) for w in words ]
+                    kc_stemmed = ' '.join( stemmed_words )
+
+                    # Check for edit distance
+                    if edit_distance( concept, kc_stemmed, ) <= max_edit_distance:
+                        n_matches += 1
+
+                if n_matches > 0:
+                    # Create a dictionary for storage
+                    if cite_key not in result:
+                        result[cite_key] = []
+                    point = self.key_points[cite_key][i]
+                    result[cite_key].append( point )
+
+        return result
