@@ -1,8 +1,10 @@
 import bibtexparser
 from collections import Counter
+import glob
 import nltk
 from nltk.metrics import edit_distance
 import numpy as np
+import os
 
 import augment
 import verdict
@@ -14,9 +16,19 @@ from .. import publication
 class Atlas( object ):
 
     @augment.store_parameters
-    def __init__( self, atlas_dir ):
+    def __init__( self, atlas_dir, bibtex_fp=None ):
         
         self.data = verdict.Dict( {} )
+
+        if bibtex_fp is None:
+            bibtex_fp = os.path.join( atlas_dir, '*.bib' )
+            bibtex_fps = glob.glob( bibtex_fp )
+            if len( bibtex_fps ) > 1:
+                raise FileError( "Multiple possible BibTex files. Please specify." )
+            if len( bibtex_fps ) == 0:
+                raise FileError( "No *.bib file found in {}".format( atlas_dir ) )
+            bibtex_fp = bibtex_fps[0]
+        self.import_bibtex(  bibtex_fp )
 
     ########################################################################
 
@@ -47,7 +59,11 @@ class Atlas( object ):
         publications first.
         '''
 
-        return self.data.notes.inner_item( 'key_concepts' )
+        try:
+            return self.data.notes.inner_item( 'key_concepts' )
+        except KeyError:
+            self.data.process_bibtex_annotations()
+            return self.data.notes.inner_item( 'key_concepts' )
 
     ########################################################################
 
@@ -111,5 +127,7 @@ class Atlas( object ):
             # Store
             ukcs_ed.append( true_kc )
         ukcs = set( ukcs_ed )
+
+        self.unique_key_concepts = ukcs
 
         return ukcs

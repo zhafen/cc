@@ -20,9 +20,7 @@ class TestRetrieveData( unittest.TestCase ):
 
     def test_bibtex( self ):
 
-        bibtex_fp = './tests/data/example.bib'
-
-        self.a.import_bibtex( bibtex_fp )
+        self.a.import_bibtex( './tests/data/example_atlas/example.bib' )
 
         assert self.a.data['Hafen2019'].citation['eprint'] == '1811.11753'
 
@@ -66,3 +64,19 @@ class TestKeyConcepts( unittest.TestCase ):
             'kitti cat',
         ] )
         assert self.a.get_unique_key_concepts() == expected
+
+########################################################################
+
+class TestPublicationKeyConcepts( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.a = atlas.Atlas( './tests/data/example_atlas' )
+        self.a.get_unique_key_concepts()
+
+    ########################################################################
+
+    def test_default( self ):
+
+        #DEBUG
+        import pdb; pdb.set_trace()
