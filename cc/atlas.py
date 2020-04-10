@@ -156,7 +156,12 @@ class Atlas( object ):
 
     ########################################################################
 
-    def concept_search( self, concept, max_edit_distance=2 ):
+    def concept_search(
+        self,
+        concept,
+        max_edit_distance = 2,
+        return_paragraph = True,
+    ):
         '''Search all publications for those that are noted as discussing
         a given concept.
 
@@ -169,9 +174,13 @@ class Atlas( object ):
                 to count as the same concept.
 
         Returns:
-            dict:
-                Dictionary with list of points discussing the concept per
-                publication.
+            tuple containing...
+                dict:
+                    Dictionary with list of points discussing the concept per
+                    publication.
+
+                string:
+                    Paragraph with points for the concept from each publication.
         '''
 
         # Stem the searched concept
@@ -205,4 +214,12 @@ class Atlas( object ):
                     point = self.key_points[cite_key][i]
                     result[cite_key].append( point )
 
-        return result
+        if not return_paragraph:
+            return result
+        else:
+            paragraph = ''
+            for key, item in result.items():
+                for p in item:
+                    paragraph += '\cite{' + key + '}' + ': {}\n'.format( p )
+
+            return result, paragraph
