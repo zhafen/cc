@@ -79,7 +79,10 @@ class TestSearchPublicationsKeyConcepts( unittest.TestCase ):
 
     def test_default( self ):
 
-        actual = self.a.concept_search( 'origins of the CGM' )
+        actual = self.a.concept_search(
+            'origins of the CGM',
+            return_paragraph = False
+        )
 
         h19_kps = self.a['Hafen2019'].notes['key_points']
         h19a_kps = self.a['Hafen2019a'].notes['key_points']
