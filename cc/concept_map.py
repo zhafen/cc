@@ -1,4 +1,5 @@
 import itertools
+import numpy as np
 
 import augment
 
@@ -42,6 +43,44 @@ class ConceptMap( object ):
 
     ########################################################################
 
-    def complete_manual_evaluation( self ):
+    def finish_evaluation( self, weights, relations ):
+        '''Store the evaluated concept map in a useful format.
 
-        pass
+        Args:
+            weights (dict of floats):
+                Weights of individual concepts.
+
+            relations (dict of floats):
+                Relations between concepts. A value of 1.0 means the concepts
+                are identical. A value of 0.0 means the concepts are completely
+                independent.
+
+        Modifies:
+            self.weights (dict of floats):
+                Weights of individual concepts.
+
+            self.relation_matrix (np.ndarray, (n_concepts,n_concepts)):
+                Matrix expressing the relationship between concepts.
+        '''
+
+        # Store weights
+        self.weights = weights
+
+        n = len( self.concepts )
+        self.relation_matrix = np.full( ( n, n ), -1.0 )
+        for i, c_i in enumerate( self.concepts ):
+            for j, c_j in enumerate( self.concepts ):
+
+                # Diagonals
+                if i == j:
+                    self.relation_matrix[i,j] = 1.
+                    continue
+
+                # Retrieve data
+                try:
+                    value = relations[(c_i,c_j)]
+                except KeyError:
+                    value = relations[(c_j,c_i)]
+
+                self.relation_matrix[i,j] = value
+
