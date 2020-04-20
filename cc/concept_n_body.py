@@ -7,190 +7,72 @@ import augment
 class Simulation( object ):
 
     @augment.store_parameters
-    def __init__( self, ):
-
-        pass
-
-    ########################################################################
-    # Data Retrieval
-    ########################################################################
-
-    def get_ads_data( self, **kwargs ):
-        '''Retrieve all data the NASA Astrophysical Data System has regarding
-        a paper.
-
-        NOTE: For this to work you MUST have your ADS API key
-        saved to ~/.ads/dev_key
-
-        Keyword Args:
-            kwargs (str):
-                Unique identifiers of the publication, e.g. the arXiv number
-                with arxiv='1811.11753'.
-
-        Returns:
-            self.ads_data (ads.search.Article):
-                Class containing ADS data.
+    def __init__(
+        self,
+        concept_map,
+        r_c = 5.,
+        rep_power = 3.,
+        att_power = 1.,
+        inital_dims = ( 10., 10., 10. )
+        inital_vdims = ( 2., 2., 2. )
+    ):
+        '''The force between two particles is the derivative of
+        V(r) = M * a * r ** -rep_power - M * r ** -att_power
+        Where M is the mass of the other particle.
+        When M >> m, a = (att_power/rep_power) * r_c**(rep_power - att_power)
+        where r_c is the circular orbit.
         '''
 
-        self.ads_query = ads.SearchQuery( **kwargs )
-        query_list = list( self.ads_query )
+        # Initialize the simulation
+        self.sim = rebound.Simulation()
 
-        # Parse results of search
-        if len( query_list ) < 1:
-            raise Exception( 'No matching papers found in ADS' )
-        elif len( query_list ) > 1:
-            raise Exception( 'Multiple papers found with identifying data.' )
+        # Setup particles
+        for c in concept_map.concepts:
+            
+            x, y, z = [
+                np.random.uniform( -length / 2., length / 2. )
+                for length in initial_dims
+            ]
+            vx, vy, vz = [
+                np.random.uniform( -vlength / 2., vlength / 2. )
+                for vlength in initial_vdims
+            ]
 
-        self.ads_data = query_list[0]
-
-        return self.ads_data
-
-    ########################################################################
-
-    def read_citation( self, bibtex_fp, ):
-        '''Retrieve a citation from a BibTex file.
-
-        Args:
-            bibtex_fp (str):
-                Filepath containing the BibTex file to read from.
-
-        Returns:
-            self.citation (dict):
-                A dictionary containing entries for a BibTex-style citation.
-        '''
-
-        # Load the database
-        with open( bibtex_fp ) as bibtex_file:
-            bib_database = bibtexparser.load(bibtex_file)
-
-        # Find the relevant citation
-        matches = []
-        for citation in bib_database.entries:
-            if citation['ID'] == self.citation_key:
-                matches.append( citation )
-
-        # Parse results of search
-        if len( matches ) < 1:
-            raise Exception( 'Citation not found in file.' )
-        elif len( matches ) > 1:
-            raise Exception( 'Duplicate entries found in file.' )
-
-        # Store result
-        self.citation = matches[0]
-
-        return self.citation
-
-    ########################################################################
-
-    def load_full_tex( self, tex_fp ):
-        '''Loads a tex file for further manipulation.
-
-        Args:
-            tex_fp (str):
-                Location of tex file to load.
-        '''
-
-        # Retrieve full text
-        self.full_text = []
-        with open( tex_fp ) as f:
-            for line in f:
-                self.full_text.append( line )  
-
-    ########################################################################
-    # Publication Analysis
-    ########################################################################
-
-    def process_bibtex_annotations( self, bibtex_fp=None ):
-        '''Process notes residing in a .bib file.
-
-        Args:
-            bibtex_fp (str):
-                Filepath of the .bib file. Defaults to assuming one
-                is already loaded.
-
-        Modifies:
-            self.notes (dict):
-                Dictionary containing processed bibtex annotations.
-        '''
-
-        # Load the data
-        if bibtex_fp is None:
-            annotation = self.citation['annote']
-        else:
-            self.read_citation( bibtex_fp )
-            annotation = self.citation['annote']
-
-        # Process the annotation
-        annote_lines = annotation.split( '\n' )
-
-        # Process the annotation
-        self.notes = {}
-        for line in annote_lines:
-            self.notes = self.process_annotation_line( line, self.notes )
-
-    ########################################################################
-
-    def process_annotation_line( self, line, notes={} ):
-        '''Process a line of annotation to extract more information.
-
-        Args:
-            line (str):
-                The line of annotation to process.
-
-            notes (dict):
-                The dictionary storing notes on various lines.
-
-        Returns:
-            notes (dict):
-                A dictionary containing updates notes on annotations.
-        '''
-
-        # Empty lines
-        if line == '':
-            return notes
-        # Key lines
-        elif '[' in line and ']' in line:
-
-            assert (
-                line.count( '[' ) == line.count( ']' ),
-                'Mismatch in number of brackets ([) for line {}'.format( line )
+            self.sim.add(
+                m = concept_map.weights[c],
+                x = x, y = y, z = z,
+                vx = vx, vy = vy, vz = vz,
             )
 
-            # Parse key concepts, including nested brackets
-            key_concepts = []
-            stack = []
-            for i, char in enumerate( line ):
-                if char == '[':
-                    stack.append( i )
-                elif char == ']' and stack:
-                    start = stack.pop()
-                    key_concept = line[start+1:i]
-                    key_concept = key_concept.replace( '[', '' )
-                    key_concept = key_concept.replace( ']', '' )
-                    key_concepts.append( key_concept )
-            # Store
-            if 'key_concepts' not in notes:
-                notes['key_concepts'] = [ key_concepts, ]
-            else:
-                notes['key_concepts'].append( key_concepts )
-            notes['key_concepts'] = [
-                list( set( key_concepts ) )
-                for key_concepts in
-                notes['key_concepts']
-            ]
-            if 'key_points' not in notes:
-                notes['key_points'] = [ line, ]
-            else:
-                notes['key_points'].append( line )
-        # For flags
-        elif line[0] == '!':
-            variable, value = line[1:].split( '=' )
-            notes[variable] = value
-        # Otherwise
-        else:
-            if 'uncategorized' not in notes:
-                notes['uncategorized'] = [ line, ]
-            else:
-                notes['uncategorized'].append( line )
+        # Move to center-of-momentum frame
+        sim.move_to_com()
 
-        return notes
+        # Setup repulsive force
+        def scaled_repulsive_force( r ):
+
+            prefactor = att_power * r_c**(rep_power - att_power)
+
+            force = prefactor * r**( -rep_power - 1 )
+
+            return force
+
+        # Add additional forces
+        def repulsive_force( sim ):
+
+            ps = sim.contents.particles
+
+            # Loop through particles
+            for i, p in enumerate( ps ):
+                net_force = 0.
+                # Loop through other particles
+                for j, p_e in enumerate( ps ):
+
+                    assert False, "Need to calc r."
+
+                    net_force += p_e.m * scaled_repulsive_force( r )
+
+    ########################################################################
+
+    def setup( self ):
+
+
