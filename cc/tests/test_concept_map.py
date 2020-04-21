@@ -77,9 +77,9 @@ class TestManualEvaluation( unittest.TestCase ):
 
         # Test
         self.cm.save( fp )
-        cm = concept_map.ConceptMap.load( fp )
+        cm = cc.concept_map.ConceptMap.load( fp )
 
-        npt.assert_allclose( cm.concepts, self.cm.concepts )
+        assert cm.concepts == self.cm.concepts
         npt.assert_allclose( cm.weights, self.cm.weights )
         npt.assert_allclose( cm.relation_matrix, self.cm.relation_matrix )
     

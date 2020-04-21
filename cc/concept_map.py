@@ -2,6 +2,7 @@ import itertools
 import numpy as np
 
 import augment
+import verdict
 
 ########################################################################
 
@@ -84,3 +85,37 @@ class ConceptMap( object ):
 
                 self.relation_matrix[i,j] = value
 
+    ########################################################################
+
+    def save( self, filepath ):
+        '''Save the concept map to a .hdf5 file.
+
+        Args:
+            filepath (str): Location to save the file.
+        '''
+
+        # Prep
+        data = verdict.Dict( {} )
+        for attr in [ 'concepts', 'weights', 'relation_matrix' ]:
+            data[attr] = getattr( self, attr )
+
+        # Save
+        data.to_hdf5( filepath )
+
+    ########################################################################
+
+    @classmethod
+    def load( cls, filepath ):
+        '''Load a concept map from a .hdf5 file.
+
+        Args:
+            filepath (str): Where to load the file from.
+        '''
+
+        data = verdict.Dict.from_hdf5( filepath )
+
+        result = ConceptMap( list( data['concepts'] ) )
+        result.weights = data['weights']
+        result.relation_matrix = data['relation_matrix']
+
+        return result
