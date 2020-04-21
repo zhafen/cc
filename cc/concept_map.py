@@ -64,7 +64,7 @@ class ConceptMap( object ):
         '''
 
         # Store weights
-        self.weights = weights
+        self.weights = np.array([ weights[c] for c in self.concepts ])
 
         n = len( self.concepts )
         self.relation_matrix = np.full( ( n, n ), -1.0 )

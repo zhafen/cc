@@ -52,11 +52,34 @@ class TestManualEvaluation( unittest.TestCase ):
 
         self.cm.finish_evaluation( weights, relations )
 
+        expected_weights = np.array([ weights[c] for c in self.cm.concepts ])
         expected_relation_matrix = np.array([
             [ 1.0, 0.9, 0.3, ],
             [ 0.9, 1.0, 0.2, ],
             [ 0.3, 0.2, 1.0, ],
         ])
 
-        assert weights == self.cm.weights
+        npt.assert_allclose( expected_weights, self.cm.weights )
         npt.assert_allclose( expected_relation_matrix, self.cm.relation_matrix )
+
+    ########################################################################
+
+    def test_save_and_load( self ):
+
+        # Setup
+        fp = './tests/data/example_concept_map.hdf5'
+        self.cm.weights = np.array([ 0.5, 0.5, 1.0 ])
+        self.cm.relation_matrix = np.array([
+            [ 1.0, 0.9, 0.3, ],
+            [ 0.9, 1.0, 0.2, ],
+            [ 0.3, 0.2, 1.0, ],
+        ])
+
+        # Test
+        self.cm.save( fp )
+        cm = concept_map.ConceptMap.load( fp )
+
+        npt.assert_allclose( cm.concepts, self.cm.concepts )
+        npt.assert_allclose( cm.weights, self.cm.weights )
+        npt.assert_allclose( cm.relation_matrix, self.cm.relation_matrix )
+    
