@@ -1,3 +1,4 @@
+import copy
 import itertools
 import nltk
 import numpy as np
@@ -160,9 +161,11 @@ class ConceptMap( object ):
         self,
         concepts = None,
         ax = None,
+        x_axis = 'weight_sorted',
         colors = None,
         axis_fontsize = 18,
         fontsize = 16,
+        recursively_fix_overlaps = False,
         y_jitter = None,
         compress_concepts_horizontally = True,
     ):
@@ -200,7 +203,7 @@ class ConceptMap( object ):
 
         # When no axis is provided
         if ax is None:
-            fig = plt.figure( figsize=(11, 10), facecolor='w' )
+            fig = plt.figure( figsize=(15, 5), facecolor='w' )
             ax = plt.gca()
 
         # Setup an automatic colorscheme
@@ -211,15 +214,43 @@ class ConceptMap( object ):
                 palettable.cartocolors.qualitative,
                 colorscheme_name,
             )
-            colors = colorscheme.mpl_colors
+            colors = {}
+            for i, c in enumerate( concepts ):
+                colors[c] = colorscheme.mpl_colors[i]
+
+        # With constant spacing
+        weights = []
+        for i, c in enumerate( self.concepts ):
+            if c in concepts:
+                weights.append( self.weights[i] )
+        if x_axis == 'weight_sorted':
+            # Sort concepts
+            sorted_concepts = [
+                c for _, c in 
+                sorted(zip(weights, concepts))
+            ]
+            # Finish up with x values
+            n_x = len( self.weights )
+            values = np.arange( n_x )[::-1]
+            xs = {}
+            for i, c in enumerate( sorted_concepts ):
+                xs[c] = values[i]
+        elif x_axis == 'weights':
+            xs = {}
+            for i, c in concepts:
+                xs[c] = weights[i]
 
         # Loop through and plot
-        for i, c_x in enumerate( concepts ):
+        for i, c_x in enumerate( self.concepts ):
 
-            color = colors[i]
+            # Skip not plotted concepts
+            if c_x not in concepts:
+                continue
+
+            color = colors[c_x]
 
             # X position based on weights
-            x = self.weights[i]
+            x = xs[c_x]
 
             # Change spaces to enters
             if compress_concepts_horizontally:
@@ -249,18 +280,28 @@ class ConceptMap( object ):
                 linewidth = 3,
             )
 
-            for j, c_y in enumerate( concepts ):
+            # Loop through and plot
+            annots = []
+            c_ys = []
+            ys = []
+            for j, c_y in enumerate( self.concepts ):
 
-                # Change spaces to enters
-                if compress_concepts_horizontally:
-                    c_words = nltk.word_tokenize( c_y )
-                    c_str = '\n'.join( c_words )
+                # Skip not plotted concepts
+                if c_y not in concepts:
+                    continue
 
                 # Skip same concept
                 if i == j:
                     continue
 
-                # Y position based on relation
+                # Change spaces to enters
+                if compress_concepts_horizontally:
+                    c_words = nltk.word_tokenize( c_y )
+                    c_str = '\n'.join( c_words )
+                else:
+                    c_str = c_y
+
+                # Get y value
                 y = self.relation_matrix[i,j]
 
                 # Induce jitter when requested
@@ -268,20 +309,100 @@ class ConceptMap( object ):
                     y += np.random.uniform( -y_jitter, y_jitter )
 
                 # Annotate
-                ax.annotate(
+                annot = ax.annotate(
                     s = c_str,
                     xy = ( x, y ),
                     xycoords = 'data',
-                    xytext = ( 5, -5. ),
-                    textcoords = 'offset points',
                     va = 'center',
                     ha = 'left',
                     fontsize = fontsize,
-                    color = colors[j],
+                    color = 'grey',
                 )
+
+                # Draw so we can modify
+                annot.draw(ax.figure.canvas.get_renderer())
+
+                annots.append( annot )
+                c_ys.append( c_y )
+                ys.append( y )
+
+            def shift_for_overlap( anns ):
+
+                # Loop back through and avoid overlap. 
+                modified = []
+                for ii, annot_i in enumerate( anns ):
+
+                    # Avoid modifying twice
+                    if ii in modified:
+                        continue
+
+                    # Draw so we can modify
+                    bbox_i = annot_i.get_window_extent()
+
+                    for jj, annot_j in enumerate( anns ):
+
+                        # Don't move if same one
+                        if ii == jj:
+                            continue
+
+                        if jj in modified:
+                            continue
+
+                        bbox_j = annot_j.get_window_extent()
+
+                        # Find overlaps
+                        overlap_a = bbox_i.y0 - bbox_j.y1
+                        overlap_b = bbox_j.y0 - bbox_i.y1
+                        if ( overlap_a < 0 ) and ( overlap_b < 0 ):
+
+                            # Get the appropriate transform
+                            t = matplotlib.transforms.offset_copy(
+                                annot_j.get_transform(),
+                                y = overlap_a*1.01,
+                                units = 'dots',
+                            )
+
+                            # Apply
+                            annot_j.set_transform( t )
+                            modified.append( jj )
+
+                return anns, len( modified )
+
+            # Loop until all overlaps are gone
+            n_mod = len( annots )
+            while n_mod > 0:
+                annots, n_mod = shift_for_overlap( annots )
+
+            # Loop through and actually draw
+            for j, c_y in enumerate( c_ys ):
+
+                annot_j = annots[j]
+
+                # Change spaces to enters
+                if compress_concepts_horizontally:
+                    c_words = nltk.word_tokenize( c_y )
+                    c_str = '\n'.join( c_words )
+                else:
+                    c_str = c_y
+
+                annot = ax.annotate(
+                    c_str,
+                    xy = ( x, ys[j] ),
+                    xycoords = annot_j.get_transform(),
+                    xytext = ( 5, 0 ),
+                    textcoords = 'offset points',
+                    fontsize = fontsize,
+                    color = colors[c_y],
+                    va = 'center',
+                    ha = 'left',
+                )
+
+                annot_j.remove()
 
         ax.set_xlabel( 'Weight', fontsize=22 )
         ax.set_ylabel( 'Relation', fontsize=22 )
 
         # Tweak
         ax.set_ylim( 0., 1. )
+
+        return annot_j
