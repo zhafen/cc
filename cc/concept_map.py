@@ -24,7 +24,7 @@ class ConceptMap( object ):
     # Map Construction
     ########################################################################
 
-    def start_evaluation( self ):
+    def start_evaluation( self, concepts=None ):
         '''Yields the concepts and relations that need to be evaluated for the
         concept map to be complete.
 
@@ -36,9 +36,20 @@ class ConceptMap( object ):
                 Relations missing information needed to complete the map.
         '''
 
+        if concepts is None:
+            concepts = self.concepts
+
+        # Don't request concepts for which data exists
+        if hasattr( self, 'weights' ):
+            requested_concepts = list(
+                set( concepts ) - set( self.concepts )
+            )
+        else:
+            requested_concepts = concepts
+
         # Evaluate relations to request
         concept_products = list(
-            itertools.product( self.concepts, self.concepts )
+            itertools.product( requested_concepts, self.concepts )
         )
         requested_relations = []
         for concept_product in concept_products:
@@ -49,11 +60,11 @@ class ConceptMap( object ):
             else:
                 requested_relations.append( concept_product )
 
-        return self.concepts, requested_relations
+        return requested_concepts, requested_relations
 
     ########################################################################
 
-    def finish_evaluation( self, weights, relations ):
+    def finish_evaluation( self, weights, relations, concepts=None, ):
         '''Store the evaluated concept map in a useful format.
 
         Args:
@@ -73,9 +84,29 @@ class ConceptMap( object ):
                 Matrix expressing the relationship between concepts.
         '''
 
-        # Store weights
+        # Update weight dictionary using existing data
+        if hasattr( self, 'weights' ):
+            for i, c in enumerate( self.concepts ):
+                # Don't overwrite new weights
+                if c in weights:
+                    continue
+                weights[c] = self.weights[i]
+
+        # Update relation dictionary using existing data
+        if hasattr( self, 'relation_matrix' ):
+            for i, c_i in enumerate( self.concepts ):
+                for j, c_j in enumerate( self.concepts ):
+                    # Don't overwrite new relations
+                    if ( c_i, c_j ) in relations or ( c_j, c_i ) in relations:
+                        continue
+                    relations[( c_i, c_j )] = self.relation_matrix[i,j]
+        
+        # Store concepts and weights
+        if concepts is not None:
+            self.concepts = concepts
         self.weights = np.array([ weights[c] for c in self.concepts ])
 
+        # Store relations
         n = len( self.concepts )
         self.relation_matrix = np.full( ( n, n ), -1.0 )
         for i, c_i in enumerate( self.concepts ):
@@ -96,25 +127,25 @@ class ConceptMap( object ):
 
     ########################################################################
 
-    def user_evaluation( self ):
+    def user_evaluation( self, requested_concepts=None ):
 
         # Get the requested values to evaluate
-        req_concepts, req_relations = self.start_evaluation()
+        unk_concepts, unk_relations = self.start_evaluation( requested_concepts )
 
         # Weights
         print( '\nPlease provide weights for the following.' )
         weights = {}
-        for concept in req_concepts:
+        for concept in unk_concepts:
             weights[concept] = float( input( '{} :'.format( concept ) ) )
 
         # Relations
         print( '\nPlease provide relations for the following.' )
         relations = {}
-        for relation in req_relations:
+        for relation in unk_relations:
             relations[relation] = float( input( '{} :'.format( relation ) ) )
 
         # Finish up
-        self.finish_evaluation( weights, relations )
+        self.finish_evaluation( weights, relations, requested_concepts, )
 
     ########################################################################
     # Data Management
