@@ -218,11 +218,12 @@ class ConceptMap( object ):
             for i, c in enumerate( concepts ):
                 colors[c] = colorscheme.mpl_colors[i]
 
-        # With constant spacing
         weights = []
         for i, c in enumerate( self.concepts ):
             if c in concepts:
                 weights.append( self.weights[i] )
+        weights = np.array( weights )
+        # With constant spacing
         if x_axis == 'weight_sorted':
             # Sort concepts
             sorted_concepts = [
@@ -230,7 +231,7 @@ class ConceptMap( object ):
                 sorted(zip(weights, concepts))
             ]
             # Finish up with x values
-            n_x = len( self.weights )
+            n_x = len( weights )
             values = np.arange( n_x )[::-1]
             xs = {}
             for i, c in enumerate( sorted_concepts ):
@@ -399,10 +400,33 @@ class ConceptMap( object ):
 
                 annot_j.remove()
 
-        ax.set_xlabel( 'Weight', fontsize=22 )
+        # Add bars indicating importance
+        x_bar = [ xs[c] for c in concepts ]
+        color_bar = [ colors[c] for c in concepts ]
+        heights = weights * 0.2 / weights.max()
+        ax.bar(
+            x_bar,
+            heights,
+            width = 0.4,
+            align = 'edge',
+            color = color_bar,
+        )
+
+        # Labels
+        x_label = {
+            'weight_sorted': 'Importance',
+            'weights': 'Weight',
+        }
+        ax.set_xlabel( x_label[x_axis], fontsize=22 )
         ax.set_ylabel( 'Relation', fontsize=22 )
 
-        # Tweak
+        # Limits
         ax.set_ylim( 0., 1. )
+        x_vals = list( xs.values() )
+        ax.set_xlim( min( x_vals ) - 0.5, max( x_vals ) + 1 )
+
+        # Edge tweaks
+        if x_axis == 'weight_sorted':
+            ax.tick_params( bottom=False, labelbottom=False )
 
         return annot_j
