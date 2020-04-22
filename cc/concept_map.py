@@ -51,6 +51,12 @@ class ConceptMap( object ):
         concept_products = list(
             itertools.product( requested_concepts, self.concepts )
         )
+        concept_products += list(
+            itertools.product( requested_concepts, requested_concepts )
+        )
+
+        # Remove extras
+        concept_products = list( set( concept_products ) )
         requested_relations = []
         for concept_product in concept_products:
             if concept_product[0] == concept_product[1]:

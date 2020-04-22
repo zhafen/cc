@@ -26,14 +26,23 @@ class TestConceptMap( unittest.TestCase ):
         ]
         expected_relations = [
             ( 'red', 'blue' ),
-            ( 'red', 'dog' ),
-            ( 'blue', 'dog' ),
+            ( 'dog', 'blue' ),
+            ( 'dog', 'red' ),
         ]
 
         requested_weights, requested_relations = self.cm.start_evaluation()
 
         assert expected_weights == requested_weights
-        assert expected_relations == requested_relations
+        for r in expected_relations:
+            try:
+                assert r in requested_relations
+            except:
+                assert r[::-1] in requested_relations
+        for r in requested_relations:
+            try:
+                assert r in expected_relations
+            except:
+                assert r[::-1] in expected_relations
 
     ########################################################################
     
@@ -53,21 +62,31 @@ class TestConceptMap( unittest.TestCase ):
         self.cm.finish_evaluation( weights, relations )
 
         concepts = [ 'red', 'blue', 'dog', 'cat', 'bird' ]
-        expected_concepts = [ 'cat', 'bird' ]
+        expected_weights = [ 'cat', 'bird' ]
         expected_relations = [
             ( 'cat', 'red' ),
             ( 'cat', 'blue' ),
             ( 'cat', 'dog' ),
-            ( 'cat', 'bird' ),
+            ( 'bird', 'cat' ),
             ( 'bird', 'red' ),
             ( 'bird', 'blue' ),
             ( 'bird', 'dog' ),
         ]
+        requested_weights, requested_relations = self.cm.start_evaluation(
+            concepts,
+        )
 
-        requested_weights, requested_relations = self.cm.start_evaluation()
-
-        assert expected_weights == requested_weights
-        assert expected_relations == requested_relations
+        assert sorted( expected_weights ) == sorted( requested_weights )
+        for r in expected_relations:
+            try:
+                assert r in requested_relations
+            except:
+                assert r[::-1] in requested_relations
+        for r in requested_relations:
+            try:
+                assert r in expected_relations
+            except:
+                assert r[::-1] in expected_relations
 
     ########################################################################
 
