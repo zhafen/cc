@@ -36,6 +36,40 @@ class TestConceptMap( unittest.TestCase ):
         assert expected_relations == requested_relations
 
     ########################################################################
+    
+    def test_start_evaluation_existing( self ):
+
+        # Initial setup
+        weights = {
+            'red': 0.5,
+            'blue': 0.5,
+            'dog': 1.0,
+        }
+        relations = {
+            ( 'red', 'blue' ): 0.9,
+            ( 'red', 'dog' ): 0.3,
+            ( 'blue', 'dog' ): 0.2,
+        }
+        self.cm.finish_evaluation( weights, relations )
+
+        concepts = [ 'red', 'blue', 'dog', 'cat', 'bird' ]
+        expected_concepts = [ 'cat', 'bird' ]
+        expected_relations = [
+            ( 'cat', 'red' ),
+            ( 'cat', 'blue' ),
+            ( 'cat', 'dog' ),
+            ( 'cat', 'bird' ),
+            ( 'bird', 'red' ),
+            ( 'bird', 'blue' ),
+            ( 'bird', 'dog' ),
+        ]
+
+        requested_weights, requested_relations = self.cm.start_evaluation()
+
+        assert expected_weights == requested_weights
+        assert expected_relations == requested_relations
+
+    ########################################################################
 
     def test_finish_evaluation( self ):
 

@@ -148,6 +148,36 @@ class ConceptMap( object ):
         self.finish_evaluation( weights, relations, requested_concepts, )
 
     ########################################################################
+    # Map Functions
+    ########################################################################
+
+    def find_most_related( self, concept, n=10 ):
+        '''Find the concepts most related to a given concept.
+
+        Args:
+            concept (str):
+                The concept to relate to.
+
+            n (int):
+                Number of concepts to return, in order.
+
+        Returns:
+            related_concepts (np.ndarray of strs):
+                The n most related concepts.
+        '''
+
+        # Find the corresponding indice for a concept
+        inds = np.arange( len( self.concepts ) )
+        ind = inds[np.array(self.concepts)==concept][0]
+
+        # Sort and return
+        sort_inds = np.argsort( self.relation_matrix[ind,:] )
+        concept_inds = sort_inds[-n:]
+        related_concepts = np.array( self.concepts )[concept_inds]
+
+        return related_concepts
+
+    ########################################################################
     # Data Management
     ########################################################################
 
@@ -191,12 +221,14 @@ class ConceptMap( object ):
     def plot_relation_vs_weight(
         self,
         concepts = None,
+        n_concepts = 10,
+        y_concepts = 'most related',
+        n_y_concepts = None,
+        x_axis = 'weight sorted',
         ax = None,
-        x_axis = 'weight_sorted',
         colors = None,
-        axis_fontsize = 18,
-        fontsize = 16,
-        recursively_fix_overlaps = False,
+        axis_fontsize = 20,
+        fontsize = 18,
         y_jitter = None,
         compress_concepts_horizontally = True,
     ):
@@ -205,8 +237,29 @@ class ConceptMap( object ):
         context of the user).
 
         Args:
-            concepts (list of strs):
-                Concepts to plot.
+            concepts (None, list of strs, or str):
+                Options...
+                    None: All concepts.
+                    list of strs: The provided concepts.
+                    'most weighted': The n_concepts with highest weights.
+                    a concept: The n_concepts most related to the concept.
+
+            n_concepts (int):
+                Number of x-axis concepts.
+
+            y_concepts (str):
+                Options...
+                    'most related': The n_y_concepts most related to the
+                        x-axis concept.
+                    'x concepts': The concepts on the x-axis.
+
+            n_concepts (int):
+                Number of y-axis concepts.
+
+            x_axis (str):
+                What to plot on the x-axis. Options...
+                    'weight sorted': Bar chart sorted by weight.
+                    'weights': Each line is at the location of the weight.
 
             ax (axis object):
                 Matplotlib axis to plot on, if provided.
@@ -231,6 +284,18 @@ class ConceptMap( object ):
         # Default to all concepts
         if concepts is None:
             concepts = self.concepts
+        elif isinstance( concepts, str ):
+            if concepts == 'most weighted':
+                sort_inds = np.argsort( self.weights )
+                concept_inds = sort_inds[-n_concepts:]
+                concepts = np.array( self.concepts )[concept_inds]
+            else:
+                concepts = self.find_most_related( concepts, n_concepts )
+
+        # Number of y concepts to plot
+        if y_concepts == 'most related':
+            if n_y_concepts is None:
+                n_y_concepts = len( concepts )
 
         # When no axis is provided
         if ax is None:
@@ -255,7 +320,7 @@ class ConceptMap( object ):
                 weights.append( self.weights[i] )
         weights = np.array( weights )
         # With constant spacing
-        if x_axis == 'weight_sorted':
+        if x_axis == 'weight sorted':
             # Sort concepts
             sorted_concepts = [
                 c for _, c in 
@@ -312,6 +377,12 @@ class ConceptMap( object ):
                 linewidth = 3,
             )
 
+            # Get y concepts
+            if y_concepts == 'most related':
+                used_y_concepts = self.find_most_related( c_x, n_y_concepts )
+            elif y_concepts == 'x concepts':
+                used_y_concepts = concepts
+
             # Loop through and plot
             annots = []
             c_ys = []
@@ -319,7 +390,7 @@ class ConceptMap( object ):
             for j, c_y in enumerate( self.concepts ):
 
                 # Skip not plotted concepts
-                if c_y not in concepts:
+                if c_y not in used_y_concepts:
                     continue
 
                 # Skip same concept
@@ -417,6 +488,11 @@ class ConceptMap( object ):
                 else:
                     c_str = c_y
 
+                try:
+                    color = colors[c_y]
+                except KeyError:
+                    color = '0.3'
+
                 annot = ax.annotate(
                     c_str,
                     xy = ( x, ys[j] ),
@@ -424,7 +500,7 @@ class ConceptMap( object ):
                     xytext = ( 5, 0 ),
                     textcoords = 'offset points',
                     fontsize = fontsize,
-                    color = colors[c_y],
+                    color = color,
                     va = 'center',
                     ha = 'left',
                 )
@@ -445,7 +521,7 @@ class ConceptMap( object ):
 
         # Labels
         x_label = {
-            'weight_sorted': 'Importance',
+            'weight sorted': 'Importance',
             'weights': 'Weight',
         }
         ax.set_xlabel( x_label[x_axis], fontsize=22 )
@@ -457,7 +533,7 @@ class ConceptMap( object ):
         ax.set_xlim( min( x_vals ) - 0.5, max( x_vals ) + 1 )
 
         # Edge tweaks
-        if x_axis == 'weight_sorted':
+        if x_axis == 'weight sorted':
             ax.tick_params( bottom=False, labelbottom=False )
 
         return annot_j
