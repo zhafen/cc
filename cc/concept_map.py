@@ -66,6 +66,9 @@ class ConceptMap( object ):
             else:
                 requested_relations.append( concept_product )
 
+        # Sort
+        requested_relations = sorted( requested_relations )
+
         return requested_concepts, requested_relations
 
     ########################################################################
@@ -181,7 +184,7 @@ class ConceptMap( object ):
         concept_inds = sort_inds[-n:]
         related_concepts = np.array( self.concepts )[concept_inds]
 
-        return related_concepts
+        return related_concepts, concept_inds
 
     ########################################################################
     # Data Management
@@ -290,13 +293,21 @@ class ConceptMap( object ):
         # Default to all concepts
         if concepts is None:
             concepts = self.concepts
+            weights = self.weights
         elif isinstance( concepts, str ):
             if concepts == 'most weighted':
                 sort_inds = np.argsort( self.weights )
-                concept_inds = sort_inds[-n_concepts:]
-                concepts = np.array( self.concepts )[concept_inds]
+                concepts = np.array( self.concepts )[sort_inds][-n_concepts:]
+                weights = np.array( self.weights )[sort_inds][-n_concepts:]
             else:
-                concepts = self.find_most_related( concepts, n_concepts )
+                concepts, inds = self.find_most_related( concepts, n_concepts )
+                weights = self.weights[inds]
+        else:
+            weights = []
+            for i, c in enumerate( self.concepts ):
+                if c in concepts:
+                    weights.append( self.weights[i] )
+        weights = np.array( weights )
 
         # Number of y concepts to plot
         if y_concepts == 'most related':
@@ -320,11 +331,6 @@ class ConceptMap( object ):
             for i, c in enumerate( concepts ):
                 colors[c] = colorscheme.mpl_colors[i]
 
-        weights = []
-        for i, c in enumerate( self.concepts ):
-            if c in concepts:
-                weights.append( self.weights[i] )
-        weights = np.array( weights )
         # With constant spacing
         if x_axis == 'weight sorted':
             # Sort concepts
@@ -385,7 +391,7 @@ class ConceptMap( object ):
 
             # Get y concepts
             if y_concepts == 'most related':
-                used_y_concepts = self.find_most_related( c_x, n_y_concepts )
+                used_y_concepts, _ = self.find_most_related( c_x, n_y_concepts )
             elif y_concepts == 'x concepts':
                 used_y_concepts = concepts
 
@@ -497,7 +503,7 @@ class ConceptMap( object ):
                 try:
                     color = colors[c_y]
                 except KeyError:
-                    color = '0.3'
+                    color = 'k'
 
                 annot = ax.annotate(
                     c_str,
