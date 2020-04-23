@@ -303,6 +303,9 @@ class ConceptMap( object ):
                 If True, new words within a concept continue on the next line.
         '''
 
+        # Account for the fact that the concept counts itself
+        n_y_concepts += 1
+
         # Default to all concepts
         if concepts is None:
             concepts = self.concepts
