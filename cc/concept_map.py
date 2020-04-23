@@ -139,22 +139,35 @@ class ConceptMap( object ):
     def user_evaluation( self, requested_concepts=None ):
 
         # Get the requested values to evaluate
-        unk_concepts, unk_relations = self.start_evaluation( requested_concepts )
+        req_concepts, req_relations = self.start_evaluation( requested_concepts )
 
         # Weights
         print( '\nPlease provide weights for the following.' )
         weights = {}
-        for concept in unk_concepts:
+        for concept in req_concepts:
             weights[concept] = float( input( '{} :'.format( concept ) ) )
 
         # Relations
         print( '\nPlease provide relations for the following.' )
         relations = {}
-        for relation in unk_relations:
+        for relation in req_relations:
             relations[relation] = float( input( '{} :'.format( relation ) ) )
 
         # Finish up
         self.finish_evaluation( weights, relations, requested_concepts, )
+
+    ########################################################################
+
+    def user_update_weights( self ):
+
+        # Weights
+        print( '\nPlease confirm weights for the following.' )
+
+        for i, c in enumerate( self.concepts ):
+            s = input( '{} = {}'.format( c, self.weights[i] ) )
+            if s == '':
+                continue
+            self.weights[i] = float( s )
 
     ########################################################################
     # Map Functions
@@ -303,10 +316,13 @@ class ConceptMap( object ):
                 concepts, inds = self.find_most_related( concepts, n_concepts )
                 weights = self.weights[inds]
         else:
+            new_concepts = []
             weights = []
             for i, c in enumerate( self.concepts ):
                 if c in concepts:
+                    new_concepts.append( c )
                     weights.append( self.weights[i] )
+            concepts = new_concepts
         weights = np.array( weights )
 
         # Number of y concepts to plot
