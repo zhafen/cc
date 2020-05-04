@@ -8,9 +8,16 @@ import augment
 class Publication( object ):
 
     @augment.store_parameters
-    def __init__( self, citation_key ):
+    def __init__(
+        self,
+        citation_key,
+        notes_categories = [ 'key_concepts', 'key_points', 'uncategorized' ],
+    ):
 
-        pass
+        # Setup notes dictionary
+        self.notes = {}
+        for cat in self.notes_categories:
+            self.notes[cat] = []
 
     ########################################################################
     # Data Retrieval
@@ -114,24 +121,27 @@ class Publication( object ):
                 Dictionary containing processed bibtex annotations.
         '''
 
-        # Load the data
-        if bibtex_fp is None:
-            annotation = self.citation['annote']
-        else:
-            self.read_citation( bibtex_fp )
-            annotation = self.citation['annote']
+        try:
+            # Load the data
+            if bibtex_fp is None:
+                annotation = self.citation['annote']
+            else:
+                self.read_citation( bibtex_fp )
+                annotation = self.citation['annote']
+        # When no annotation is found
+        except KeyError:
+            return
 
         # Process the annotation
         annote_lines = annotation.split( '\n' )
 
         # Process the annotation
-        self.notes = {}
         for line in annote_lines:
             self.notes = self.process_annotation_line( line, self.notes )
 
     ########################################################################
 
-    def process_annotation_line( self, line, notes={} ):
+    def process_annotation_line( self, line, notes=None ):
         '''Process a line of annotation to extract more information.
 
         Args:
@@ -145,6 +155,9 @@ class Publication( object ):
             notes (dict):
                 A dictionary containing updates notes on annotations.
         '''
+
+        if notes is None:
+            notes = self.notes
 
         # Empty lines
         if line == '':
@@ -170,28 +183,19 @@ class Publication( object ):
                     key_concept = key_concept.replace( ']', '' )
                     key_concepts.append( key_concept )
             # Store
-            if 'key_concepts' not in notes:
-                notes['key_concepts'] = [ key_concepts, ]
-            else:
-                notes['key_concepts'].append( key_concepts )
+            notes['key_concepts'].append( key_concepts )
             notes['key_concepts'] = [
                 list( set( key_concepts ) )
                 for key_concepts in
                 notes['key_concepts']
             ]
-            if 'key_points' not in notes:
-                notes['key_points'] = [ line, ]
-            else:
-                notes['key_points'].append( line )
+            notes['key_points'].append( line )
         # For flags
         elif line[0] == '!':
             variable, value = line[1:].split( '=' )
             notes[variable] = value
         # Otherwise
         else:
-            if 'uncategorized' not in notes:
-                notes['uncategorized'] = [ line, ]
-            else:
-                notes['uncategorized'].append( line )
+            notes['uncategorized'].append( line )
 
         return notes
