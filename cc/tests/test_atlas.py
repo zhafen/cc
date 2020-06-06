@@ -52,6 +52,8 @@ class TestKeyConcepts( unittest.TestCase ):
 
     def test_unique_key_concepts_forgotten_space( self ):
 
+        np.random.seed( 1234 )
+
         self.a._all_key_concepts = [
             'dog',
             'dogs',

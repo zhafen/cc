@@ -303,9 +303,6 @@ class ConceptMap( object ):
                 If True, new words within a concept continue on the next line.
         '''
 
-        # Account for the fact that the concept counts itself
-        n_y_concepts += 1
-
         # Default to all concepts
         if concepts is None:
             concepts = self.concepts
@@ -332,6 +329,9 @@ class ConceptMap( object ):
         if y_concepts == 'most related':
             if n_y_concepts is None:
                 n_y_concepts = len( concepts )
+            else:
+                # Account for the fact that the concept counts itself
+                n_y_concepts += 1
 
         # When no axis is provided
         if ax is None:
