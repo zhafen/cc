@@ -150,6 +150,7 @@ class Publication( object ):
 
             notes (dict):
                 The dictionary storing notes on various lines.
+                Defaults to using self.notes.
 
         Returns:
             notes (dict):
@@ -166,7 +167,7 @@ class Publication( object ):
         elif '[' in line and ']' in line:
 
             assert (
-                line.count( '[' ) == line.count( ']' ),
+                ( line.count( '[' ) == line.count( ']' ) ),
                 'Mismatch in number of brackets ([) for line {}'.format( line )
             )
 
