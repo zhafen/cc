@@ -42,11 +42,18 @@ class TestKeyConcepts( unittest.TestCase ):
             'kitty cat',
         ]
 
-        expected = set( [
-            'dog',
-            'kitti cat',
-        ] )
-        assert self.a.get_unique_key_concepts() == expected
+        try:
+            expected = set( [
+                'dog',
+                'kitti cat',
+            ] )
+            assert self.a.get_unique_key_concepts() == expected
+        except AssertionError:
+            expected = set( [
+                'kitti cat',
+                'dog',
+            ] )
+            assert self.a.get_unique_key_concepts() == expected
 
     ########################################################################
 
