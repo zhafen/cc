@@ -25,6 +25,21 @@ class TestRetrieveData( unittest.TestCase ):
 
         assert self.a.data['Hafen2019'].citation['eprint'] == '1811.11753'
 
+    ########################################################################
+
+    def test_process_bibtex_anotations( self ):
+
+        self.a.data.process_bibtex_annotations()
+
+        before = copy.deepcopy( self.a.data['Hafen2019'].notes )
+
+        # Make sure that it caches
+        self.a.data.process_bibtex_annotations()
+
+        after = self.a.data['Hafen2019'].notes
+
+        assert before == after
+
 ########################################################################
 
 class TestKeyConcepts( unittest.TestCase ):

@@ -19,6 +19,9 @@ class Publication( object ):
         for cat in self.notes_categories:
             self.notes[cat] = []
 
+        # For recording what data has been retrieved
+        self.cached_bibtex_fp = 'not processed'
+
     ########################################################################
     # Data Retrieval
     ########################################################################
@@ -108,7 +111,7 @@ class Publication( object ):
     # Publication Analysis
     ########################################################################
 
-    def process_bibtex_annotations( self, bibtex_fp=None ):
+    def process_bibtex_annotations( self, bibtex_fp=None, reload=False ):
         '''Process notes residing in a .bib file.
 
         Args:
@@ -116,10 +119,17 @@ class Publication( object ):
                 Filepath of the .bib file. Defaults to assuming one
                 is already loaded.
 
+            reload (bool):
+                Forcibly reprocess annotations, even if already processed.
+
         Modifies:
             self.notes (dict):
                 Dictionary containing processed bibtex annotations.
         '''
+
+        # If already processed
+        if not reload and self.cached_bibtex_fp == bibtex_fp:
+            return
 
         try:
             # Load the data
@@ -128,6 +138,7 @@ class Publication( object ):
             else:
                 self.read_citation( bibtex_fp )
                 annotation = self.citation['annote']
+
         # When no annotation is found
         except KeyError:
             return
@@ -138,6 +149,8 @@ class Publication( object ):
         # Process the annotation
         for line in annote_lines:
             self.notes = self.process_annotation_line( line, self.notes )
+
+        self.cached_bibtex_fp = bibtex_fp
 
     ########################################################################
 

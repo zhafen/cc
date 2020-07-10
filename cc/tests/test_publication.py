@@ -134,6 +134,22 @@ class TestPublicationAnalysis( unittest.TestCase ):
 
     ########################################################################
 
+    def test_process_bibtex_annotations_cached( self ):
+
+        # Run the function
+        p = cc.publication.Publication( 'Hafen2019' )
+        bibtex_fp = './tests/data/example_atlas/example.bib'
+        p.process_bibtex_annotations( bibtex_fp )
+        p.process_bibtex_annotations( bibtex_fp )
+
+        assert len( p.notes['key_points'] ) == 9
+
+        assert p.notes['uncategorized'] == [
+            r"Test junk I'm leaving here....",
+        ]
+
+    ########################################################################
+
     def test_process_annotation_default( self ):
 
         # Setup
