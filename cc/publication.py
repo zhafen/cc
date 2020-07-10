@@ -3,6 +3,8 @@ import bibtexparser
 
 import augment
 
+import relation
+
 ########################################################################
 
 class Publication( object ):
@@ -184,19 +186,8 @@ class Publication( object ):
                 'Mismatch in number of brackets ([) for line {}'.format( line )
             )
 
-            # Parse key concepts, including nested brackets
-            key_concepts = []
-            stack = []
-            for i, char in enumerate( line ):
-                if char == '[':
-                    stack.append( i )
-                elif char == ']' and stack:
-                    start = stack.pop()
-                    key_concept = line[start+1:i]
-                    key_concept = key_concept.replace( '[', '' )
-                    key_concept = key_concept.replace( ']', '' )
-                    key_concepts.append( key_concept )
-            # Store
+            # Parse and store key concepts
+            key_concepts = relation.parse_relation_for_key_concepts( line )
             notes['key_concepts'].append( key_concepts )
             notes['key_concepts'] = [
                 list( set( key_concepts ) )
@@ -213,3 +204,14 @@ class Publication( object ):
             notes['uncategorized'].append( line )
 
         return notes
+
+    ########################################################################
+    # Comparing to other publications
+    ########################################################################
+ 
+    def inner_product(
+        self,
+        other
+    ):
+
+        pass
