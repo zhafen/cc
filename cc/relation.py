@@ -4,15 +4,25 @@ from . import concept
 
 ########################################################################
 
-def inner_product( a, b ):
+def inner_product( a, b, max_edit_distance=1 ):
     '''The inner product between two relations.
+    Fiducially defined as the number of shared key concepts.
+
+    Args:
+        max_edit_distance (int):
+            Maximum Levenshtein edit-distance between two concepts for them
+            to count as the same concept.
+
+    Returns:
+        result (int):
+            The number of shared key concepts between two relations.
     '''
 
-    a_kcs = parse_relation_for_key_concepts( a )
-    b_kcs = parse_relation_for_key_concepts( b )
+    a_kcs = parse_relation_for_key_concepts( a, word_per_concept=True )
+    b_kcs = parse_relation_for_key_concepts( b, word_per_concept=True )
 
-    a_kcs = concept.uniquify_concepts( a_kcs )
-    b_kcs = concept.uniquify_concepts( b_kcs )
+    a_kcs = concept.uniquify_concepts( a_kcs, max_edit_distance )
+    b_kcs = concept.uniquify_concepts( b_kcs, max_edit_distance )
 
     result = 0
     for a_kc in a_kcs:
@@ -24,12 +34,16 @@ def inner_product( a, b ):
 
 ########################################################################
 
-def parse_relation_for_key_concepts( point ):
+def parse_relation_for_key_concepts( a, word_per_concept=False ):
     '''Parse a formatted relation for key_concepts, including nested brackets.
 
     Args:
-        point (str):
+        a (str):
             The written relation you want to parse.
+
+        word_per_concept (bool):
+            If True, limit concepts to one word per concept, and break down
+            multi-word concepts (including nested concepts) into individuals.
 
     Returns:
         list of strs:
@@ -39,14 +53,25 @@ def parse_relation_for_key_concepts( point ):
     # Parse key concepts, including nested brackets
     key_concepts = []
     stack = []
-    for i, char in enumerate( point ):
+    nesting = 0
+    for i, char in enumerate( a ):
         if char == '[':
+            nesting += 1
             stack.append( i )
         elif char == ']' and stack:
+            nesting -= 1
             start = stack.pop()
-            key_concept = point[start+1:i]
+            key_concept = a[start+1:i]
             key_concept = key_concept.replace( '[', '' )
             key_concept = key_concept.replace( ']', '' )
-            key_concepts.append( key_concept )
+
+            if word_per_concept:
+                # Only include top level, which is broken up.
+                if nesting == 0:
+                    kcs = key_concept.split( ' ' )
+                    [ key_concepts.append( kc ) for kc in kcs ]
+
+            else:
+                key_concepts.append( key_concept )
 
     return key_concepts
