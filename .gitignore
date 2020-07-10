@@ -5,3 +5,4 @@
 .python_cache/
 .pytest_cache/
 .coverage.*
+.ipynb_checkpoints/
