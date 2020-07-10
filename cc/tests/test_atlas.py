@@ -1,3 +1,4 @@
+import copy
 from mock import patch
 import numpy as np
 import numpy.testing as npt
@@ -50,7 +51,7 @@ class TestKeyConcepts( unittest.TestCase ):
             assert self.a.get_unique_key_concepts() == expected
         except AssertionError:
             expected = set( [
-                'kitti cat',
+                'kittycat',
                 'dog',
             ] )
             assert self.a.get_unique_key_concepts() == expected
@@ -68,11 +69,18 @@ class TestKeyConcepts( unittest.TestCase ):
             'kitty cat',
         ]
 
-        expected = set( [
-            'dog',
-            'kitti cat',
-        ] )
-        assert self.a.get_unique_key_concepts() == expected
+        try:
+            expected = set( [
+                'dog',
+                'kitti cat',
+            ] )
+            assert self.a.get_unique_key_concepts() == expected
+        except AssertionError:
+            expected = set( [
+                'kittycat',
+                'dog',
+            ] )
+            assert self.a.get_unique_key_concepts() == expected
 
 ########################################################################
 
