@@ -3,7 +3,7 @@ import bibtexparser
 
 import augment
 
-import relation
+from . import relation
 
 ########################################################################
 

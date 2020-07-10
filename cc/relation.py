@@ -1,12 +1,26 @@
 import augment
 
+from . import concept
+
 ########################################################################
 
-def relation_inner_product( a, b ):
+def inner_product( a, b ):
     '''The inner product between two relations.
     '''
 
-    pass
+    a_kcs = parse_relation_for_key_concepts( a )
+    b_kcs = parse_relation_for_key_concepts( b )
+
+    a_kcs = concept.uniquify_concepts( a_kcs )
+    b_kcs = concept.uniquify_concepts( b_kcs )
+
+    result = 0
+    for a_kc in a_kcs:
+        for b_kc in b_kcs:
+            if a_kc == b_kc:
+                result += 1
+
+    return result
 
 ########################################################################
 
