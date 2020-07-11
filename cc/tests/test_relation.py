@@ -44,6 +44,16 @@ class TestInnerProduct( unittest.TestCase ):
 
         assert actual == expected
 
+    ########################################################################
+
+    def test_inner_product_self( self ):
+
+        a = 'Uses a [particle-tracking] analysis applied to the [FIRE-2 simulations] to study the [origins of the [CGM]], including [IGM accretion], [galactic wind], and [satellite wind].'
+        actual = relation.inner_product( a, a )
+        expected = 13
+
+        assert actual == expected
+
 ########################################################################
 
 class TestParse( unittest.TestCase ):

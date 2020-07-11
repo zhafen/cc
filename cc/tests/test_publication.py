@@ -178,3 +178,20 @@ class TestPublicationAnalysis( unittest.TestCase ):
         assert sorted( actual['key_points'] ) == sorted( expected['key_points'] )
         assert sorted( actual['key_concepts'][0] ) == sorted( expected['key_concepts'][0] )
         
+########################################################################
+
+class TestComparison( unittest.TestCase ):
+
+    def test_inner_product( self ):
+
+        # Load test data
+        bibtex_fp = './tests/data/example_atlas/example.bib'
+        p1 = cc.publication.Publication( 'Hafen2019' )
+        p2 = cc.publication.Publication( 'Hafen2019a' )
+        p1.process_bibtex_annotations( bibtex_fp )
+        p2.process_bibtex_annotations( bibtex_fp )
+
+        # Inner product with self
+        actual = p1.inner_product( p1 )
+        expected = np.array( p1.notes['key_concepts'] ).size
+        assert actual == expected

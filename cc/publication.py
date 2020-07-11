@@ -211,7 +211,21 @@ class Publication( object ):
  
     def inner_product(
         self,
-        other
+        other,
+        **kwargs
     ):
 
-        pass
+        inner_product = 0
+        for point in self.notes['key_points']:
+            for other_point in other.notes['key_points']:
+
+                inner_product += relation.inner_product(
+                    point,
+                    other_point,
+                    **kwargs
+                )
+
+                #DEBUG
+                import pdb; pdb.set_trace()
+
+        return inner_product
