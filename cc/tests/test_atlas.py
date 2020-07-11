@@ -58,18 +58,19 @@ class TestKeyConcepts( unittest.TestCase ):
             'kitty cat',
         ]
 
+        actual = self.a.get_unique_key_concepts()
         try:
             expected = set( [
                 'dog',
                 'kitti cat',
             ] )
-            assert self.a.get_unique_key_concepts() == expected
+            assert actual == expected
         except AssertionError:
             expected = set( [
                 'kittycat',
                 'dog',
             ] )
-            assert self.a.get_unique_key_concepts() == expected
+            assert actual == expected
 
     ########################################################################
 
@@ -84,18 +85,19 @@ class TestKeyConcepts( unittest.TestCase ):
             'kitty cat',
         ]
 
+        actual = self.a.get_unique_key_concepts()
         try:
             expected = set( [
                 'dog',
                 'kitti cat',
             ] )
-            assert self.a.get_unique_key_concepts() == expected
+            assert actual == expected
         except AssertionError:
             expected = set( [
                 'kittycat',
                 'dog',
             ] )
-            assert self.a.get_unique_key_concepts() == expected
+            assert actual == expected
 
 ########################################################################
 

@@ -8,7 +8,7 @@ import verdict
 
 ########################################################################
 
-def uniquify_concepts( a, max_edit_distance=2 ):
+def uniquify_concepts( a, max_edit_distance=2, min_len_ed=5 ):
     '''Unique key concepts, as simplified using nltk tools.
     Steps to retrieve unique key concepts:
     1. Union of the same stems.
@@ -19,6 +19,10 @@ def uniquify_concepts( a, max_edit_distance=2 ):
         max_edit_distance (int):
             Maximum Levenshtein edit-distance between two concepts for them
             to count as the same concept.
+
+        min_len_ed (int):
+            Words below this length will not be considered the same even if
+            they are within the given edit distance.
     '''
 
     # First pass through with a stemmer
@@ -30,6 +34,10 @@ def uniquify_concepts( a, max_edit_distance=2 ):
         ucs.append( ' '.join( stemmed_words ) )
     ucs = set( ucs )
 
+    # Find word lengths
+    word_lens = np.array([ len( uc ) for uc in ucs ])
+    satisfies_min_len_ed = word_lens >= min_len_ed
+
     # Look for concepts with a sufficiently low Levenshtein edit-distance
     ucs_arr = np.array( list( ucs ) )
     ucs_ed = []
@@ -40,7 +48,16 @@ def uniquify_concepts( a, max_edit_distance=2 ):
             for c_check
             in ucs_arr
         ])
-        matches = ucs_arr[edit_distances<=max_edit_distance]
+
+        # Matches if below minimum edit distance and not too short, or
+        # if no edits are required
+        is_matching = (
+            ( edit_distances <= max_edit_distance ) &
+            satisfies_min_len_ed
+        )
+        is_matching = np.logical_or( is_matching, edit_distances == 0 )
+        matches = ucs_arr[is_matching]
+
         # Count the matches and represent by maximum count
         count = Counter( matches )
         true_c = verdict.Dict( count ).keymax()[0]

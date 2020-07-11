@@ -1,6 +1,11 @@
 # cc
 An exploratory project to map out concept space using papers as data.
 
+concept.py features include...
+    * A function for identifying unique concepts, including accounting for
+    mispellings (but not for words that are too short, and therefore can turn
+    into too many other words)
+
 Publication class features include...
 * Import of data from BibTex files using [bibtexparser](https://github.com/sciunto-org/python-bibtexparser).
 * Import of ADS data using [the ads Python package](https://ads.readthedocs.io/en/latest/#the-ads-python-package). This includes...
