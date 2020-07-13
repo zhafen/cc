@@ -244,4 +244,7 @@ class Publication( object ):
                     **kwargs
                 )
 
+        if inner_product == 0:
+            raise Warning( "Inner product = 0. The atlas data may not be loaded." )
+
         return inner_product

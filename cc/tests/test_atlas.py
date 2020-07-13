@@ -106,8 +106,6 @@ class TestSearchPublicationsKeyConcepts( unittest.TestCase ):
     def setUp( self ):
 
         self.a = atlas.Atlas( './tests/data/example_atlas' )
-        # self.a.data.process_bibtex_annotations()
-        # self.a.get_unique_key_concepts()
 
     ########################################################################
 
@@ -128,3 +126,28 @@ class TestSearchPublicationsKeyConcepts( unittest.TestCase ):
         for key, item in expected.items():
             assert item == actual[key]
 
+########################################################################
+
+class TestComparison( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.a = atlas.Atlas( './tests/data/example_atlas' )
+        self.a.import_bibtex( './tests/data/example_atlas/example.bib' )
+        self.a.data.process_bibtex_annotations()
+
+    ########################################################################
+
+    def test_inner_product_self( self ):
+
+        w_aa = self.a.inner_product( self.a )
+
+        assert w_aa > 0
+
+    ########################################################################
+
+    def test_inner_product_publication( self ):
+
+        w_pa = self.a.inner_product( self.a.data['Hafen2019'] )
+
+        assert w_pa > 0

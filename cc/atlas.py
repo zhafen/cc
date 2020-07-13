@@ -5,6 +5,7 @@ import nltk
 from nltk.metrics import edit_distance
 import numpy as np
 import os
+import warnings
 
 import augment
 import verdict
@@ -196,3 +197,29 @@ class Atlas( object ):
                     paragraph += '\cite{' + key + '}' + ': {}\n'.format( p )
 
             return result, paragraph
+
+    ########################################################################
+    # Publication-to-publication comparison
+    ########################################################################
+
+    def inner_product( self, other, **kwargs ):
+
+        inner_product = 0
+
+        # When the other object is a publication
+        if isinstance( other, publication.Publication ):
+            for p in self.data.values():
+                inner_product += other.inner_product( p, **kwargs )
+
+        # When the other object is an atlas
+        elif isinstance( other, Atlas ):
+            for p_self in self.data.values():
+                for p_other in self.data.values():
+                    inner_product += p_other.inner_product( p_self, **kwargs )
+        else:
+            raise ValueError( "Unrecognized object for calculating the inner product." )
+
+        if inner_product == 0:
+            warnings.warn( "Inner product == 0. Did you forget to load the data?" )
+
+        return inner_product
