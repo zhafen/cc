@@ -50,7 +50,7 @@ class TestInnerProduct( unittest.TestCase ):
 
         a = 'Uses a [particle-tracking] analysis applied to the [FIRE-2 simulations] to study the [origins of the [CGM]], including [IGM accretion], [galactic wind], and [satellite wind].'
         actual = relation.inner_product( a, a )
-        expected = 13
+        expected = 12
 
         assert actual == expected
 
