@@ -4,6 +4,7 @@ import numpy.testing as npt
 import os
 import unittest
 
+import cc.concept
 import cc.publication
 
 ########################################################################
@@ -182,7 +183,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
 
 class TestComparison( unittest.TestCase ):
 
-    def test_inner_product( self ):
+    def test_inner_product_self( self ):
 
         # Load test data
         bibtex_fp = './tests/data/example_atlas/example.bib'
@@ -191,7 +192,12 @@ class TestComparison( unittest.TestCase ):
         p1.process_bibtex_annotations( bibtex_fp )
         p2.process_bibtex_annotations( bibtex_fp )
 
-        # Inner product with self
-        actual = p1.inner_product( p1 )
-        expected = np.array( p1.notes['key_concepts'] ).size
-        assert actual == expected
+        # Calculate inner products
+        w_11 = p1.inner_product( p1 )
+        w_12 = p1.inner_product( p2 )
+        w_21 = p2.inner_product( p1 )
+
+        # Check expected relations
+        assert w_12 == w_21
+        assert w_11 > w_12
+        

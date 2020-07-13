@@ -1,8 +1,10 @@
 import ads
 import bibtexparser
+import numpy as np
 
 import augment
 
+from . import concept
 from . import relation
 
 ########################################################################
@@ -151,6 +153,10 @@ class Publication( object ):
         # Process the annotation
         for line in annote_lines:
             self.notes = self.process_annotation_line( line, self.notes )
+        kcs = list( np.concatenate( self.notes['key_concepts'] ) )
+        self.notes['unique_key_concepts'] = concept.uniquify_concepts(
+            kcs,
+        )
 
         self.cached_bibtex_fp = bibtex_fp
 
@@ -214,18 +220,28 @@ class Publication( object ):
         other,
         **kwargs
     ):
+        '''Calculate the inner product between the publication and another
+        object.
+
+        Args:
+            other:
+                The other object to calcualte the inner product with.
+
+            **kwargs:
+                Passed to the inner product between relations.
+        '''
 
         inner_product = 0
         for point in self.notes['key_points']:
             for other_point in other.notes['key_points']:
 
+                # OPTIMIZE: This can be sped up by using the previously
+                # retrieved key concepts per point, provided that's the inner
+                # product used.
                 inner_product += relation.inner_product(
                     point,
                     other_point,
                     **kwargs
                 )
-
-                #DEBUG
-                import pdb; pdb.set_trace()
 
         return inner_product

@@ -4,22 +4,37 @@ from . import concept
 
 ########################################################################
 
-def inner_product( a, b, max_edit_distance=1 ):
+def inner_product( a, b, max_edit_distance=1, word_per_concept=True ):
     '''The inner product between two relations.
     Fiducially defined as the number of shared key concepts.
 
     Args:
+        a (str):
+            The first relation to calculate the inner product of.
+
+        b (str):
+            The second relation to calculate the inner product of.
+
         max_edit_distance (int):
             Maximum Levenshtein edit-distance between two concepts for them
             to count as the same concept.
+
+        word_per_concept (bool):
+            If True, break each concept into its composite words.
 
     Returns:
         result (int):
             The number of shared key concepts between two relations.
     '''
 
-    a_kcs = parse_relation_for_key_concepts( a, word_per_concept=True )
-    b_kcs = parse_relation_for_key_concepts( b, word_per_concept=True )
+    a_kcs = parse_relation_for_key_concepts(
+        a,
+        word_per_concept = word_per_concept
+    )
+    b_kcs = parse_relation_for_key_concepts(
+        b,
+        word_per_concept = word_per_concept
+    )
 
     a_kcs = concept.uniquify_concepts( a_kcs, max_edit_distance )
     b_kcs = concept.uniquify_concepts( b_kcs, max_edit_distance )
