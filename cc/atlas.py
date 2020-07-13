@@ -31,7 +31,7 @@ class Atlas( object ):
             if len( bibtex_fps ) == 0:
                 raise FileError( 'No *.bib file found in {}'.format( atlas_dir ) )
             bibtex_fp = bibtex_fps[0]
-        self.import_bibtex(  bibtex_fp )
+        self.import_bibtex( bibtex_fp )
 
     ########################################################################
 
@@ -217,7 +217,7 @@ class Atlas( object ):
                 for p_other in self.data.values():
                     inner_product += p_other.inner_product( p_self, **kwargs )
         else:
-            raise ValueError( "Unrecognized object for calculating the inner product." )
+            raise ValueError( "Unrecognized object for calculating the inner product, {}".format( other ) )
 
         if inner_product == 0:
             warnings.warn( "Inner product == 0. Did you forget to load the data?" )
