@@ -134,20 +134,28 @@ class TestComparison( unittest.TestCase ):
 
         self.a = atlas.Atlas( './tests/data/example_atlas' )
         self.a.import_bibtex( './tests/data/example_atlas/example.bib' )
-        self.a.data.process_bibtex_annotations()
+        self.a.data.process_bibtex_annotations( word_per_concept=True )
+        self.a.data.identify_unique_key_concepts()
 
     ########################################################################
 
     def test_inner_product_self( self ):
 
-        w_aa = self.a.inner_product( self.a )
+        np.random.seed( 1234 )
 
-        assert w_aa > 0
+        w_aa = self.a.inner_product( self.a, )
+
+        npt.assert_allclose( w_aa, 4642, rtol=0.05 )
 
     ########################################################################
 
     def test_inner_product_publication( self ):
 
-        w_pa = self.a.inner_product( self.a.data['Hafen2019'] )
+        np.random.seed( 1234 )
 
-        assert w_pa > 0
+        w_pa = self.a.inner_product(
+            self.a.data['Hafen2019'],
+        )
+
+        npt.assert_allclose( w_pa, 573, rtol=0.05 )
+

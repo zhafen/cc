@@ -193,11 +193,27 @@ class TestComparison( unittest.TestCase ):
         p2.process_bibtex_annotations( bibtex_fp )
 
         # Calculate inner products
-        w_11 = p1.inner_product( p1 )
-        w_12 = p1.inner_product( p2 )
-        w_21 = p2.inner_product( p1 )
+        w_11 = p1.inner_product( p1, method='key-point concepts' )
+        w_12 = p1.inner_product( p2, method='key-point concepts' )
+        w_21 = p2.inner_product( p1, method='key-point concepts' )
 
         # Check expected relations
         assert w_12 == w_21
         assert w_11 > w_12
+
+    ########################################################################
+
+    def test_consistency( self ):
+
+        # Load test data
+        bibtex_fp = './tests/data/example_atlas/example.bib'
+        p = cc.publication.Publication( 'Hafen2019' )
+        p.process_bibtex_annotations( bibtex_fp, word_per_concept=True )
+        p.identify_unique_key_concepts()
+
+        # Check expected relations
+        w1 = p.inner_product( p, method='key-point concepts' )
+        w2 = p.inner_product( p, method='cached key-point concepts' )
+
+        npt.assert_allclose( w1, w2, rtol=0.1 )
         
