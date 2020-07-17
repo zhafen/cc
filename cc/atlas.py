@@ -7,6 +7,9 @@ import numpy as np
 import os
 import warnings
 
+import matplotlib
+import matplotlib.pyplot as plt
+
 import augment
 import verdict
 
@@ -32,6 +35,12 @@ class Atlas( object ):
                 raise FileError( 'No *.bib file found in {}'.format( atlas_dir ) )
             bibtex_fp = bibtex_fps[0]
         self.import_bibtex( bibtex_fp )
+
+    def __repr__( self ):
+        return 'cc.atlas.Atlas:{}'.format( atlas_dir )
+
+    def __repr__( self ):
+        return 'Atlas'
 
     ########################################################################
 
@@ -223,3 +232,82 @@ class Atlas( object ):
             warnings.warn( "Inner product == 0. Did you forget to load the data?" )
 
         return inner_product
+
+    ########################################################################
+    # Plots
+    ########################################################################
+
+    def plot_cospsi2d(
+        self,
+        x_obj,
+        y_obj,
+        ax = None,
+        **kwargs
+    ):
+        '''Scatter plot cos(psi) of two objects calculated with all the
+        publications in the library.
+
+        Args:
+            x_obj:
+                The x object to calculate cos(psi) with.
+
+            y_obj:
+                The y object to calculate cos(psi) with.
+
+            ax:
+                The axis to place the plot on.
+
+            **kwargs:
+                Keyword arguments to pass to the inner products.
+
+        Returns:
+            cospsi_x:
+                Dictionary of values for the x_obj.
+
+            cospsi_y:
+                Dictionary of values for the y_obj.
+        '''
+
+        ### Calculate cospsi
+        # Inner products
+        ip_self = {}
+        ip_xs = {}
+        ip_ys = {}
+        for key, p in self.data.items():
+            ip_self[key] = p.inner_product( p, **kwargs )
+            ip_xs[key] = p.inner_product( x_obj, **kwargs )
+            ip_ys[key] = p.inner_product( y_obj, **kwargs )
+        ip_self = verdict.Dict( ip_self )
+        ip_xs = verdict.Dict( ip_xs )
+        ip_ys = verdict.Dict( ip_ys )
+        ip_x_obj = x_obj.inner_product( x_obj, **kwargs )
+        ip_y_obj = y_obj.inner_product( y_obj, **kwargs )
+        # Cospsi
+        cospsi_xs = ip_xs / ( ip_self * ip_x_obj ).apply( np.sqrt )
+        cospsi_ys = ip_ys / ( ip_self * ip_y_obj ).apply( np.sqrt )
+
+        # Setup figure
+        if ax is None:
+            fig = plt.figure( figsize=(8,8), facecolor='w' )
+            ax = plt.gca()
+
+        # Plot
+        xs = cospsi_xs.array()
+        ys = cospsi_ys.array()
+        ax.scatter(
+            xs,
+            ys,
+            color = 'k',
+            s = 50,
+        )
+
+        # Labels
+        ax.set_xlabel( r'$\cos \psi$(' + str( x_obj ) + ')', fontsize=22 )
+        ax.set_ylabel( r'$\cos \psi$(' + str( y_obj ) + ')', fontsize=22 )
+
+        # Axis tweaks
+        ax.set_xlim( 0, 1 )
+        ax.set_ylim( 0, 1 )
+        ax.set_aspect( 'equal' )
+
+        return cospsi_xs, cospsi_ys

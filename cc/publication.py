@@ -27,6 +27,14 @@ class Publication( object ):
         # For recording what data has been retrieved
         self.cached_bibtex_fp = 'not processed'
 
+    def __repr__( self ):
+
+        return 'cc.publication.Publication:{}'.format( self.citation_key )
+
+    def __str__( self ):
+
+        return self.citation_key
+
     ########################################################################
     # Data Retrieval
     ########################################################################
@@ -280,8 +288,18 @@ class Publication( object ):
                 Passed to the inner product between relations.
         '''
 
-        if not isinstance( other, Publication ):
-            raise Exception( "Incompatible object for calculating the inner product with." )
+        # Check that we can calculate the inner product
+        # isinstance raises false exceptions
+        is_pub = (
+            isinstance( other, Publication ) or
+            str( type( other ) ) == "<class 'cc.publication.Publication'>"
+        )
+        if is_pub:
+            pass
+        elif str( type( other ) ) == "<class 'cc.atlas.Atlas'>":
+            return other.inner_product( self, method=method, **kwargs )
+        else:
+            raise Exception( "Incompatible object for calculating the inner product with, {}.".format( other ) )
 
         inner_product = 0
 
