@@ -178,6 +178,17 @@ class TestPublicationAnalysis( unittest.TestCase ):
         # Check
         assert sorted( actual['key_points'] ) == sorted( expected['key_points'] )
         assert sorted( actual['key_concepts'][0] ) == sorted( expected['key_concepts'][0] )
+
+    ########################################################################
+
+    def test_process_abstract( self ):
+
+        p = cc.publication.Publication( 'Hafen2019' )
+        p.process_bibtex_annotations( './tests/data/example_atlas/example.bib' )
+
+        p.process_abstract()
+
+        assert p.abstract['nltk'][0][3] == ('particle', 'NN')
         
 ########################################################################
 
@@ -217,3 +228,23 @@ class TestComparison( unittest.TestCase ):
 
         npt.assert_allclose( w1, w2, rtol=0.1 )
         
+    ########################################################################
+
+    def test_abstract_similarity( self ):
+
+        # Load test data
+        bibtex_fp = './tests/data/example_atlas/example.bib'
+        p1 = cc.publication.Publication( 'Hafen2019' )
+        p2 = cc.publication.Publication( 'Hafen2019a' )
+        p1.process_bibtex_annotations( bibtex_fp )
+        p2.process_bibtex_annotations( bibtex_fp )
+
+        # Calculate inner products
+        w_11 = p1.inner_product( p1, method='abstract similarity' )
+        w_12 = p1.inner_product( p2, method='abstract similarity' )
+        w_21 = p2.inner_product( p1, method='abstract similarity' )
+
+        # Check expected relations
+        assert w_12 == w_21
+        assert w_11 > w_12
+

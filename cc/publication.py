@@ -1,5 +1,6 @@
 import ads
 import bibtexparser
+import nltk
 import numpy as np
 
 import augment
@@ -124,6 +125,33 @@ class Publication( object ):
     # Publication Analysis
     ########################################################################
 
+    def process_abstract(
+        self,
+        abstract_str = None,
+    ):
+        '''Process the abstract with natural language processing.
+
+        Args:
+            abstract_str (str):
+                Raw abstract. If none, download from ADS.
+        '''
+
+        # Load abstract if not given
+        if abstract_str is None:
+            self.get_ads_data( arxiv=self.citation['arxivid'] )
+            abstract_str = self.ads_data.abstract
+
+        self.abstract = {
+            'str': abstract_str,
+        }
+
+        # Parse using NLTK
+        sentences = nltk.sent_tokenize( abstract_str )
+        sentences = [nltk.word_tokenize(sent) for sent in sentences] 
+        self.abstract['nltk'] = [nltk.pos_tag(sent) for sent in sentences] 
+
+    ########################################################################
+
     def process_bibtex_annotations(
         self,
         bibtex_fp = None,
@@ -162,6 +190,7 @@ class Publication( object ):
 
         # When no annotation is found
         except KeyError:
+            self.cached_bibtex_fp = bibtex_fp
             return
 
         # Process the annotation
@@ -328,6 +357,11 @@ class Publication( object ):
                             **kwargs
                         )
                         inner_product += len( matching_concepts )
+
+        elif method == 'abstract similarity':
+
+            #DEBUG
+            import pdb; pdb.set_trace()
 
         else:
             raise Exception( 'Unrecognized inner_product method, {}'.format( method ) )
