@@ -5,6 +5,7 @@ import numpy as np
 
 import augment
 
+from . import config
 from . import concept
 from . import relation
 from . import utils
@@ -148,7 +149,30 @@ class Publication( object ):
         # Parse using NLTK
         sentences = nltk.sent_tokenize( abstract_str )
         sentences = [nltk.word_tokenize(sent) for sent in sentences] 
-        self.abstract['nltk'] = [nltk.pos_tag(sent) for sent in sentences] 
+        self.abstract['nltk'] = {}
+        self.abstract['nltk']['all'] = [
+            nltk.pos_tag(sent) for sent in sentences
+        ] 
+
+        # Classify into primary and secondary tiers, i.e. effectively
+        # nouns, verbs, and adjectives vs everything else.
+        self.abstract['nltk']['primary'] = []
+        self.abstract['nltk']['secondary'] = []
+        uncategorized = []
+        tag_tier = config.nltk['tag_tier']
+        for sent in self.abstract['nltk']['all']:
+            nltk1 = []
+            nltk2 = []
+            for word, tag in sent:
+                if tag in tag_tier[1]:
+                    nltk1.append( word )
+                elif tag in tag_tier[2]:
+                    nltk2.append( word )
+                else:
+                    uncategorized.append( tag )
+        self.abstract['nltk']['primary'].append( nltk1 )
+        self.abstract['nltk']['secondary'].append( nltk2 )
+        self.abstract['nltk']['uncategorized'] = set( uncategorized )
 
     ########################################################################
 

@@ -188,7 +188,9 @@ class TestPublicationAnalysis( unittest.TestCase ):
 
         p.process_abstract()
 
-        assert p.abstract['nltk'][0][3] == ('particle', 'NN')
+        assert p.abstract['nltk']['all'][0][3] == ('particle', 'NN')
+
+        assert len( p.abstract['nltk']['uncategorized'] ) == 0
         
 ########################################################################
 
