@@ -1,5 +1,6 @@
 import bibtexparser
 from collections import Counter
+import copy
 import glob
 import nltk
 from nltk.metrics import edit_distance
@@ -306,10 +307,12 @@ class Atlas( object ):
         '''
 
         ### Calculate cospsi
-        x_kwargs = copy.deepcopy( kwargs ).update( x_kwargs )
-        y_kwargs = copy.deepcopy( kwargs ).update( y_kwargs )
-        cospsi_xs = self.cospsi_data( x_obj, **x_kwargs )
-        cospsi_ys = self.cospsi_data( y_obj, **y_kwargs )
+        used_x_kwargs = copy.deepcopy( kwargs )
+        used_x_kwargs.update( x_kwargs )
+        used_y_kwargs = copy.deepcopy( kwargs )
+        used_y_kwargs.update( y_kwargs )
+        cospsi_xs = self.cospsi_data( x_obj, **used_x_kwargs )
+        cospsi_ys = self.cospsi_data( y_obj, **used_y_kwargs )
 
         # Setup figure
         if ax is None:
