@@ -234,6 +234,41 @@ class Atlas( object ):
         return inner_product
 
     ########################################################################
+
+    def cospsi_data( self, other, **kwargs ):
+        '''Calculate the cos(psi) between the atlas' data and another object.
+        psi is the "angle" between two objects, defined as
+        cos( psi ) = <self | other> / sqrt( <self | self> * <other | other> )
+
+        Args:
+            other:
+                The other object.
+
+            **kwargs:
+                Keyword arguments passed to inner_product.
+
+        Returns:
+            cospsi (verdict.Dict of floats or ints):
+                cos(psi) calculated for each item of self.data.
+        '''
+
+        ### Calculate cospsi
+        # Inner products
+        ip_self = {}
+        ips = {}
+        for key, p in self.data.items():
+            ip_self[key] = p.inner_product( p, **kwargs )
+            ips[key] = p.inner_product( other, **kwargs )
+        ip_self = verdict.Dict( ip_self )
+        ip_other = other.inner_product( other, **kwargs )
+        ips = verdict.Dict( ips )
+
+        # Cospsi
+        cospsi = ips / ( ip_self * ip_other ).apply( np.sqrt )
+
+        return cospsi
+
+    ########################################################################
     # Plots
     ########################################################################
 
@@ -242,6 +277,8 @@ class Atlas( object ):
         x_obj,
         y_obj,
         ax = None,
+        x_kwargs = {},
+        y_kwargs = {},
         **kwargs
     ):
         '''Scatter plot cos(psi) of two objects calculated with all the
@@ -269,22 +306,10 @@ class Atlas( object ):
         '''
 
         ### Calculate cospsi
-        # Inner products
-        ip_self = {}
-        ip_xs = {}
-        ip_ys = {}
-        for key, p in self.data.items():
-            ip_self[key] = p.inner_product( p, **kwargs )
-            ip_xs[key] = p.inner_product( x_obj, **kwargs )
-            ip_ys[key] = p.inner_product( y_obj, **kwargs )
-        ip_self = verdict.Dict( ip_self )
-        ip_xs = verdict.Dict( ip_xs )
-        ip_ys = verdict.Dict( ip_ys )
-        ip_x_obj = x_obj.inner_product( x_obj, **kwargs )
-        ip_y_obj = y_obj.inner_product( y_obj, **kwargs )
-        # Cospsi
-        cospsi_xs = ip_xs / ( ip_self * ip_x_obj ).apply( np.sqrt )
-        cospsi_ys = ip_ys / ( ip_self * ip_y_obj ).apply( np.sqrt )
+        x_kwargs = copy.deepcopy( kwargs ).update( x_kwargs )
+        y_kwargs = copy.deepcopy( kwargs ).update( y_kwargs )
+        cospsi_xs = self.cospsi_data( x_obj, **x_kwargs )
+        cospsi_ys = self.cospsi_data( y_obj, **y_kwargs )
 
         # Setup figure
         if ax is None:

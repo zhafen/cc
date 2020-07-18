@@ -41,7 +41,7 @@ class Publication( object ):
     # Data Retrieval
     ########################################################################
 
-    def get_ads_data( self, **kwargs ):
+    def get_ads_data( self, fl=[ 'abstract'], **kwargs ):
         '''Retrieve all data the NASA Astrophysical Data System has regarding
         a paper.
 
@@ -49,7 +49,10 @@ class Publication( object ):
         saved to ~/.ads/dev_key
 
         Keyword Args:
-            kwargs (str):
+            fl (list of strs):
+                Fields to preload when the data is first retrieved.
+
+            kwargs:
                 Unique identifiers of the publication, e.g. the arXiv number
                 with arxiv='1811.11753'.
 
@@ -58,7 +61,7 @@ class Publication( object ):
                 Class containing ADS data.
         '''
 
-        self.ads_query = ads.SearchQuery( **kwargs )
+        self.ads_query = ads.SearchQuery( fl=fl, **kwargs )
         query_list = list( self.ads_query )
 
         # Parse results of search
@@ -137,9 +140,14 @@ class Publication( object ):
                 Raw abstract. If none, download from ADS.
         '''
 
+        # Don't parse the abstract if already parsed
+        if hasattr( self, 'abstract' ):
+            return
+
         # Load abstract if not given
         if abstract_str is None:
-            self.get_ads_data( arxiv=self.citation['arxivid'] )
+            if not hasattr( self, 'ads_data' ):
+                self.get_ads_data( arxiv=self.citation['arxivid'] )
             abstract_str = self.ads_data.abstract
 
         self.abstract = {
@@ -158,6 +166,7 @@ class Publication( object ):
         # nouns, verbs, and adjectives vs everything else.
         self.abstract['nltk']['primary'] = []
         self.abstract['nltk']['secondary'] = []
+        self.abstract['nltk']['primary_stemmed'] = []
         uncategorized = []
         tag_tier = config.nltk['tag_tier']
         for sent in self.abstract['nltk']['all']:
@@ -170,8 +179,11 @@ class Publication( object ):
                     nltk2.append( word )
                 else:
                     uncategorized.append( tag )
-        self.abstract['nltk']['primary'].append( nltk1 )
-        self.abstract['nltk']['secondary'].append( nltk2 )
+            self.abstract['nltk']['primary'].append( nltk1 )
+            self.abstract['nltk']['secondary'].append( nltk2 )
+            self.abstract['nltk']['primary_stemmed'].append(
+                utils.stem( nltk1 )
+            )
         self.abstract['nltk']['uncategorized'] = set( uncategorized )
 
     ########################################################################
@@ -337,6 +349,15 @@ class Publication( object ):
                 'cached key-point concepts':
                     Faster but less-accurate version of 'key-point concepts'.
 
+                'abstract similarity':
+                    The inner product is the sum of the inner product between
+                    all sentences in the abstract of each publications. The
+                    inner product between two abstract sentences is the number
+                    of nouns, verbs, and adjectives ("important" words)
+                    shared by the two sentences.
+                    ("Important" is up to user choice. I've defined it in the
+                    config using nltk['tag_tier'].)
+
             **kwargs:
                 Passed to the inner product between relations.
         '''
@@ -384,8 +405,22 @@ class Publication( object ):
 
         elif method == 'abstract similarity':
 
-            #DEBUG
-            import pdb; pdb.set_trace()
+            # Get the processed abstracts
+            self.process_abstract()
+            other.process_abstract()
+            sents = self.abstract['nltk']['primary_stemmed']
+            sents_other = other.abstract['nltk']['primary_stemmed']
+
+            # Calculate the inner product
+            for sent in sents:
+                for sent_other in sents_other:
+                    matching_words = utils.match_words(
+                        sent,
+                        sent_other,
+                        stemmed = True,
+                        **kwargs
+                    )
+                    inner_product += len( matching_words )
 
         else:
             raise Exception( 'Unrecognized inner_product method, {}'.format( method ) )

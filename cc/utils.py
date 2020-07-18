@@ -7,7 +7,7 @@ import verdict
 
 ########################################################################
 
-def match_words( a, b, max_edit_distance=2, min_len_ed=5 ):
+def match_words( a, b, max_edit_distance=2, min_len_ed=5, stemmed=False ):
     '''Find the matching words in two lists.
     This involves...
     1. Stemming the words in the lists
@@ -28,19 +28,16 @@ def match_words( a, b, max_edit_distance=2, min_len_ed=5 ):
         min_len_ed (int):
             Words below this length will not be considered the same even if
             they are within the given edit distance.
+
+        stemmed (bool):
+            If True the words are already stemmed.
     '''
 
     # Stem the lists first
-    def stem( l ):
-        s = nltk.stem.SnowballStemmer( 'english' )
-        sl = []
-        for c in l:
-            words = nltk.word_tokenize( c )
-            stemmed_words = [ s.stem( w ) for w in words ]
-            sl.append( ' '.join( stemmed_words ) )
-        sl = np.array( list( set( sl ) ) )
-        return sl
-    sa, sb = stem( a ), stem( b )
+    if not stemmed:
+        sa, sb = stem( a ), stem( b )
+    else:
+        sa, sb = a, b
 
     # The words in at least one list (list b) have to be sufficiently long
     # to avoid warping one short word into another.
@@ -80,3 +77,25 @@ def match_words( a, b, max_edit_distance=2, min_len_ed=5 ):
     result = set( result )
 
     return result
+
+########################################################################
+
+def stem( l ):
+    '''Stem the words in a list of words.
+    
+    Args:
+        l (list of strs):
+            The words to stem.
+
+    Returns:
+        sl (list of strs):
+            List of stemmed words.
+    '''
+    s = nltk.stem.SnowballStemmer( 'english' )
+    sl = []
+    for c in l:
+        words = nltk.word_tokenize( c )
+        stemmed_words = [ s.stem( w ) for w in words ]
+        sl.append( ' '.join( stemmed_words ) )
+    sl = np.array( list( set( sl ) ) )
+    return sl

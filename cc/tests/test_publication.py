@@ -191,6 +191,8 @@ class TestPublicationAnalysis( unittest.TestCase ):
         assert p.abstract['nltk']['all'][0][3] == ('particle', 'NN')
 
         assert len( p.abstract['nltk']['uncategorized'] ) == 0
+
+        assert 'separ' in p.abstract['nltk']['primary_stemmed'][0]
         
 ########################################################################
 
