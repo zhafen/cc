@@ -59,7 +59,15 @@ def match_words( a, b, max_edit_distance=2, min_len_ed=5, stemmed=False ):
 
         stemmed (bool):
             If True the words are already stemmed.
+
+    Returns:
+        result (set):
+            Set of matching words between the two lists.
     '''
+
+    # Short-cut
+    if ( len( a ) == 0 ) or ( len( b ) == 0 ):
+        return set( [] )
 
     # Stem the lists first
     if not stemmed:

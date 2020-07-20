@@ -2,6 +2,7 @@ import ads
 import bibtexparser
 import nltk
 import numpy as np
+import warnings
 
 import augment
 
@@ -65,9 +66,13 @@ class Publication( object ):
 
         # Parse results of search
         if len( query_list ) < 1:
-            raise Exception( 'No matching papers found in ADS' )
+            raise ValueError( 'No matching papers found in ADS' )
         elif len( query_list ) > 1:
-            raise Exception( 'Multiple papers found with identifying data.' )
+            warnings.warn(
+                'Multiple papers found with identifying data {}'.format(
+                    kwargs
+                )
+            )
 
         self.ads_data = query_list[0]
 
@@ -131,12 +136,21 @@ class Publication( object ):
     def process_abstract(
         self,
         abstract_str = None,
+        return_empty_upon_failure = True
     ):
         '''Process the abstract with natural language processing.
 
         Args:
             abstract_str (str):
                 Raw abstract. If none, download from ADS.
+
+            return_empty_upon_failure (bool):
+                If True, treat the abstract as an empty string when failing to
+                download the abstract from ADS.
+
+        Modifies:
+            self.abstract (dict):
+                Parsed abstract data.
         '''
 
         # Don't parse the abstract if already parsed
@@ -145,12 +159,38 @@ class Publication( object ):
 
         # Load abstract if not given
         if abstract_str is None:
+
             if not hasattr( self, 'ads_data' ):
-                try:
-                    self.get_ads_data( arxiv=self.citation['arxivid'] )
-                except KeyError:
-                    self.get_ads_data( doi=self.citation['doi'] )
-            abstract_str = self.ads_data.abstract
+
+                # Search ADS using provided unique identifying keys
+                identifying_keys = [ 'arxivid', 'doi' ]
+                for key in identifying_keys:
+
+                    # Try to get the data
+                    if key in self.citation:
+                        try:
+                            self.get_ads_data( arxiv=self.citation[key] )
+                        except ValueError:
+                            continue
+
+                    # Exit upon success
+                    if hasattr( self, 'ads_data' ):
+                        break
+
+                # Behavior upon failure
+                ads_not_loaded = not hasattr( self, 'ads_data' )
+                if ads_not_loaded:
+                    failure_msg = (
+                        '''Unable to find arxiv ID or DOI for publication {}.\n
+                        Not processing abstract.'''.format( self.citation_key )
+                    )
+                    if return_empty_upon_failure:
+                        warnings.warn( failure_msg )
+                        abstract_str = ''
+                    else:
+                        raise Exception( failure_msg )
+                else:
+                    abstract_str = self.ads_data.abstract
 
         self.abstract = {
             'str': abstract_str,

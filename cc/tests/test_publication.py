@@ -192,7 +192,69 @@ class TestPublicationAnalysis( unittest.TestCase ):
         assert len( p.abstract['nltk']['uncategorized'] ) == 0
 
         assert 'separ' in p.abstract['nltk']['primary_stemmed'][0]
-        
+
+    ########################################################################
+
+    def test_process_abstract_no_arxivid( self ):
+
+        p = cc.publication.Publication( 'Hafen2019' )
+        p.process_bibtex_annotations( './tests/data/example_atlas/example.bib' )
+
+        del p.citation['arxivid']
+
+        p.process_abstract()
+
+        assert p.abstract['nltk']['all'][0][3] == ('particle', 'NN')
+
+        assert len( p.abstract['nltk']['uncategorized'] ) == 0
+
+        assert 'separ' in p.abstract['nltk']['primary_stemmed'][0]
+
+    ########################################################################
+
+    def test_process_abstract_no_arxivid_no_doi( self ):
+
+        p = cc.publication.Publication( 'Hafen2019' )
+        p.process_bibtex_annotations( './tests/data/example_atlas/example.bib' )
+
+        del p.citation['arxivid']
+        del p.citation['doi']
+
+        p.process_abstract()
+
+        assert p.abstract['nltk']['all'] == []
+
+    ########################################################################
+
+    def test_process_abstract_bad_arxivid( self ):
+
+        p = cc.publication.Publication( 'Hafen2019' )
+        p.process_bibtex_annotations( './tests/data/example_atlas/example.bib' )
+
+        p.citation['arxivid'] = 'bad'
+
+        p.process_abstract()
+
+        assert p.abstract['nltk']['all'][0][3] == ('particle', 'NN')
+
+        assert len( p.abstract['nltk']['uncategorized'] ) == 0
+
+        assert 'separ' in p.abstract['nltk']['primary_stemmed'][0]
+
+    ########################################################################
+
+    def test_process_abstract_bad_arxivid_bad_doi( self ):
+
+        p = cc.publication.Publication( 'Hafen2019' )
+        p.process_bibtex_annotations( './tests/data/example_atlas/example.bib' )
+
+        p.citation['arxivid'] = 'bad'
+        p.citation['doi'] = 'bad'
+
+        p.process_abstract()
+
+        assert p.abstract['nltk']['all'] == []
+
 ########################################################################
 
 class TestComparison( unittest.TestCase ):
