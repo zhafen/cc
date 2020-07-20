@@ -145,7 +145,7 @@ class TestComparison( unittest.TestCase ):
 
         w_aa = self.a.inner_product( self.a, )
 
-        npt.assert_allclose( w_aa, 4642, rtol=0.05 )
+        npt.assert_allclose( w_aa, 4266, rtol=0.05 )
 
     ########################################################################
 
@@ -157,5 +157,5 @@ class TestComparison( unittest.TestCase ):
             self.a.data['Hafen2019'],
         )
 
-        npt.assert_allclose( w_pa, 573, rtol=0.05 )
+        npt.assert_allclose( w_pa, 529, rtol=0.05 )
 

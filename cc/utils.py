@@ -20,8 +20,8 @@ def uniquify_words( a, **kwargs ):
 
     Kwargs:
         max_edit_distance (int):
-            Maximum Levenshtein edit-distance between two concepts for them
-            to count as the same concept.
+            Maximum Levenshtein edit-distance between two words for them
+            to count as the same word.
 
         min_len_ed (int):
             Words below this length will not be considered the same even if

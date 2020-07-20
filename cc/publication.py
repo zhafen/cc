@@ -331,6 +331,7 @@ class Publication( object ):
         self,
         other,
         method = 'cached key-point concepts',
+        max_edit_distance = None,
         **kwargs
     ):
         '''Calculate the inner product between the publication and another
@@ -360,6 +361,11 @@ class Publication( object ):
                     ("Important" is up to user choice. I've defined it in the
                     config using nltk['tag_tier'].)
 
+                max_edit_distance (int):
+                    If not None this is the Maximum Levenshtein edit-distance
+                    between two words for them to count as the same word.
+                    Computationally expensive currently.
+
             **kwargs:
                 Passed to the inner product between relations.
         '''
@@ -373,7 +379,12 @@ class Publication( object ):
         if is_pub:
             pass
         elif str( type( other ) ) == "<class 'cc.atlas.Atlas'>":
-            return other.inner_product( self, method=method, **kwargs )
+            return other.inner_product(
+                self,
+                method = method,
+                max_edit_distance = max_edit_distance,
+                **kwargs
+            )
         else:
             raise Exception( "Incompatible object for calculating the inner product with, {}.".format( other ) )
 
@@ -385,6 +396,7 @@ class Publication( object ):
                     inner_product += relation.inner_product(
                         point,
                         other_point,
+                        max_edit_distance = max_edit_distance,
                         **kwargs
                     )
 
@@ -401,6 +413,7 @@ class Publication( object ):
                         matching_concepts = utils.match_words(
                             point_i_kcs,
                             point_j_kcs,
+                            max_edit_distance = max_edit_distance,
                             **kwargs
                         )
                         inner_product += len( matching_concepts )
@@ -420,6 +433,7 @@ class Publication( object ):
                         sent,
                         sent_other,
                         stemmed = True,
+                        max_edit_distance = max_edit_distance,
                         **kwargs
                     )
                     inner_product += len( matching_words )

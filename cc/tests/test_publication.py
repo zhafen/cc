@@ -265,7 +265,7 @@ class TestComparison( unittest.TestCase ):
         # Calculate inner products
         kwargs = {
             'method': 'key-point concepts',
-            'max_edit_distance': None,
+            'max_edit_distance': 2,
         }
         w_11 = p1.inner_product( p1, **kwargs )
         w_12 = p1.inner_product( p2, **kwargs )
