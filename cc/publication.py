@@ -6,7 +6,6 @@ import numpy as np
 import augment
 
 from . import config
-from . import concept
 from . import relation
 from . import utils
 
@@ -147,7 +146,10 @@ class Publication( object ):
         # Load abstract if not given
         if abstract_str is None:
             if not hasattr( self, 'ads_data' ):
-                self.get_ads_data( arxiv=self.citation['arxivid'] )
+                try:
+                    self.get_ads_data( arxiv=self.citation['arxivid'] )
+                except KeyError:
+                    self.get_ads_data( doi=self.citation['doi'] )
             abstract_str = self.ads_data.abstract
 
         self.abstract = {
@@ -317,7 +319,7 @@ class Publication( object ):
         assert self.cached_bibtex_fp != 'not processed'
 
         self.notes['unique_key_concepts'] = [
-            concept.uniquify_concepts( _, **kwargs )
+            utils.uniquify_words( _, **kwargs )
             for _ in self.notes['key_concepts']
         ]
 

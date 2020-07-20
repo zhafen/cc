@@ -1,10 +1,10 @@
 import augment
 
-from . import concept
+from . import utils
 
 ########################################################################
 
-def inner_product( a, b, max_edit_distance=1, word_per_concept=True ):
+def inner_product( a, b, word_per_concept=True, **kwargs ):
     '''The inner product between two relations.
     Fiducially defined as the number of shared key concepts.
 
@@ -15,12 +15,13 @@ def inner_product( a, b, max_edit_distance=1, word_per_concept=True ):
         b (str):
             The second relation to calculate the inner product of.
 
+        word_per_concept (bool):
+            If True, break each concept into its composite words.
+
+    Kwargs:
         max_edit_distance (int):
             Maximum Levenshtein edit-distance between two concepts for them
             to count as the same concept.
-
-        word_per_concept (bool):
-            If True, break each concept into its composite words.
 
     Returns:
         result (int):
@@ -36,8 +37,8 @@ def inner_product( a, b, max_edit_distance=1, word_per_concept=True ):
         word_per_concept = word_per_concept
     )
 
-    a_kcs = concept.uniquify_concepts( a_kcs, max_edit_distance )
-    b_kcs = concept.uniquify_concepts( b_kcs, max_edit_distance )
+    a_kcs = utils.uniquify_words( a_kcs, **kwargs )
+    b_kcs = utils.uniquify_words( b_kcs, **kwargs )
 
     result = 0
     for a_kc in a_kcs:

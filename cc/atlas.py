@@ -15,7 +15,7 @@ import augment
 import verdict
 
 from . import publication
-from . import concept
+from . import utils
 
 ########################################################################
 
@@ -134,7 +134,7 @@ class Atlas( object ):
 
         l = list( self.all_key_concepts )
 
-        self.unique_key_concepts = concept.uniquify_concepts( l, **kwargs )
+        self.unique_key_concepts = utils.uniquify_words( l, **kwargs )
 
         return self.unique_key_concepts
 
@@ -217,12 +217,17 @@ class Atlas( object ):
         inner_product = 0
 
         # When the other object is a publication
-        if isinstance( other, publication.Publication ):
+        # isinstance raises false exceptions
+        is_pub = (
+            isinstance( other, publication.Publication ) or
+            str( type( other ) ) == "<class 'cc.publication.Publication'>"
+        )
+        if is_pub:
             for p in self.data.values():
                 inner_product += other.inner_product( p, **kwargs )
 
         # When the other object is an atlas
-        elif isinstance( other, Atlas ):
+        elif str( type( other ) ) == "<class 'cc.atlas.Atlas'>":
             for p_self in self.data.values():
                 for p_other in self.data.values():
                     inner_product += p_other.inner_product( p_self, **kwargs )

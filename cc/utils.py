@@ -7,6 +7,34 @@ import verdict
 
 ########################################################################
 
+def uniquify_words( a, **kwargs ):
+    '''Find the unique words in a list
+    This involves...
+    1. Stemming the words in the lists
+    2. Matching words with a sufficiently low edit distance
+       (accounts for mispellings)
+
+    Args:
+        a (list of strs):
+            The list to uniquify
+
+    Kwargs:
+        max_edit_distance (int):
+            Maximum Levenshtein edit-distance between two concepts for them
+            to count as the same concept.
+
+        min_len_ed (int):
+            Words below this length will not be considered the same even if
+            they are within the given edit distance.
+
+        stemmed (bool):
+            If True the words are already stemmed.
+    '''
+
+    return match_words( a, a, **kwargs )
+
+########################################################################
+
 def match_words( a, b, max_edit_distance=2, min_len_ed=5, stemmed=False ):
     '''Find the matching words in two lists.
     This involves...
@@ -39,14 +67,24 @@ def match_words( a, b, max_edit_distance=2, min_len_ed=5, stemmed=False ):
     else:
         sa, sb = a, b
 
+    # When not including edit distance
+    if max_edit_distance is None:
+        result = []
+        for c in sa:
+            if c in sb:
+                result.append( c )
+        result = set( result )
+        return result
+
     # The words in at least one list (list b) have to be sufficiently long
     # to avoid warping one short word into another.
-    word_lens = np.array([ len( _ ) for _ in b ])
+    word_lens = np.array([ len( _ ) for _ in sb ])
     satisfies_min_len_ed = word_lens >= min_len_ed
 
     # Look for concepts with a sufficiently low Levenshtein edit-distance
     result = []
     for c in sa:
+
         # Find matches
         edit_distances = np.array([
             edit_distance( c, c_check, )
