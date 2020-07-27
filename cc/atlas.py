@@ -22,7 +22,7 @@ from . import utils
 class Atlas( object ):
 
     @augment.store_parameters
-    def __init__( self, atlas_dir, bibtex_fp=None ):
+    def __init__( self, atlas_dir, bibtex_fp=None, data_fp=None ):
         
         self.data = verdict.Dict( {} )
 
@@ -36,6 +36,9 @@ class Atlas( object ):
                 raise FileError( 'No *.bib file found in {}'.format( atlas_dir ) )
             bibtex_fp = bibtex_fps[0]
         self.import_bibtex( bibtex_fp )
+
+        # Load general atlas data
+        self.load_data( fp=data_fp )
 
     def __repr__( self ):
         return 'cc.atlas.Atlas:{}'.format( atlas_dir )

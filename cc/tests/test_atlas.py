@@ -110,22 +110,6 @@ class TestAtlasData( unittest.TestCase ):
 
 ########################################################################
 
-class TestRetrieveData( unittest.TestCase ):
-
-    def setUp( self ):
-
-        self.a = atlas.Atlas( './tests/data/example_atlas' )
-    
-    ########################################################################
-
-    def test_retrieve_ads_data( self ):
-
-        self.a.get_ads_data()
-
-        assert self.a['Hafen2019'].ads_data.abstract != None
-
-########################################################################
-
 class TestKeyConcepts( unittest.TestCase ):
 
     def setUp( self ):
