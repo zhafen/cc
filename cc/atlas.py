@@ -72,6 +72,64 @@ class Atlas( object ):
 
     ########################################################################
 
+    def load_data( self, fp=None ):
+        '''Load general data saved to atlas_data.h5
+        
+        Args:
+            fp (str):
+                Filepath to the atlas_data.h5 file.
+                If None, looks in self.atlas_dir
+        '''
+
+
+        # Filepath
+        if fp is None:
+            fp = os.path.join( self.atlas_dir, 'atlas_data.h5' )
+
+        # Exit if no data to load
+        if not os.path.isfile( fp ):
+            return
+
+        # Load
+        data_to_load = verdict.Dict.from_hdf5( fp )
+
+        # Store data
+        for key, item in self.data.items():
+            for ikey, iitem in data_to_load[key].items():
+                setattr( item, ikey, iitem )
+
+    ########################################################################
+
+    def save_data( self, fp=None, attrs_to_save=[ 'abstract', ] ):
+        '''Save general data saved to atlas_data.h5
+        
+        Args:
+            fp (str):
+                Filepath to the atlas_data.h5 file.
+                If None, looks in self.atlas_dir
+
+            attrs_to_save (list of strs):
+                List of attributes for each item of self.data to save.
+        '''
+
+        # Filepath
+        if fp is None:
+            fp = os.path.join( self.atlas_dir, 'atlas_data.h5' )
+
+        # Retrieve data
+        data_to_save = verdict.Dict( {} )
+        for key, item in self.data.items():
+            data_to_save[key] = {}
+            for attr in attrs_to_save:
+                data_to_save[key][attr] = getattr( item, attr )
+
+        # Save
+        data_to_save.to_hdf5( fp )
+
+    ########################################################################
+    # Data Processing
+    ########################################################################
+
     @property
     def key_concepts( self ):
         '''Easier access for key_concepts. Must be loaded for individual

@@ -3,15 +3,18 @@ from mock import patch
 import numpy as np
 import numpy.testing as npt
 import os
+import shutil
 import unittest
 
 import cc.atlas as atlas
+
+import verdict
 
 ########################################################################
 
 filepath = './tests/data/arxiv_source/Hafen2019/CGM_origin.tex'
 
-class TestRetrieveData( unittest.TestCase ):
+class TestBibTexData( unittest.TestCase ):
 
     def setUp( self ):
 
@@ -39,6 +42,87 @@ class TestRetrieveData( unittest.TestCase ):
         after = self.a.data['Hafen2019'].notes
 
         assert before == after
+
+########################################################################
+
+class TestAtlasData( unittest.TestCase ):
+
+    def setUp( self ):
+
+        # Delete and recreate
+        self.empty_dir = './tests/data/empty_atlas'
+        try:
+            shutil.rmtree( self.empty_dir )
+        except FileNotFoundError:
+            pass
+        os.makedirs( self.empty_dir )
+        shutil.copyfile(
+            './tests/data/example_atlas/example.bib',
+            os.path.join( self.empty_dir, 'example.bib' ),
+        )
+
+        self.a = atlas.Atlas( self.empty_dir )
+
+    ########################################################################
+
+    def test_load_data_no_data( self ):
+        '''We just don't want it to fail.'''
+
+        self.a.load_data( fp=self.empty_dir )
+
+    ########################################################################
+
+    def test_load_data( self ):
+
+        # Create test data
+        d = verdict.Dict( {} )
+        for key, item in self.a.data.items():
+            d[key] = {}
+            d[key]['abstract'] = 'Fake abstract for {}'.format( key )
+        d.to_hdf5( os.path.join( self.empty_dir, 'atlas_data.h5' ) )
+
+        self.a.load_data()
+
+        # Test
+        for key, item in self.a.data.items():
+            assert d[key]['abstract'] == self.a[key].abstract
+
+    ########################################################################
+
+    def test_save_data( self ):
+
+        # Create some fake attributes
+        for key, item in self.a.data.items():
+            item.test_attr = key
+
+        # Function itself
+        self.a.save_data(
+            attrs_to_save = [ 'test_attr', ],
+        )
+
+        # Load saved data
+        d = verdict.Dict.from_hdf5( 
+            './tests/data/empty_atlas/atlas_data.h5',
+        )
+        
+        for key, item in self.a.data.items():
+            assert d[key]['test_attr'] == self.a[key].test_attr
+
+########################################################################
+
+class TestRetrieveData( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.a = atlas.Atlas( './tests/data/example_atlas' )
+    
+    ########################################################################
+
+    def test_retrieve_ads_data( self ):
+
+        self.a.get_ads_data()
+
+        assert self.a['Hafen2019'].ads_data.abstract != None
 
 ########################################################################
 
