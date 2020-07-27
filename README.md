@@ -10,9 +10,11 @@ Publication class features include...
 - All references and citations.
 - The latest citation information (no need to manually check if an arXiv paper has been published and update the citation).
 * Parsing of BibTex annotations, including extraction of key concepts.
+* Parsing of abstracts using natural language processing.
 
 Atlas class features include...
 * Easy bulk access to a full .bib of papers, including easy access to features included in the Publication class.
+* Easy saving and storing of ADS data for the full .bib of papers.
 * A compilation of unique key concepts across a .bib, using natural language processing (via [nltk](https://www.nltk.org/)) to reduce the list of key concepts to unique key concepts, accounting for typos, missing spaces, capitalization, and plurals.
 * Find papers that discuss key concepts and extract relevant text.
 * Automatic approximate generation of relevant text for a key concept.

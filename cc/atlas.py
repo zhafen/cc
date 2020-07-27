@@ -98,6 +98,11 @@ class Atlas( object ):
 
         # Store data
         for key, item in self.data.items():
+
+            # When the paper doesn't have any data stored for it
+            if key not in data_to_load:
+                continue
+
             for ikey, iitem in data_to_load[key].items():
                 setattr( item, ikey, iitem )
 
@@ -124,7 +129,11 @@ class Atlas( object ):
         for key, item in self.data.items():
             data_to_save[key] = {}
             for attr in attrs_to_save:
-                data_to_save[key][attr] = getattr( item, attr )
+                if hasattr( item, attr):
+                    data_to_save[key][attr] = getattr( item, attr )
+            # Don't try to save empty dictionaries
+            if data_to_save[key] == {}:
+                del data_to_save[key]
 
         # Save
         data_to_save.to_hdf5( fp )
