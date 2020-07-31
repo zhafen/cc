@@ -463,12 +463,22 @@ class Publication( object ):
             # Get the processed abstracts
             self.process_abstract()
             other.process_abstract()
+
+            # When the abstract failed to retrieve
+            no_nltk = 'nltk' not in self.abstract
+            other_no_nltk = 'nltk' not in other.abstract
+            if no_nltk or other_no_nltk:
+                return 0.
+
             sents = self.abstract['nltk']['primary_stemmed']
             sents_other = other.abstract['nltk']['primary_stemmed']
 
             # Calculate the inner product
             for sent in sents:
                 for sent_other in sents_other:
+
+                    #DEBUG
+                    #import pdb; pdb.set_trace()
                     matching_words = utils.match_words(
                         sent,
                         sent_other,
@@ -477,6 +487,9 @@ class Publication( object ):
                         **kwargs
                     )
                     inner_product += len( matching_words )
+
+            #DEBUG
+            # import pdb; pdb.set_trace()
 
         else:
             raise Exception( 'Unrecognized inner_product method, {}'.format( method ) )
