@@ -41,7 +41,11 @@ class Publication( object ):
     # Data Retrieval
     ########################################################################
 
-    def get_ads_data( self, fl=[ 'abstract'], **kwargs ):
+    def get_ads_data(
+        self,
+        fl = [ 'abstract', 'citation', 'reference' ],
+        **kwargs
+    ):
         '''Retrieve all data the NASA Astrophysical Data System has regarding
         a paper.
 

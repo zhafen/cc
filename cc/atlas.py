@@ -108,7 +108,11 @@ class Atlas( object ):
 
     ########################################################################
 
-    def save_data( self, fp=None, attrs_to_save=[ 'abstract', ] ):
+    def save_data(
+        self,
+        fp = None,
+        attrs_to_save = [ 'abstract', 'citations', 'references' ]
+    ):
         '''Save general data saved to atlas_data.h5
         
         Args:
@@ -131,6 +135,14 @@ class Atlas( object ):
             for attr in attrs_to_save:
                 if hasattr( item, attr):
                     data_to_save[key][attr] = getattr( item, attr )
+                # Some attrs can be stored in ads_data
+                else:
+                    ads_key = attr[:-1]
+                    if hasattr( item.ads_data, ads_key ):
+                        data_to_save[key][attr] = getattr(
+                            item.ads_data,
+                            ads_key
+                        )
             # Don't try to save empty dictionaries
             if data_to_save[key] == {}:
                 del data_to_save[key]
