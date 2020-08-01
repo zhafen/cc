@@ -137,12 +137,13 @@ class Atlas( object ):
                     data_to_save[key][attr] = getattr( item, attr )
                 # Some attrs can be stored in ads_data
                 else:
-                    ads_key = attr[:-1]
-                    if hasattr( item.ads_data, ads_key ):
-                        data_to_save[key][attr] = getattr(
-                            item.ads_data,
-                            ads_key
-                        )
+                    if hasattr( item, 'ads_data' ):
+                        ads_key = attr[:-1]
+                        if hasattr( item.ads_data, ads_key ):
+                            data_to_save[key][attr] = getattr(
+                                item.ads_data,
+                                ads_key
+                            )
             # Don't try to save empty dictionaries
             if data_to_save[key] == {}:
                 del data_to_save[key]
