@@ -1,6 +1,7 @@
 import bibtexparser
 from collections import Counter
 import copy
+from tqdm import tqdm
 import glob
 import nltk
 from nltk.metrics import edit_distance
@@ -62,12 +63,15 @@ class Atlas( object ):
                 Filepath to the BibTex file.
         '''
 
+        print( 'Loading bibliography entries.' )
+
         # Load the database
         with open( bibtex_fp ) as bibtex_file:
             bib_database = bibtexparser.load(bibtex_file)
 
         # Store into class
-        for citation in bib_database.entries:
+        print( 'Storing bibliography entries.' )
+        for citation in tqdm( bib_database.entries ):
             citation_key = citation['ID']
             p = publication.Publication( citation_key )
             p.citation = citation
@@ -84,6 +88,7 @@ class Atlas( object ):
                 If None, looks in self.atlas_dir
         '''
 
+        print( 'Loading saved atlas data.' )
 
         # Filepath
         if fp is None:
@@ -91,13 +96,14 @@ class Atlas( object ):
 
         # Exit if no data to load
         if not os.path.isfile( fp ):
+            print( 'No saved data at {}'.format( fp ) )
             return
 
         # Load
         data_to_load = verdict.Dict.from_hdf5( fp )
 
         # Store data
-        for key, item in self.data.items():
+        for key, item in tqdm( self.data.items() ):
 
             # When the paper doesn't have any data stored for it
             if key not in data_to_load:
@@ -111,7 +117,8 @@ class Atlas( object ):
     def save_data(
         self,
         fp = None,
-        attrs_to_save = [ 'abstract', 'citations', 'references' ]
+        attrs_to_save = [ 'abstract', 'citations', 'references' ],
+        handle_jagged_arrs = 'row datasets',
     ):
         '''Save general data saved to atlas_data.h5
         
@@ -129,8 +136,9 @@ class Atlas( object ):
             fp = os.path.join( self.atlas_dir, 'atlas_data.h5' )
 
         # Retrieve data
+        print( 'Preparing to save data.' )
         data_to_save = verdict.Dict( {} )
-        for key, item in self.data.items():
+        for key, item in tqdm( self.data.items() ):
             data_to_save[key] = {}
             for attr in attrs_to_save:
                 if hasattr( item, attr):
@@ -139,17 +147,17 @@ class Atlas( object ):
                 else:
                     if hasattr( item, 'ads_data' ):
                         ads_key = attr[:-1]
-                        if hasattr( item.ads_data, ads_key ):
-                            data_to_save[key][attr] = getattr(
-                                item.ads_data,
-                                ads_key
-                            )
+                        if ads_key in item.ads_data:
+                            data_to_save[key][attr] = item.ads_data[ads_key]
             # Don't try to save empty dictionaries
             if data_to_save[key] == {}:
                 del data_to_save[key]
 
         # Save
-        data_to_save.to_hdf5( fp )
+        print( 'Saving to {}'.format( fp ) )
+        data_to_save.to_hdf5( fp, handle_jagged_arrs=handle_jagged_arrs )
+
+        return data_to_save
 
     ########################################################################
     # Data Processing

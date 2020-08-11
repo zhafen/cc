@@ -45,6 +45,39 @@ class TestBibTexData( unittest.TestCase ):
 
 ########################################################################
 
+class TestFromADSCalls( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.a = atlas.Atlas( './tests/data/example_atlas' )
+
+    ########################################################################
+
+    def test_from_ads_calls( self ):
+
+        calls = [
+            { 'bibcode': '2019MNRAS.488.1248H', },
+            { 'bibcode': '2020MNRAS.494.3581H', },
+        ]
+
+        a = atlas.Atlas.from_ads_calls(
+            self.a.atlas_dir,
+            calls = calls,
+        )
+
+        # Saved in the right spot
+        expected_bibtex_fp = './tests/data/example_atlas/cc_ads.bib',
+        assert a.bibtex_fp == expected_bibtex_fp
+
+        assert a.data['Hafen2019'].citation == self.a.data['Hafen2019'].citation
+
+    ########################################################################
+
+    # def test_from_ads_calls_list_input( self ):
+    # have it all go to kwargs
+
+########################################################################
+
 class TestAtlasData( unittest.TestCase ):
 
     def setUp( self ):
@@ -122,7 +155,7 @@ class TestAtlasData( unittest.TestCase ):
         d = verdict.Dict.from_hdf5( 
             './tests/data/empty_atlas/atlas_data.h5',
         )
-        
+                
         for key, item in self.a.data.items():
             abstract = item.abstract['nltk']
             for ikey, iitem in abstract.items():

@@ -44,6 +44,7 @@ class Publication( object ):
     def get_ads_data(
         self,
         fl = [ 'abstract', 'citation', 'reference' ],
+        keep_query_open = False,
         **kwargs
     ):
         '''Retrieve all data the NASA Astrophysical Data System has regarding
@@ -61,12 +62,12 @@ class Publication( object ):
                 with arxiv='1811.11753'.
 
         Returns:
-            self.ads_data (ads.search.Article):
-                Class containing ADS data.
+            self.ads_data (dict):
+                Dictionary containing ADS data.
         '''
 
-        self.ads_query = ads.SearchQuery( fl=fl, **kwargs )
-        query_list = list( self.ads_query )
+        ads_query = ads.SearchQuery( fl=fl, **kwargs )
+        query_list = list( ads_query )
 
         # Parse results of search
         if len( query_list ) < 1:
@@ -78,7 +79,14 @@ class Publication( object ):
                 )
             )
 
-        self.ads_data = query_list[0]
+        ads_data = query_list[0]
+
+        self.ads_data = {}
+        for key in fl:
+            self.ads_data[key] = getattr( ads_data, key )
+
+        if keep_query_open:
+            self.ads_query = ads_query
 
         return self.ads_data
 
@@ -194,7 +202,7 @@ class Publication( object ):
                     else:
                         raise Exception( failure_msg )
                 else:
-                    abstract_str = self.ads_data.abstract
+                    abstract_str = self.ads_data['abstract']
 
         self.abstract = {
             'str': abstract_str,
@@ -481,8 +489,6 @@ class Publication( object ):
             for sent in sents:
                 for sent_other in sents_other:
 
-                    #DEBUG
-                    #import pdb; pdb.set_trace()
                     matching_words = utils.match_words(
                         sent,
                         sent_other,
@@ -492,10 +498,27 @@ class Publication( object ):
                     )
                     inner_product += len( matching_words )
 
-            #DEBUG
-            # import pdb; pdb.set_trace()
-
         else:
             raise Exception( 'Unrecognized inner_product method, {}'.format( method ) )
 
         return inner_product
+
+    ########################################################################
+
+    def asymmetry_estimator( self, a, ):
+
+        # Get the processed abstracts
+        a.data.process_abstract()
+
+        # Identify the unique concepts
+        all_concepts = []
+        for key, p in a.data.items():
+            all_concepts += p.abstract['nltk']['primary_stemmed']
+        all_concepts = set( all_concepts )
+
+        # Calculate match
+        a.data.inner_product(
+            all_concepts,
+            method = 'abstract similarity',
+            other_type = 'basis vector',
+        )

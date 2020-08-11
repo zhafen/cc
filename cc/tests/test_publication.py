@@ -17,9 +17,9 @@ class TestRetrieveMetadata( unittest.TestCase ):
         # Load
         p = cc.publication.Publication( 'Hafen2019' )
 
-        p.get_ads_data( arxiv='1811.11753' )
+        p.get_ads_data( arxiv='1811.11753', fl=[ 'title', ] )
 
-        assert p.ads_data.title == ['The origins of the circumgalactic medium in the FIRE simulations']
+        assert p.ads_data['title'] == ['The origins of the circumgalactic medium in the FIRE simulations']
 
     ########################################################################
 
@@ -336,3 +336,22 @@ class TestComparison( unittest.TestCase ):
         # Check expected relations
         assert w_12 == w_21
         assert w_11 > w_12
+
+########################################################################
+
+class TestCitationEstimator( unittest.TestCase ):
+
+    def setUp( self ):
+
+        bibtex_fp = './tests/data/example_atlas/example.bib'
+        self.p = cc.publication.Publication( 'Hafen2019' )
+        self.p.process_bibtex_annotations( bibtex_fp )
+
+    ########################################################################
+
+    def test_asymmetry_estimator( self ):
+        '''Test that it runs with default arguments. Most quantitative tests
+        will require plotting and studying the results.
+        '''
+
+        self.p.asymmetry_estimator()
