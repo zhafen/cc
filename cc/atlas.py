@@ -1,3 +1,4 @@
+import ads
 import bibtexparser
 from collections import Counter
 import copy
@@ -21,6 +22,24 @@ from . import utils
 ########################################################################
 
 class Atlas( object ):
+    '''Generate an Atlas from a bibliography.
+
+    Args:
+        atlas_dir (str):
+            Primary location atlas data is stored in.
+
+        bibtex_fp (str):
+            Location to save the bibliography data at. Defaults to 
+            $atlas_dir/cc_ads.bib
+
+        data_fp (str):
+            Location to save other atlas data at. Defaults to 
+            $atlas_dir/atlas_data.h5
+
+    Returns:
+        Atlas:
+            An atlas object, designed for exploring a collection of papers.
+    '''
 
     @augment.store_parameters
     def __init__( self, atlas_dir, bibtex_fp=None, data_fp=None ):
@@ -32,9 +51,14 @@ class Atlas( object ):
             bibtex_fp = os.path.join( atlas_dir, '*.bib' )
             bibtex_fps = glob.glob( bibtex_fp )
             if len( bibtex_fps ) > 1:
-                raise FileError( 'Multiple possible BibTex files. Please specify.' )
+                # Ignore the auxiliary downloaded biliography
+                cc_ads_fp = os.path.join( atlas_dir, 'cc_ads.bib' )
+                if cc_ads_fp in bibtex_fps:
+                    bibtex_fps.remove( cc_ads_fp )
+                else:
+                    raise IOError( 'Multiple possible BibTex files. Please specify.' )
             if len( bibtex_fps ) == 0:
-                raise FileError( 'No *.bib file found in {}'.format( atlas_dir ) )
+                raise IOError( 'No *.bib file found in {}'.format( atlas_dir ) )
             bibtex_fp = bibtex_fps[0]
         self.import_bibtex( bibtex_fp )
 
@@ -46,6 +70,76 @@ class Atlas( object ):
 
     def __repr__( self ):
         return 'Atlas'
+
+    ########################################################################
+
+    @classmethod
+    def from_bibcodes(
+        cls,
+        atlas_dir,
+        bibcodes,
+        bibtex_fp = None,
+        data_fp = None,
+        **kwargs
+    ):
+        '''Generate an Atlas from bibcodes by downloading and saving the
+        citations from ADS as a new bibliography.
+
+        Args:
+            atlas_dir (str):
+                Primary location atlas data is stored in.
+
+            bibcodes (list of strs):
+                Publications to retrieve.
+
+            bibtex_fp (str):
+                Location to save the bibliography data at. Defaults to 
+                $atlas_dir/cc_ads.bib
+
+            data_fp (str):
+                Location to save other atlas data at. Defaults to 
+                $atlas_dir/atlas_data.h5
+
+        Returns:
+            Atlas:
+                An atlas object, designed for exploring a collection of papers.
+        '''
+
+        # Retrieve data from ADS
+        q = ads.ExportQuery( bibcodes )
+        bibtex_str = q.execute()
+
+        # Reformat some lines to work with bibtexparser
+        # This is not optimized.
+        l = []
+        for line in bibtex_str.split( '\n' ):
+            # ADS puts quotes instead of double brackes around the title
+            if 'title =' in line:
+                bibtex_str = bibtex_str.replace( '"{', '{{' )
+                bibtex_str = bibtex_str.replace( '}"', '}}' )
+            # ADS' bib export for months doesn't have brackets around it...
+            if 'month =' in line:
+                line = line.replace( '= ', '= {' ).replace( ',', '},' )
+            # The eprint is usually also the arxivid.
+            if 'eprint =' in line:
+                l.append( line.replace( 'eprint', 'arxivid' ) )
+            l.append( line )
+        bibtex_str = '\n'.join( l )
+
+        # Save the bibtex
+        if bibtex_fp is None:
+            bibtex_fp = os.path.join( atlas_dir, 'cc_ads.bib' )
+        with open( bibtex_fp, 'w' ) as f:
+            f.write( bibtex_str )
+
+        result = Atlas(
+            atlas_dir = atlas_dir,
+            bibtex_fp = bibtex_fp,
+            data_fp = data_fp,
+            **kwargs
+        )
+
+        return result
 
     ########################################################################
 

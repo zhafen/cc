@@ -45,36 +45,37 @@ class TestBibTexData( unittest.TestCase ):
 
 ########################################################################
 
-class TestFromADSCalls( unittest.TestCase ):
+class TestFromBibcodes( unittest.TestCase ):
 
     def setUp( self ):
+
+        bibtex_fp = './tests/data/example_atlas/cc_ads.bib' 
+        if os.path.isfile( bibtex_fp ):
+            os.remove( bibtex_fp )
 
         self.a = atlas.Atlas( './tests/data/example_atlas' )
 
     ########################################################################
 
-    def test_from_ads_calls( self ):
+    def test_from_bibcodes( self ):
 
-        calls = [
-            { 'bibcode': '2019MNRAS.488.1248H', },
-            { 'bibcode': '2020MNRAS.494.3581H', },
+        bibcodes = [
+            '2019MNRAS.488.1248H',
+            '2020MNRAS.494.3581H',
         ]
 
-        a = atlas.Atlas.from_ads_calls(
+        a = atlas.Atlas.from_bibcodes(
             self.a.atlas_dir,
-            calls = calls,
+            bibcodes,
         )
 
         # Saved in the right spot
-        expected_bibtex_fp = './tests/data/example_atlas/cc_ads.bib',
+        expected_bibtex_fp = './tests/data/example_atlas/cc_ads.bib'
         assert a.bibtex_fp == expected_bibtex_fp
 
-        assert a.data['Hafen2019'].citation == self.a.data['Hafen2019'].citation
-
-    ########################################################################
-
-    # def test_from_ads_calls_list_input( self ):
-    # have it all go to kwargs
+        # Expected values for entries
+        for key in [ 'title', 'year', 'arxivid' ]:
+            assert a.data['2019MNRAS.488.1248H'].citation[key] == self.a.data['Hafen2019'].citation[key]
 
 ########################################################################
 
