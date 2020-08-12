@@ -49,11 +49,11 @@ class TestFromBibcodes( unittest.TestCase ):
 
     def setUp( self ):
 
-        bibtex_fp = './tests/data/example_atlas/cc_ads.bib' 
-        if os.path.isfile( bibtex_fp ):
-            os.remove( bibtex_fp )
-
         self.a = atlas.Atlas( './tests/data/example_atlas' )
+
+        self.bibtex_fp = './tests/data/example_atlas/cc_ads.bib' 
+        if os.path.isfile( self.bibtex_fp ):
+            os.remove( self.bibtex_fp )
 
     ########################################################################
 
@@ -70,8 +70,33 @@ class TestFromBibcodes( unittest.TestCase ):
         )
 
         # Saved in the right spot
-        expected_bibtex_fp = './tests/data/example_atlas/cc_ads.bib'
-        assert a.bibtex_fp == expected_bibtex_fp
+        assert a.bibtex_fp == self.bibtex_fp
+
+        # Expected values for entries
+        for key in [ 'title', 'year', 'arxivid' ]:
+            assert a.data['2019MNRAS.488.1248H'].citation[key] == self.a.data['Hafen2019'].citation[key]
+
+    ########################################################################
+
+    def test_from_bibcodes_existing_bib( self ):
+
+        # Copy the duplicate file so there's already a bib there
+        shutil.copyfile(
+            './tests/data/duplicate.bib',
+            self.bibtex_fp,
+        )
+
+        bibcodes = [
+            '2020MNRAS.494.3581H',
+        ]
+
+        a = atlas.Atlas.from_bibcodes(
+            self.a.atlas_dir,
+            bibcodes,
+        )
+
+        # Saved in the right spot
+        assert a.bibtex_fp == self.bibtex_fp
 
         # Expected values for entries
         for key in [ 'title', 'year', 'arxivid' ]:

@@ -65,12 +65,6 @@ class Atlas( object ):
         # Load general atlas data
         self.load_data( fp=data_fp )
 
-    def __repr__( self ):
-        return 'cc.atlas.Atlas:{}'.format( atlas_dir )
-
-    def __repr__( self ):
-        return 'Atlas'
-
     ########################################################################
 
     @classmethod
@@ -105,6 +99,9 @@ class Atlas( object ):
                 An atlas object, designed for exploring a collection of papers.
         '''
 
+        # ADS doesn't like np arrays
+        bibcodes = list( bibcodes )
+
         # Retrieve data from ADS
         q = ads.ExportQuery( bibcodes )
         bibtex_str = q.execute()
@@ -129,7 +126,7 @@ class Atlas( object ):
         # Save the bibtex
         if bibtex_fp is None:
             bibtex_fp = os.path.join( atlas_dir, 'cc_ads.bib' )
-        with open( bibtex_fp, 'w' ) as f:
+        with open( bibtex_fp, 'a' ) as f:
             f.write( bibtex_str )
 
         result = Atlas(
@@ -142,6 +139,12 @@ class Atlas( object ):
         return result
 
     ########################################################################
+
+    def __repr__( self ):
+        return 'cc.atlas.Atlas:{}'.format( atlas_dir )
+
+    def __repr__( self ):
+        return 'Atlas'
 
     def __getitem__( self, key ):
 
