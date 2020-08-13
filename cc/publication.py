@@ -376,6 +376,63 @@ class Publication( object ):
         ]
 
     ########################################################################
+
+    def project_into_concept_space( self, component_concepts=None, ):
+        '''Project the abstract into concept space.
+        In simplest form this can just be counting up the number of
+        times each unique, stemmed noun, verb, or adjective shows up in the
+        abstract.
+
+        Args:
+            component_concepts (array-like of strs):
+                Basis concepts to project onto.
+
+        Returns:
+            components (np.ndarray of ints):
+                The value of the projection for each concept (by default the
+                number of times a word shows up in the abstract).
+
+            component_concepts (np.ndarray of strs):
+                The component concepts. If the component_concepts argument
+                is None then all non-zero concepts in the abstract are used.
+                If not None then the union of the non-zero concepts and
+                the component_concepts arg.
+        '''
+
+        # Get the processed abstracts
+        self.process_abstract()
+
+        # When the abstract failed to retrieve
+        if 'nltk' not in self.abstract:
+            if component_concepts is None:
+                return None, None
+            else:
+                values = np.zeros( len( component_concepts ) )
+                return values, component_concepts
+
+        # Project for non-zero concepts
+        sents = self.abstract['nltk']['primary_stemmed']
+        flattened = np.hstack( sents )
+        nonzero_concepts, values = np.unique( flattened, return_counts=True )
+
+        # Combine with existing component concepts
+        if component_concepts is not None:
+            diff_conc = np.setdiff1d( component_concepts, nonzero_concepts )
+            components = np.hstack( [
+                values,
+                np.zeros( len( diff_conc ) )
+            ] )
+            component_concepts = np.hstack( [
+                nonzero_concepts,
+                diff_conc
+            ] )
+        else:
+            components = values
+            component_concepts = nonzero_concepts
+
+        return components, component_concepts
+
+    ########################################################################
     # Comparing to other publications
     ########################################################################
  

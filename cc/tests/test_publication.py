@@ -257,6 +257,48 @@ class TestPublicationAnalysis( unittest.TestCase ):
 
 ########################################################################
 
+class ComponentProjection( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.p = cc.publication.Publication( 'Hafen2019' )
+        bibtex_fp = './tests/data/example_atlas/example.bib'
+        self.p.process_bibtex_annotations( bibtex_fp )
+
+    ########################################################################
+
+    def test_project_into_concept_space( self ):
+
+        values, comp_concepts = self.p.project_into_concept_space()
+
+        # Should be no 0s
+        assert values.min() > 0
+
+        # Two spot checks
+        assert 'wind' in comp_concepts
+        assert 'cohes' in comp_concepts
+
+    ########################################################################
+
+    def test_project_into_concept_space_existing_vector( self ):
+
+        comp_concepts = [ 'accret', 'dog' ]
+        values, comp_concepts = self.p.project_into_concept_space(
+            comp_concepts
+        )
+
+        # Should be one 0
+        assert values[-1] == 0
+        assert comp_concepts[-1] == 'dog'
+
+        # Spot checks
+        assert 'wind' in comp_concepts
+        assert 'cohes' in comp_concepts
+        assert 'accret' in comp_concepts
+        assert 'dog' in comp_concepts
+
+########################################################################
+
 class TestComparison( unittest.TestCase ):
 
     def test_inner_product_self( self ):
