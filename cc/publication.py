@@ -377,7 +377,7 @@ class Publication( object ):
 
     ########################################################################
 
-    def project_into_concept_space( self, component_concepts=None, ):
+    def concept_projection( self, component_concepts=None, ):
         '''Project the abstract into concept space.
         In simplest form this can just be counting up the number of
         times each unique, stemmed noun, verb, or adjective shows up in the
@@ -385,7 +385,8 @@ class Publication( object ):
 
         Args:
             component_concepts (array-like of strs):
-                Basis concepts to project onto.
+                Basis concepts to project onto. Defaults to all concepts in
+                the abstract.
 
         Returns:
             components (np.ndarray of ints):
@@ -405,7 +406,7 @@ class Publication( object ):
         # When the abstract failed to retrieve
         if 'nltk' not in self.abstract:
             if component_concepts is None:
-                return None, None
+                return [], None
             else:
                 values = np.zeros( len( component_concepts ) )
                 return values, component_concepts

@@ -435,6 +435,80 @@ class Atlas( object ):
             return result, paragraph
 
     ########################################################################
+
+    def concept_projection( self, component_concepts=None, projection_fp=None ):
+        '''Project the abstract of each publication into concept space.
+        In simplest form this finds all shared, stemmed nouns, verbs, and
+        adjectives between all publications and counts them.
+
+        Args:
+            component_concepts (array-like of strs):                                  
+                Basis concepts to project onto. Defaults to all concepts across
+                all publications.
+
+            projection_fp (str):
+                Location to save the concept projection at. Defaults to
+                $atlas_dir/concept_projection.h5
+
+        Returns:
+            Dictionary containing...
+                components ((n_pub,n_concepts) np.ndarray of ints):
+                    The value at [i,j] is the value of the projection for
+                    publication for each i for each concept j.
+
+                components_normed ((n_pub,n_concepts) np.ndarray of floats):
+                    components normalized for each publication
+
+                component_concepts ((n_concepts,) np.ndarray of strs):
+                    The basis concepts used. By default the union of all
+                    stemmed nouns, adjectives, and verbs across all abstracts.
+
+                projected_publications ((n_pubs,) np.ndarray of strs):
+                    The publications that are projected.
+        '''
+
+        print( 'Generating concept projection...' )
+
+        # Loop through and calculate components
+        components_list = []
+        projected_publications = []
+        for key, item in tqdm( self.data.items() ):
+            comp_i, component_concepts = item.concept_projection(
+                component_concepts,
+            )
+            components_list.append( comp_i )
+            projected_publications.append( key )
+
+        # Format components
+        shape = (
+            len( projected_publications ),
+            len( component_concepts )
+        )
+        components = np.zeros( shape )
+        for i, component in enumerate( components_list ):
+            components[i,:len(component)] = component
+
+        # Normalized components
+        norm = np.linalg.norm( components, axis=1 )
+        components_normed = components / norm[:,np.newaxis]
+
+        # Store
+        self.concept_projection = verdict.Dict( {
+            'components': components,
+            'components_normed': components_normed,
+            'component_concepts': component_concepts.astype( str ),
+            'projected_publications': projected_publications,
+        } )
+        if projection_fp is None:
+            projection_fp = os.path.join(
+                self.atlas_dir,
+                'concept_projection.h5'
+            )
+        self.concept_projection.to_hdf5( projection_fp )
+
+        return self.concept_projection
+
+    ########################################################################
     # Publication-to-publication comparison
     ########################################################################
 

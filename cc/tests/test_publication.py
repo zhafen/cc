@@ -267,9 +267,9 @@ class ComponentProjection( unittest.TestCase ):
 
     ########################################################################
 
-    def test_project_into_concept_space( self ):
+    def test_concept_projection( self ):
 
-        values, comp_concepts = self.p.project_into_concept_space()
+        values, comp_concepts = self.p.concept_projection()
 
         # Should be no 0s
         assert values.min() > 0
@@ -280,10 +280,10 @@ class ComponentProjection( unittest.TestCase ):
 
     ########################################################################
 
-    def test_project_into_concept_space_existing_vector( self ):
+    def test_concept_projection_existing_vector( self ):
 
         comp_concepts = [ 'accret', 'dog' ]
-        values, comp_concepts = self.p.project_into_concept_space(
+        values, comp_concepts = self.p.concept_projection(
             comp_concepts
         )
 

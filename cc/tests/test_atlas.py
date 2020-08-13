@@ -298,6 +298,45 @@ class TestSearchPublicationsKeyConcepts( unittest.TestCase ):
 
 ########################################################################
 
+class TestConceptProjection( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.a = atlas.Atlas( './tests/data/example_atlas' )
+
+        # Ensure we have necessary data available
+        self.a['Hafen2019'].abstract['nltk']['primary_stemmed']
+
+        fp = './tests/data/example_atlas/concept_projection.h5' 
+        if os.path.isfile( fp ):
+            os.remove( fp )
+
+    ########################################################################
+
+    def test_concept_projection( self ):
+
+        # Test
+        cp = self.a.concept_projection()
+
+        # The dimensions of the concept projection
+        expected_dim = (
+            len( self.a.data ),
+            len( cp['component_concepts'] )
+        )
+        assert cp['components'].shape == expected_dim
+
+        # Projected publications check
+        for i, v in enumerate( list( self.a.data.keys() ) ):
+            assert v == cp['projected_publications'][i]
+
+        # Normalized check
+        norm = np.sqrt( ( cp['components']**2. ).sum( axis=1 ) )
+        npt.assert_allclose(
+            cp['components_normed'][0,0], cp['components'][0,0]/norm[0]
+        )
+
+########################################################################
+
 class TestComparison( unittest.TestCase ):
 
     def setUp( self ):
