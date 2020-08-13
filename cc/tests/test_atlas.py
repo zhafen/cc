@@ -348,6 +348,37 @@ class TestComparison( unittest.TestCase ):
 
     ########################################################################
 
+    def test_inner_product_self( self ):
+
+        np.random.seed( 1234 )
+
+        # When optimized this shouldn't cost extra to call the line below
+        cp = self.a.concept_projection()
+
+        actual = self.a.inner_product( 'self', )
+
+        npt.assert_allclose( w_aa, 4266, rtol=0.05 )
+
+    ########################################################################
+
+    def test_inner_product_publication_atlas( self ):
+
+        np.random.seed( 1234 )
+
+        # When optimized this shouldn't cost extra to call the line below
+        cp = self.a.concept_projection()
+
+        expected = ( cp['components'] * cp['components'][8,:] ).sum()
+
+        actual = self.a.inner_product(
+            'Hafen2019',
+            'atlas',
+        )
+
+        npt.assert_allclose( actual, expected, rtol=0.05 )
+
+    ########################################################################
+
     def test_inner_product_custom_self( self ):
 
         np.random.seed( 1234 )

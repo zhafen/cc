@@ -493,23 +493,71 @@ class Atlas( object ):
         components_normed = components / norm[:,np.newaxis]
 
         # Store
-        self.concept_projection = verdict.Dict( {
+        self.projection = verdict.Dict( {
             'components': components,
             'components_normed': components_normed,
+            'norms': norm,
             'component_concepts': component_concepts.astype( str ),
-            'projected_publications': projected_publications,
+            'projected_publications': np.array( projected_publications ),
         } )
         if projection_fp is None:
             projection_fp = os.path.join(
                 self.atlas_dir,
                 'concept_projection.h5'
             )
-        self.concept_projection.to_hdf5( projection_fp )
+        self.projection.to_hdf5( projection_fp )
 
-        return self.concept_projection
+        return self.projection
 
     ########################################################################
     # Publication-to-publication comparison
+    ########################################################################
+
+    def inner_product( self, key_a, key_b, **kwargs ):
+        '''Calculate the inner product between a and b, using the
+        pre-generated concept projection.
+
+        Args:
+            key_a (str):
+                Reference to the first object.
+
+            key_b (str):
+                Reference to the second object.
+
+        Keyword Args:
+            Passed to self.concept_projection
+
+        Returns:
+            The inner product of a and b
+        '''
+
+        # Do projection or retrieve
+        cp = self.concept_projection( **kwargs )
+
+        # Find the objects the keys refer to
+        def interpret_key( key ):
+            # A single publication
+            if key in cp['projected_publications']:
+                is_p = cp['projected_publications'] == key_a
+                return cp['components'][is_p][0]
+            # The entire atlas
+            elif key == 'atlas':
+                return cp['components']
+        a = interpret_key( key_a )
+        b = interpret_key( key_b )
+
+        # Dot product
+        try:
+            result = np.dot( a, b )
+        except ValueError:
+            result = np.dot( b, a )
+
+        # Finish dot product
+        if key_a == 'atlas' or key_b == 'atlas':
+            result = result.sum()
+
+        return result
+
     ########################################################################
 
     def inner_product_custom( self, other, **kwargs ):
