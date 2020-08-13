@@ -140,6 +140,44 @@ class Atlas( object ):
 
     ########################################################################
 
+    def import_bibcodes( self, bibcodes, bibtex_fp=None ):
+        '''Import bibliography data using bibcodes.
+
+        Args:
+            bibcodes (list of strs):
+                Publications to retrieve.
+
+            bibtex_fp (str):
+                Location to save the bibliography data at. Defaults to 
+                $atlas_dir/cc_ads.bib
+
+        Updates:
+            self.data and the file at bibtex_fp:
+                Saves the import bibliography data to the instance and disk.
+        '''
+
+        # Import bibcodes
+        new_a = Atlas.from_bibcodes( self.atlas_dir, bibcodes, bibtex_fp )
+
+        # Prune to remove already existing references
+        keys_to_remove = []
+        for key, item in self.data.items():
+            for new_key, new_item in new_a.data.items():
+                if 'arxivid' not in item.citation:
+                    continue
+                if 'arxivid' not in new_item.citation:
+                    continue
+                if item.citation['arxivid'] == new_item.citation['arxivid']:
+                    keys_to_remove.append( new_key )
+        for key in keys_to_remove:
+            del new_a.data[key]
+
+        # Update data
+        new_a.data._storage.update( self.data ) 
+        self.data = new_a.data
+
+    ########################################################################
+
     def __repr__( self ):
         return 'cc.atlas.Atlas:{}'.format( atlas_dir )
 
@@ -214,7 +252,7 @@ class Atlas( object ):
     def save_data(
         self,
         fp = None,
-        attrs_to_save = [ 'abstract', 'citations', 'references' ],
+        attrs_to_save = [ 'abstract', 'citations', 'references', 'bibcode' ],
         handle_jagged_arrs = 'row datasets',
     ):
         '''Save general data saved to atlas_data.h5

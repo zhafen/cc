@@ -52,6 +52,8 @@ class TestFromBibcodes( unittest.TestCase ):
         self.a = atlas.Atlas( './tests/data/example_atlas' )
 
         self.bibtex_fp = './tests/data/example_atlas/cc_ads.bib' 
+
+    def tearDown( self ):
         if os.path.isfile( self.bibtex_fp ):
             os.remove( self.bibtex_fp )
 
@@ -101,6 +103,24 @@ class TestFromBibcodes( unittest.TestCase ):
         # Expected values for entries
         for key in [ 'title', 'year', 'arxivid' ]:
             assert a.data['2019MNRAS.488.1248H'].citation[key] == self.a.data['Hafen2019'].citation[key]
+
+    ########################################################################
+
+    def test_import_bibcodes( self ):
+
+        bibcodes = [
+            '2019MNRAS.488.1248H',
+            '2020MNRAS.491.6102B',
+        ]
+
+        self.a.import_bibcodes( bibcodes )
+
+        # Check that the values exist
+        for key in [ 'title', 'year', 'arxivid' ]:
+            self.a.data['2020MNRAS.491.6102B'].citation[key]
+
+        # This should already exist, so yeah, make sure it doesn't
+        assert '2019MNRAS.488.1248H' not in self.a.data.keys()
 
 ########################################################################
 
