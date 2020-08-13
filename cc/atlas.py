@@ -534,6 +534,14 @@ class Atlas( object ):
         # Do projection or retrieve
         cp = self.concept_projection( **kwargs )
 
+        # When a==b we can use the norms
+        if key_a == key_b:
+            if key_a == 'atlas':
+                return ( cp['norms']**2. ).sum()
+            else:
+                is_p = cp['projected_publications'] == key_a
+                return cp['norms'][is_p]**2.
+
         # Find the objects the keys refer to
         def interpret_key( key ):
             # A single publication

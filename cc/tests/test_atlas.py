@@ -348,16 +348,18 @@ class TestComparison( unittest.TestCase ):
 
     ########################################################################
 
-    def test_inner_product_self( self ):
+    def test_inner_product_atlas_atlas( self ):
 
         np.random.seed( 1234 )
 
         # When optimized this shouldn't cost extra to call the line below
         cp = self.a.concept_projection()
 
-        actual = self.a.inner_product( 'self', )
+        expected = ( cp['components']**2. ).sum()
 
-        npt.assert_allclose( w_aa, 4266, rtol=0.05 )
+        actual = self.a.inner_product( 'atlas', 'atlas' )
+
+        npt.assert_allclose( actual, expected, rtol=0.05 )
 
     ########################################################################
 
