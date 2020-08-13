@@ -512,7 +512,11 @@ class Atlas( object ):
     # Publication-to-publication comparison
     ########################################################################
 
-    def inner_product( self, other, **kwargs ):
+    def inner_product_custom( self, other, **kwargs ):
+        '''Calculate the inner product with another object.
+        This is much more customizable than inner_product, but much, much
+        slower.
+        '''
 
         inner_product = 0
 

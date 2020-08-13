@@ -348,21 +348,21 @@ class TestComparison( unittest.TestCase ):
 
     ########################################################################
 
-    def test_inner_product_self( self ):
+    def test_inner_product_custom_self( self ):
 
         np.random.seed( 1234 )
 
-        w_aa = self.a.inner_product( self.a, )
+        w_aa = self.a.inner_product_custom( self.a, )
 
         npt.assert_allclose( w_aa, 4266, rtol=0.05 )
 
     ########################################################################
 
-    def test_inner_product_publication( self ):
+    def test_inner_product_custom_publication( self ):
 
         np.random.seed( 1234 )
 
-        w_pa = self.a.inner_product(
+        w_pa = self.a.inner_product_custom(
             self.a.data['Hafen2019'],
         )
 
