@@ -334,7 +334,7 @@ class Publication( object ):
         # Key lines
         elif '[' in line and ']' in line:
 
-            assert line.count( '[' ) == line.count( ']' )
+            # assert line.count( '[' ) == line.count( ']' )
 
             # Parse and store key concepts
             key_concepts = relation.parse_relation_for_key_concepts(
