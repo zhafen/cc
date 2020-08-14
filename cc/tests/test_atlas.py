@@ -307,13 +307,22 @@ class TestConceptProjection( unittest.TestCase ):
         # Ensure we have necessary data available
         self.a['Hafen2019'].abstract['nltk']['primary_stemmed']
 
-        fp = './tests/data/example_atlas/concept_projection.h5' 
-        if os.path.isfile( fp ):
-            os.remove( fp )
+        self.alt_fp = './tests/data/example_atlas/projection_alt.h5'
+
+    def tearDown( self ):
+
+        # Make sure we remove extra files
+        if os.path.isfile( self.alt_fp ):
+            os.remove( self.alt_fp )
 
     ########################################################################
 
     def test_concept_projection( self ):
+
+        # Make sure we don't count cached files
+        fp = './tests/data/example_atlas/projection.h5' 
+        if os.path.isfile( fp ):
+            os.remove( fp )
 
         # Test
         cp = self.a.concept_projection()
@@ -339,7 +348,18 @@ class TestConceptProjection( unittest.TestCase ):
 
     def test_cached_concept_projection( self ):
 
-        assert False
+        # Full calculation
+        cp = self.a.concept_projection( projection_fp=self.alt_fp )
+
+        with patch( 'numpy.zeros' ) as mock_zeros:
+            # This will cause the function to break if it tries to do the
+            # actual calculation
+
+            # Loaded fiducial full calculation
+            cp_cache =  self.a.concept_projection( projection_fp=self.alt_fp )
+
+        # Cached should equal full
+        npt.assert_allclose( cp['components'], cp_cache['components'] )
 
 ########################################################################
 

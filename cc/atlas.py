@@ -436,7 +436,12 @@ class Atlas( object ):
 
     ########################################################################
 
-    def concept_projection( self, component_concepts=None, projection_fp=None ):
+    def concept_projection(
+        self,
+        component_concepts = None,
+        projection_fp = None,
+        overwrite = False
+    ):
         '''Project the abstract of each publication into concept space.
         In simplest form this finds all shared, stemmed nouns, verbs, and
         adjectives between all publications and counts them.
@@ -448,7 +453,10 @@ class Atlas( object ):
 
             projection_fp (str):
                 Location to save the concept projection at. Defaults to
-                $atlas_dir/concept_projection.h5
+                $atlas_dir/projection.h5
+
+            overwrite (bool):
+                If False then check for a cached concept projection.
 
         Returns:
             Dictionary containing...
@@ -468,6 +476,19 @@ class Atlas( object ):
         '''
 
         print( 'Generating concept projection...' )
+
+        # File location
+        if projection_fp is None:
+            projection_fp = os.path.join(
+                self.atlas_dir,
+                'projection.h5'
+            )
+
+        # If cached and not overwriting
+        if os.path.isfile( projection_fp ) and not overwrite:
+            print( 'Using cached concept projection...' )
+            self.projection = verdict.Dict.from_hdf5( projection_fp )
+            return self.projection
 
         # Loop through and calculate components
         components_list = []
@@ -500,11 +521,6 @@ class Atlas( object ):
             'component_concepts': component_concepts.astype( str ),
             'projected_publications': np.array( projected_publications ),
         } )
-        if projection_fp is None:
-            projection_fp = os.path.join(
-                self.atlas_dir,
-                'concept_projection.h5'
-            )
         self.projection.to_hdf5( projection_fp )
 
         return self.projection
@@ -562,6 +578,7 @@ class Atlas( object ):
         a = interpret_key( key_a )
         b = interpret_key( key_b )
 
+        # When we're doing the inner product with the atlas for all pubs
         if sorted([ key_a, key_b ]) == [ 'all', 'atlas' ]:
             result = np.array([ np.dot( a, row ).sum() for row in b ])
             return result
