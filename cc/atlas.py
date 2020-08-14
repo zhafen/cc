@@ -616,13 +616,13 @@ class Atlas( object ):
         )
         if is_pub:
             for p in self.data.values():
-                inner_product += other.inner_product( p, **kwargs )
+                inner_product += other.inner_product_custom( p, **kwargs )
 
         # When the other object is an atlas
         elif str( type( other ) ) == "<class 'cc.atlas.Atlas'>":
             for p_self in self.data.values():
                 for p_other in self.data.values():
-                    inner_product += p_other.inner_product( p_self, **kwargs )
+                    inner_product += p_other.inner_product_custom( p_self, **kwargs )
         else:
             raise ValueError( "Unrecognized object for calculating the inner product, {}".format( other ) )
 
@@ -655,10 +655,10 @@ class Atlas( object ):
         ip_self = {}
         ips = {}
         for key, p in self.data.items():
-            ip_self[key] = p.inner_product( p, **kwargs )
-            ips[key] = p.inner_product( other, **kwargs )
+            ip_self[key] = p.inner_product_custom( p, **kwargs )
+            ips[key] = p.inner_product_custom( other, **kwargs )
         ip_self = verdict.Dict( ip_self )
-        ip_other = other.inner_product( other, **kwargs )
+        ip_other = other.inner_product_custom( other, **kwargs )
         ips = verdict.Dict( ips )
 
         # Cospsi
@@ -671,6 +671,79 @@ class Atlas( object ):
     ########################################################################
 
     def plot_cospsi2d(
+        self,
+        x_key,
+        y_key,
+        ax = None,
+        x_kwargs = {},
+        y_kwargs = {},
+        **kwargs
+    ):
+        '''Scatter plot cos(psi) of two objects calculated with all the
+        publications in the library.
+
+        Args:
+            x_obj:
+                The x object to calculate cos(psi) with.
+
+            y_obj:
+                The y object to calculate cos(psi) with.
+
+            ax:
+                The axis to place the plot on.
+
+            **kwargs:
+                Keyword arguments to pass to the inner products.
+
+        Returns:
+            cospsi_x:
+                Dictionary of values for the x_obj.
+
+            cospsi_y:
+                Dictionary of values for the y_obj.
+        '''
+
+        ### Calculate cospsi
+        used_x_kwargs = copy.deepcopy( kwargs )
+        used_x_kwargs.update( x_kwargs )
+        used_y_kwargs = copy.deepcopy( kwargs )
+        used_y_kwargs.update( y_kwargs )
+        ip_xall = self.inner_product( x_key, 'all', **used_x_kwargs )
+        ip_yall = self.inner_product( y_key, 'all', **used_y_kwargs )
+        ip_xs = self.inner_product( x_key, x_key, **used_x_kwargs )
+        ip_ys = self.inner_product( y_key, y_key, **used_y_kwargs )
+        ip_xallall = self.inner_product( 'all', 'all', **used_x_kwargs )
+        ip_yallall = self.inner_product( 'all', 'all', **used_y_kwargs )
+        cospsi_xs = ip_xall / np.sqrt( ip_xs * ip_xallall )
+        cospsi_ys = ip_yall / np.sqrt( ip_ys * ip_yallall )
+
+        # Setup figure
+        if ax is None:
+            fig = plt.figure( figsize=(8,8), facecolor='w' )
+            ax = plt.gca()
+
+        # Plot
+        ax.scatter(
+            cospsi_xs,
+            cospsi_ys,
+            color = 'k',
+            s = 50,
+        )
+
+        # Labels
+        ax.set_xlabel( r'$\cos \psi$(' + str( x_obj ) + ')', fontsize=22 )
+        ax.set_ylabel( r'$\cos \psi$(' + str( y_obj ) + ')', fontsize=22 )
+
+        # Axis tweaks
+        ax.set_xlim( 0, 1 )
+        ax.set_ylim( 0, 1 )
+        ax.set_aspect( 'equal' )
+
+        return cospsi_xs, cospsi_ys
+
+    ########################################################################
+
+    def plot_cospsi2d_custom(
         self,
         x_obj,
         y_obj,

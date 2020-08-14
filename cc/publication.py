@@ -437,7 +437,7 @@ class Publication( object ):
     # Comparing to other publications
     ########################################################################
  
-    def inner_product(
+    def inner_product_custom(
         self,
         other,
         method = 'cached key-point concepts',
@@ -489,7 +489,7 @@ class Publication( object ):
         if is_pub:
             pass
         elif str( type( other ) ) == "<class 'cc.atlas.Atlas'>":
-            return other.inner_product(
+            return other.inner_product_custom(
                 self,
                 method = method,
                 max_edit_distance = max_edit_distance,
