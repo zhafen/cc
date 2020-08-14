@@ -731,8 +731,8 @@ class Atlas( object ):
         )
 
         # Labels
-        ax.set_xlabel( r'$\cos \psi$(' + str( x_obj ) + ')', fontsize=22 )
-        ax.set_ylabel( r'$\cos \psi$(' + str( y_obj ) + ')', fontsize=22 )
+        ax.set_xlabel( r'$\cos \psi$(' + str( x_key ) + ')', fontsize=22 )
+        ax.set_ylabel( r'$\cos \psi$(' + str( y_key ) + ')', fontsize=22 )
 
         # Axis tweaks
         ax.set_xlim( 0, 1 )

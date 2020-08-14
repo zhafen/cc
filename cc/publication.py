@@ -208,6 +208,9 @@ class Publication( object ):
             'str': abstract_str,
         }
 
+        if abstract_str is None:
+            return
+
         # Parse using NLTK
         sentences = nltk.sent_tokenize( abstract_str )
         sentences = [nltk.word_tokenize(sent) for sent in sentences] 
@@ -331,10 +334,7 @@ class Publication( object ):
         # Key lines
         elif '[' in line and ']' in line:
 
-            assert (
-                ( line.count( '[' ) == line.count( ']' ) ),
-                'Mismatch in number of brackets ([) for line {}'.format( line )
-            )
+            assert line.count( '[' ) == line.count( ']' )
 
             # Parse and store key concepts
             key_concepts = relation.parse_relation_for_key_concepts(
@@ -404,15 +404,17 @@ class Publication( object ):
         self.process_abstract()
 
         # When the abstract failed to retrieve
-        if 'nltk' not in self.abstract:
+        def upon_failure():
             if component_concepts is None:
                 return [], None
             else:
                 values = np.zeros( len( component_concepts ) )
                 return values, component_concepts
+        if 'nltk' not in self.abstract: return upon_failure()
 
         # Project for non-zero concepts
         sents = self.abstract['nltk']['primary_stemmed']
+        if sents == []: return upon_failure()
         flattened = np.hstack( sents )
         nonzero_concepts, values = np.unique( flattened, return_counts=True )
 
