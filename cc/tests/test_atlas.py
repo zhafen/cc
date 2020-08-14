@@ -379,7 +379,9 @@ class TestComparison( unittest.TestCase ):
         np.random.seed( 1234 )
 
         # When optimized this shouldn't cost extra to call the line below
-        cp = self.a.concept_projection()
+        # and thus shouldn't fail
+        with patch( 'numpy.zeros' ) as mock_zeros:
+            cp = self.a.concept_projection()
 
         expected = ( cp['components']**2. ).sum()
 

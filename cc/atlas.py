@@ -484,10 +484,13 @@ class Atlas( object ):
                 'projection.h5'
             )
 
-        # If cached and not overwriting
+        # If cached or saved and not overwriting
         if os.path.isfile( projection_fp ) and not overwrite:
-            print( 'Using cached concept projection...' )
+            print( 'Using saved concept projection...' )
             self.projection = verdict.Dict.from_hdf5( projection_fp )
+            return self.projection
+        if hasattr( self, 'projection' ) and not overwrite:
+            print( 'Using cached concept projection...' )
             return self.projection
 
         # Loop through and calculate components
