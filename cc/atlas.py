@@ -519,10 +519,16 @@ class Atlas( object ):
 
         Args:
             key_a (str):
-                Reference to the first object.
+                Reference to the first object. Options are...
+                    atlas:
+                        Inner product with the full atlas.
+                    all:
+                        Array of inner product with each publication.
+                    key from self.data:
+                        Inner product for a particular publication.
 
             key_b (str):
-                Reference to the second object.
+                Reference to the second object, same options as key_a.
 
         Keyword Args:
             Passed to self.concept_projection
@@ -546,10 +552,10 @@ class Atlas( object ):
         def interpret_key( key ):
             # A single publication
             if key in cp['projected_publications']:
-                is_p = cp['projected_publications'] == key_a
+                is_p = cp['projected_publications'] == key
                 return cp['components'][is_p][0]
             # The entire atlas
-            elif key == 'atlas':
+            elif key == 'atlas' or key == 'all':
                 return cp['components']
         a = interpret_key( key_a )
         b = interpret_key( key_b )

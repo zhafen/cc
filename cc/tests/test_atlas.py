@@ -380,6 +380,58 @@ class TestComparison( unittest.TestCase ):
         npt.assert_allclose( actual, expected, rtol=0.05 )
 
     ########################################################################
+    
+    def test_inner_product_all_atlas( self ):
+
+        np.random.seed( 1234 )
+
+        # When optimized this shouldn't cost extra to call the line below
+        cp = self.a.concept_projection()
+
+        expected = ( cp['components'] * cp['components'][8,:] ).sum()
+
+        actual = self.a.inner_product(
+            'all',
+            'atlas',
+        )
+
+        npt.assert_allclose( actual[8], expected, rtol=0.05 )
+
+    ########################################################################
+
+    def test_inner_product_publication_publication( self ):
+
+        np.random.seed( 1234 )
+
+        # When optimized this shouldn't cost extra to call the line below
+        cp = self.a.concept_projection()
+
+        expected = ( cp['components'][0,:] * cp['components'][8,:] ).sum()
+
+        actual = self.a.inner_product(
+            'Hafen2019',
+            'VandeVoort2018a',
+        )
+        npt.assert_allclose( actual, expected, rtol=0.05 )
+
+    ########################################################################
+
+    def test_inner_product_publication_all( self ):
+
+        np.random.seed( 1234 )
+
+        # When optimized this shouldn't cost extra to call the line below
+        cp = self.a.concept_projection()
+
+        expected = ( cp['components'][0,:] * cp['components'][8,:] ).sum()
+
+        actual = self.a.inner_product(
+            'Hafen2019',
+            'all',
+        )
+        npt.assert_allclose( actual[0], expected, rtol=0.05 )
+
+    ########################################################################
 
     def test_inner_product_custom_self( self ):
 
