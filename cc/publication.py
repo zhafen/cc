@@ -437,7 +437,7 @@ class Publication( object ):
     # Comparing to other publications
     ########################################################################
  
-    def inner_product(
+    def inner_product_custom(
         self,
         other,
         method = 'cached key-point concepts',
