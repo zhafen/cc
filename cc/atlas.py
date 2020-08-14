@@ -544,6 +544,8 @@ class Atlas( object ):
         if key_a == key_b:
             if key_a == 'atlas':
                 return ( cp['norms']**2. ).sum()
+            elif key_a == 'all':
+                return cp['norms']**2.
             else:
                 is_p = cp['projected_publications'] == key_a
                 return cp['norms'][is_p]**2.
@@ -559,6 +561,10 @@ class Atlas( object ):
                 return cp['components']
         a = interpret_key( key_a )
         b = interpret_key( key_b )
+
+        if sorted([ key_a, key_b ]) == [ 'all', 'atlas' ]:
+            result = np.array([ np.dot( a, row ).sum() for row in b ])
+            return result
 
         # Dot product
         try:

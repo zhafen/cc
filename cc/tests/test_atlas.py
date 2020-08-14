@@ -335,6 +335,12 @@ class TestConceptProjection( unittest.TestCase ):
             cp['components_normed'][0,0], cp['components'][0,0]/norm[0]
         )
 
+    ########################################################################
+
+    def test_cached_concept_projection( self ):
+
+        assert False
+
 ########################################################################
 
 class TestComparison( unittest.TestCase ):
