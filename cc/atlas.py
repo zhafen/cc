@@ -440,7 +440,8 @@ class Atlas( object ):
         self,
         component_concepts = None,
         projection_fp = None,
-        overwrite = False
+        overwrite = False,
+        verbose = True,
     ):
         '''Project the abstract of each publication into concept space.
         In simplest form this finds all shared, stemmed nouns, verbs, and
@@ -475,7 +476,8 @@ class Atlas( object ):
                     The publications that are projected.
         '''
 
-        print( 'Generating concept projection...' )
+        if verbose:
+            print( 'Generating concept projection...' )
 
         # File location
         if projection_fp is None:
@@ -486,11 +488,13 @@ class Atlas( object ):
 
         # If cached or saved and not overwriting
         if os.path.isfile( projection_fp ) and not overwrite:
-            print( 'Using saved concept projection...' )
+            if verbose:
+                print( 'Using saved concept projection...' )
             self.projection = verdict.Dict.from_hdf5( projection_fp )
             return self.projection
         if hasattr( self, 'projection' ) and not overwrite:
-            print( 'Using cached concept projection...' )
+            if verbose:
+                print( 'Using cached concept projection...' )
             return self.projection
 
         # Loop through and calculate components
@@ -557,12 +561,12 @@ class Atlas( object ):
         '''
 
         # Do projection or retrieve
-        cp = self.concept_projection( **kwargs )
+        cp = self.concept_projection( verbose=False, **kwargs )
 
         # When a==b we can use the norms
         if key_a == key_b:
             if key_a == 'atlas':
-                return ( cp['norms']**2. ).sum()
+                return ( cp['components'].sum( axis=0 )**2. ).sum()
             elif key_a == 'all':
                 return cp['norms']**2.
             else:

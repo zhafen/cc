@@ -383,7 +383,7 @@ class TestComparison( unittest.TestCase ):
         with patch( 'numpy.zeros' ) as mock_zeros:
             cp = self.a.concept_projection()
 
-        expected = ( cp['components']**2. ).sum()
+        expected = ( cp['components'].sum( axis=0 )**2. ).sum()
 
         actual = self.a.inner_product( 'atlas', 'atlas' )
 
@@ -399,12 +399,17 @@ class TestComparison( unittest.TestCase ):
         cp = self.a.concept_projection()
 
         expected = ( cp['components'] * cp['components'][8,:] ).sum()
-
         actual = self.a.inner_product(
             'Hafen2019',
             'atlas',
         )
+        npt.assert_allclose( actual, expected, rtol=0.05 )
 
+        ip_atlas_atlas = self.a.inner_product( 'atlas', 'atlas' )
+        ip_pub_pub = self.a.inner_product( 'Hafen2019', 'Hafen2019' )
+        actual = actual / np.sqrt( ip_atlas_atlas * ip_pub_pub )
+        expected = ( cp['components'] / np.sqrt( ip_atlas_atlas ) * cp['components_normed'][8,:] ).sum()
+        assert actual < 1.
         npt.assert_allclose( actual, expected, rtol=0.05 )
 
     ########################################################################

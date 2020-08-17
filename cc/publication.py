@@ -414,7 +414,7 @@ class Publication( object ):
 
         # Project for non-zero concepts
         sents = self.abstract['nltk']['primary_stemmed']
-        if sents == []: return upon_failure()
+        if len( sents ) == 0: return upon_failure()
         flattened = np.hstack( sents )
         nonzero_concepts, values = np.unique( flattened, return_counts=True )
 
