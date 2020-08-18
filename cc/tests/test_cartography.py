@@ -123,6 +123,13 @@ class TestAsymmetryEstimator( unittest.TestCase ):
 
     ########################################################################
 
+    def test_general( self ):
+
+        result = self.c.asymmetry_estimator()
+        assert result.shape == self.c.publications.shape
+
+    ########################################################################
+
     def test_constant_estimator( self ):
 
         # Try for some other publication

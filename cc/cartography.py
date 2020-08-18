@@ -126,7 +126,36 @@ class Cartographer( object ):
     # Estimators
     ########################################################################
 
-    def constant_asymmetry_estimator( self, i ):
+    def asymmetry_estimator( self, estimator='constant' ):
+        '''Estimate the asymmetry of all publications relative to prior
+        publications.
+
+        Args:
+           estimator (str):
+                What estimator to use. Options are...
+                    constant:
+                        |A> = sum( |P>-|P_i> )
+
+        Returns:
+            all_mags (np.ndarray of floats):
+                Asymmetry magnitude for all arrays.
+        '''
+
+        all_mags = []
+        for i, pub_date in enumerate( self.publication_dates ):
+
+            # Get the estimator
+            fn = getattr( self, '{}_asymmetry_estimator'.format( estimator ) )
+            _, mag = fn( i )
+
+            all_mags.append( mag )
+        all_mags = np.array( all_mags )
+
+        return all_mags
+
+    ########################################################################
+
+    def constant_asymmetry_estimator( self, i, ):
         '''Estimate the asymmetry of a publication by calculating the difference
         between that publication's projection and all other publications.
 
@@ -151,8 +180,8 @@ class Cartographer( object ):
         is_prior = self.publication_dates < pub_date
         is_valid = is_prior & ( range( self.publications.size ) != i )
 
+        # Differences
         p = self.components_normed[i]
-        
         result = ( p - self.components_normed[is_valid] ).sum( axis=0 )
         mag = np.linalg.norm( result )
 
