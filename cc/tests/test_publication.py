@@ -34,6 +34,20 @@ class TestRetrieveMetadata( unittest.TestCase ):
 
         assert p.citation['eprint'] == '1811.11753'
 
+    ########################################################################
+
+    def test_citations_per_year( self ):
+
+        # Load
+        p = cc.publication.Publication( 'Hafen2019' )
+        bibtex_fp = './tests/data/example_atlas/example.bib'
+        p.read_citation( bibtex_fp )
+        p.get_ads_data( arxiv='1811.11753', fl=[ 'citation', 'entry_date'] )
+        p.citations = p.ads_data['citation']
+        p.entry_date = p.ads_data['entry_date']
+
+        assert p.citations_per_year() > 0.
+
 ########################################################################
 
 class TestTex( unittest.TestCase ):

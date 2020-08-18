@@ -2,6 +2,7 @@ import ads
 import bibtexparser
 import nltk
 import numpy as np
+import pandas as pd
 import warnings
 
 import augment
@@ -106,6 +107,27 @@ class Publication( object ):
             self.ads_query = ads_query
 
         return self.ads_data
+
+    ########################################################################
+
+    def citations_per_year( self ):
+        '''Calculate the citations per year. This depends on the instance
+        having access to the ADS entry date and citation list, self.entry_date
+        and self.citations. Note that this is usually automatically done
+        after processing and saving the abstracts.
+        '''
+
+        time_elapsed = (
+            pd.to_datetime( 'now', ) - 
+            pd.to_datetime( self.entry_date, ).tz_localize(None)
+        )
+        time_elapsed_years = time_elapsed.total_seconds() / 3.154e7
+
+        citations_per_year = (
+            len( self.citations ) / time_elapsed_years
+        )
+
+        return citations_per_year
 
     ########################################################################
 
