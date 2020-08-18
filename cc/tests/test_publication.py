@@ -388,12 +388,3 @@ class TestCitationEstimator( unittest.TestCase ):
         bibtex_fp = './tests/data/example_atlas/example.bib'
         self.p = cc.publication.Publication( 'Hafen2019' )
         self.p.process_bibtex_annotations( bibtex_fp )
-
-    ########################################################################
-
-    def test_asymmetry_estimator( self ):
-        '''Test that it runs with default arguments. Most quantitative tests
-        will require plotting and studying the results.
-        '''
-
-        self.p.asymmetry_estimator()

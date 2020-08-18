@@ -563,22 +563,3 @@ class Publication( object ):
 
         return inner_product
 
-    ########################################################################
-
-    def asymmetry_estimator( self, a, ):
-
-        # Get the processed abstracts
-        a.data.process_abstract()
-
-        # Identify the unique concepts
-        all_concepts = []
-        for key, p in a.data.items():
-            all_concepts += p.abstract['nltk']['primary_stemmed']
-        all_concepts = set( all_concepts )
-
-        # Calculate match
-        a.data.inner_product(
-            all_concepts,
-            method = 'abstract similarity',
-            other_type = 'basis vector',
-        )

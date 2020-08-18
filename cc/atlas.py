@@ -56,7 +56,9 @@ class Atlas( object ):
                 if cc_ads_fp in bibtex_fps:
                     bibtex_fps.remove( cc_ads_fp )
                 else:
-                    raise IOError( 'Multiple possible BibTex files. Please specify.' )
+                    raise IOError(
+                        'Multiple possible BibTex files. Please specify.'
+                    )
             if len( bibtex_fps ) == 0:
                 raise IOError( 'No *.bib file found in {}'.format( atlas_dir ) )
             bibtex_fp = bibtex_fps[0]
@@ -518,15 +520,13 @@ class Atlas( object ):
 
         # Normalized components
         norm = np.linalg.norm( components, axis=1 )
-        components_normed = components / norm[:,np.newaxis]
 
         # Store
         self.projection = verdict.Dict( {
             'components': components,
-            'components_normed': components_normed,
             'norms': norm,
             'component_concepts': component_concepts.astype( str ),
-            'projected_publications': np.array( projected_publications ),
+            'publications': np.array( projected_publications ),
         } )
         self.projection.to_hdf5( projection_fp )
 
@@ -534,74 +534,6 @@ class Atlas( object ):
 
     ########################################################################
     # Publication-to-publication comparison
-    ########################################################################
-
-    def inner_product( self, key_a, key_b, **kwargs ):
-        '''Calculate the inner product between a and b, using the
-        pre-generated concept projection.
-
-        Args:
-            key_a (str):
-                Reference to the first object. Options are...
-                    atlas:
-                        Inner product with the full atlas.
-                    all:
-                        Array of inner product with each publication.
-                    key from self.data:
-                        Inner product for a particular publication.
-
-            key_b (str):
-                Reference to the second object, same options as key_a.
-
-        Keyword Args:
-            Passed to self.concept_projection
-
-        Returns:
-            The inner product of a and b
-        '''
-
-        # Do projection or retrieve
-        cp = self.concept_projection( verbose=False, **kwargs )
-
-        # When a==b we can use the norms
-        if key_a == key_b:
-            if key_a == 'atlas':
-                return ( cp['components'].sum( axis=0 )**2. ).sum()
-            elif key_a == 'all':
-                return cp['norms']**2.
-            else:
-                is_p = cp['projected_publications'] == key_a
-                return cp['norms'][is_p]**2.
-
-        # Find the objects the keys refer to
-        def interpret_key( key ):
-            # A single publication
-            if key in cp['projected_publications']:
-                is_p = cp['projected_publications'] == key
-                return cp['components'][is_p][0]
-            # The entire atlas
-            elif key == 'atlas' or key == 'all':
-                return cp['components']
-        a = interpret_key( key_a )
-        b = interpret_key( key_b )
-
-        # When we're doing the inner product with the atlas for all pubs
-        if sorted([ key_a, key_b ]) == [ 'all', 'atlas' ]:
-            result = np.array([ np.dot( a, row ).sum() for row in b ])
-            return result
-
-        # Dot product
-        try:
-            result = np.dot( a, b )
-        except ValueError:
-            result = np.dot( b, a )
-
-        # Finish dot product
-        if key_a == 'atlas' or key_b == 'atlas':
-            result = result.sum()
-
-        return result
-
     ########################################################################
 
     def inner_product_custom( self, other, **kwargs ):

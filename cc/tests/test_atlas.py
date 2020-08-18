@@ -336,13 +336,7 @@ class TestConceptProjection( unittest.TestCase ):
 
         # Projected publications check
         for i, v in enumerate( list( self.a.data.keys() ) ):
-            assert v == cp['projected_publications'][i]
-
-        # Normalized check
-        norm = np.sqrt( ( cp['components']**2. ).sum( axis=1 ) )
-        npt.assert_allclose(
-            cp['components_normed'][0,0], cp['components'][0,0]/norm[0]
-        )
+            assert v == cp['publications'][i]
 
     ########################################################################
 
@@ -371,116 +365,6 @@ class TestComparison( unittest.TestCase ):
         self.a.import_bibtex( './tests/data/example_atlas/example.bib' )
         self.a.data.process_bibtex_annotations( word_per_concept=True )
         self.a.data.identify_unique_key_concepts()
-
-    ########################################################################
-
-    def test_inner_product_atlas_atlas( self ):
-
-        np.random.seed( 1234 )
-
-        # When optimized this shouldn't cost extra to call the line below
-        # and thus shouldn't fail
-        with patch( 'numpy.zeros' ) as mock_zeros:
-            cp = self.a.concept_projection()
-
-        expected = ( cp['components'].sum( axis=0 )**2. ).sum()
-
-        actual = self.a.inner_product( 'atlas', 'atlas' )
-
-        npt.assert_allclose( actual, expected, rtol=0.05 )
-
-    ########################################################################
-
-    def test_inner_product_publication_atlas( self ):
-
-        np.random.seed( 1234 )
-
-        # When optimized this shouldn't cost extra to call the line below
-        cp = self.a.concept_projection()
-
-        expected = ( cp['components'] * cp['components'][8,:] ).sum()
-        actual = self.a.inner_product(
-            'Hafen2019',
-            'atlas',
-        )
-        npt.assert_allclose( actual, expected, rtol=0.05 )
-
-        ip_atlas_atlas = self.a.inner_product( 'atlas', 'atlas' )
-        ip_pub_pub = self.a.inner_product( 'Hafen2019', 'Hafen2019' )
-        actual = actual / np.sqrt( ip_atlas_atlas * ip_pub_pub )
-        expected = ( cp['components'] / np.sqrt( ip_atlas_atlas ) * cp['components_normed'][8,:] ).sum()
-        assert actual < 1.
-        npt.assert_allclose( actual, expected, rtol=0.05 )
-
-    ########################################################################
-    
-    def test_inner_product_all_atlas( self ):
-
-        np.random.seed( 1234 )
-
-        # When optimized this shouldn't cost extra to call the line below
-        cp = self.a.concept_projection()
-
-        expected = ( cp['components'] * cp['components'][8,:] ).sum()
-
-        actual = self.a.inner_product(
-            'all',
-            'atlas',
-        )
-
-        npt.assert_allclose( actual[8], expected, rtol=0.05 )
-
-    ########################################################################
-    
-    def test_inner_product_all_all( self ):
-
-        np.random.seed( 1234 )
-
-        # When optimized this shouldn't cost extra to call the line below
-        cp = self.a.concept_projection()
-
-        expected = cp['norms']**2.
-
-        actual = self.a.inner_product(
-            'all',
-            'all',
-        )
-
-        npt.assert_allclose( actual, expected, rtol=0.05 )
-
-    ########################################################################
-
-    def test_inner_product_publication_publication( self ):
-
-        np.random.seed( 1234 )
-
-        # When optimized this shouldn't cost extra to call the line below
-        cp = self.a.concept_projection()
-
-        expected = ( cp['components'][0,:] * cp['components'][8,:] ).sum()
-
-        actual = self.a.inner_product(
-            'Hafen2019',
-            'VandeVoort2018a',
-        )
-        npt.assert_allclose( actual, expected, rtol=0.05 )
-
-    ########################################################################
-
-    def test_inner_product_publication_all( self ):
-
-        np.random.seed( 1234 )
-
-        # When optimized this shouldn't cost extra to call the line below
-        cp = self.a.concept_projection()
-
-        expected = ( cp['components'][0,:] * cp['components'][8,:] ).sum()
-
-        actual = self.a.inner_product(
-            'Hafen2019',
-            'all',
-        )
-        npt.assert_allclose( actual[0], expected, rtol=0.05 )
 
     ########################################################################
 
