@@ -20,10 +20,12 @@ class Cartographer( object ):
         component_concepts,
         publications,
         publication_dates,
+        entry_dates,
     ):
 
         # Convert date to a more useable array
         self.publication_dates = pd.to_datetime( publication_dates )
+        self.entry_dates = pd.to_datetime( entry_dates )
 
     ########################################################################
 
@@ -155,7 +157,12 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def constant_asymmetry_estimator( self, i, min_prior=2 ):
+    def constant_asymmetry_estimator(
+        self,
+        i,
+        min_prior = 2,
+        date_type = 'entry_dates'
+    ):
         '''Estimate the asymmetry of a publication by calculating the difference
         between that publication's projection and all other publications.
 
@@ -176,12 +183,13 @@ class Cartographer( object ):
         '''
 
         # Don't try to calculate for publications we don't have a date for.
-        pub_date = self.publication_dates[i]
-        if str( pub_date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
+        dates = getattr( self, date_type )
+        date = dates[i]
+        if str( date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
             return np.full( self.component_concepts.shape, np.nan ), np.nan
 
         # Identify prior publications
-        is_prior = self.publication_dates < pub_date
+        is_prior = dates < date
         if is_prior.sum() < min_prior:
             return np.full( self.component_concepts.shape, np.nan ), np.nan
 

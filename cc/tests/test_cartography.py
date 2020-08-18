@@ -135,7 +135,7 @@ class TestAsymmetryEstimator( unittest.TestCase ):
         # Replace the first row with zeros to test if handled
         self.c.components[0] = np.zeros( self.c.components[0].size )
 
-        result = self.c.asymmetry_estimator()
+        result = self.c.asymmetry_estimator( date_type='publication_dates' )
 
         # There should be exactly two well-understood nans
         assert np.isnan( result[1:] ).sum() == 2
@@ -155,12 +155,12 @@ class TestAsymmetryEstimator( unittest.TestCase ):
 
     def test_constant_estimator( self ):
 
-        # Try for some other publication
-        dir, actual = self.c.constant_asymmetry_estimator( 3, )
+        # Try for some publication
+        dir, actual = self.c.constant_asymmetry_estimator( 3, date_type='publication_dates' )
         assert dir.shape == self.c.component_concepts.shape
         assert not np.isnan( actual )
 
-        # Try for a file with a nan public=ation date.
-        dir, actual = self.c.constant_asymmetry_estimator( 0, )
+        # Try for a file with a nan publication date.
+        dir, actual = self.c.constant_asymmetry_estimator( 0, date_type='publication_dates' )
         assert dir.shape == self.c.component_concepts.shape
         assert np.isnan( actual )

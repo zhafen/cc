@@ -208,7 +208,12 @@ class TestAtlasData( unittest.TestCase ):
                 for i, v_i in enumerate( iitem ):
                     for j, v_j in enumerate( v_i ):
                         for k, v_k in enumerate( v_j ):
-                            assert v_k == d[key]['abstract']['nltk'][ikey][i][j][k]
+                            try:
+                                assert v_k == d[key]['abstract']['nltk'][ikey][i][j][k]
+                            except:
+
+                                #DEBUG
+                                import pdb; pdb.set_trace()
 
 ########################################################################
 

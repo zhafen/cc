@@ -60,7 +60,7 @@ class Publication( object ):
 
     def get_ads_data(
         self,
-        fl = [ 'abstract', 'citation', 'reference' ],
+        fl = [ 'abstract', 'citation', 'reference', 'entry_date' ],
         keep_query_open = False,
         **kwargs
     ):

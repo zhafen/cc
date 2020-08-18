@@ -254,7 +254,13 @@ class Atlas( object ):
     def save_data(
         self,
         fp = None,
-        attrs_to_save = [ 'abstract', 'citations', 'references', 'bibcode' ],
+        attrs_to_save = [
+            'abstract',
+            'citations',
+            'references',
+            'bibcode',
+            'entry_date'
+        ],
         handle_jagged_arrs = 'row datasets',
     ):
         '''Save general data saved to atlas_data.h5
@@ -283,9 +289,10 @@ class Atlas( object ):
                 # Some attrs can be stored in ads_data
                 else:
                     if hasattr( item, 'ads_data' ):
-                        ads_key = attr[:-1]
-                        if ads_key in item.ads_data:
-                            data_to_save[key][attr] = item.ads_data[ads_key]
+                        possible_ads_keys = [ attr, attr[:-1] ]
+                        for ads_key in possible_ads_keys:
+                            if ads_key in item.ads_data:
+                                data_to_save[key][attr] = item.ads_data[ads_key]
             # Don't try to save empty dictionaries
             if data_to_save[key] == {}:
                 del data_to_save[key]
@@ -503,6 +510,7 @@ class Atlas( object ):
         components_list = []
         projected_publications = []
         pub_date = []
+        entry_date = []
         for key, item in tqdm( self.data.items() ):
             comp_i, component_concepts = item.concept_projection(
                 component_concepts,
@@ -510,6 +518,7 @@ class Atlas( object ):
             components_list.append( comp_i )
             projected_publications.append( key )
             pub_date.append( item.publication_date )
+            entry_date.append( item.entry_date )
 
         # Format components
         shape = (
@@ -530,6 +539,7 @@ class Atlas( object ):
             'component_concepts': component_concepts.astype( str ),
             'publications': np.array( projected_publications ),
             'publication_dates': np.array( pub_date ),
+            'entry_dates': np.array( entry_date ),
         } )
         self.projection.to_hdf5( projection_fp )
 
