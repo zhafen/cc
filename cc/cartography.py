@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 import augment
 import verdict
@@ -8,6 +9,8 @@ from . import atlas
 ########################################################################
 
 class Cartographer( object ):
+    '''Class for analyzing and exploring projected data.
+    '''
 
     @augment.store_parameters
     def __init__(
@@ -15,22 +18,45 @@ class Cartographer( object ):
         components,
         norms,
         component_concepts,
-        publications
+        publications,
+        publication_dates,
     ):
-        '''Class for analyzing and exploring projected data.
-        '''
 
-        pass
+        # Convert date to a more useable array
+        self.publication_dates = pd.to_datetime( publication_dates )
 
     ########################################################################
 
     @classmethod
     def from_hdf5( self, fp ):
+        '''Load the cartographer from a saved file.
+
+        Args:
+            fp (str):
+                Filepath to the projected data.
+
+        Returns:
+            Cartographer instance
+        '''
 
         data = verdict.Dict.from_hdf5( fp )
-
         return Cartographer( **data )
 
+    ########################################################################
+
+    @property
+    def components_normed( self ):
+        '''Components normalized such that <P|P>=1 .
+        '''
+
+        if not hasattr( self, '_components_normed' ):
+
+            self._components_normed = self.components / self.norms[:,np.newaxis]
+
+        return self._components_normed
+
+    ########################################################################
+    # Basic Analysis
     ########################################################################
 
     def inner_product( self, key_a, key_b, **kwargs ):
@@ -97,3 +123,37 @@ class Cartographer( object ):
         return result
 
     ########################################################################
+    # Estimators
+    ########################################################################
+
+    def constant_asymmetry_estimator( self, i ):
+        '''Estimate the asymmetry of a publication by calculating the difference
+        between that publication's projection and all other publications.
+
+        Args:
+            i (int):
+                Index of the publication to calculate the estimator for.
+
+        Returns:
+            result (np.ndarray of floats):
+                Full asymmetry estimator in vector form.
+
+            mag (float):
+                Magnitude of the asymmetry estimator.
+        '''
+
+        # Don't try to calculate for publications we don't have a date for.
+        pub_date = self.publication_dates[i]
+        if str( pub_date ) == 'NaT':
+            return np.full( self.component_concepts.shape, np.nan ), np.nan
+
+        # Identify valid publications to use as input
+        is_prior = self.publication_dates < pub_date
+        is_valid = is_prior & ( range( self.publications.size ) != i )
+
+        p = self.components_normed[i]
+        
+        result = ( p - self.components_normed[is_valid] ).sum( axis=0 )
+        mag = np.linalg.norm( result )
+
+        return result, mag

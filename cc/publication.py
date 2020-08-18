@@ -38,6 +38,23 @@ class Publication( object ):
         return self.citation_key
 
     ########################################################################
+
+    @property
+    def publication_date( self ):
+
+        if not hasattr( self, '_publication_date' ):
+
+            try:
+                self._publication_date = '{} {}'.format(
+                    self.citation['month'],
+                    self.citation['year']
+                )
+            except KeyError:
+                self._publication_date = 'nan'
+        
+        return self._publication_date
+
+    ########################################################################
     # Data Retrieval
     ########################################################################
 

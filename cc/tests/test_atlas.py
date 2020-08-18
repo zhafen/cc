@@ -338,6 +338,8 @@ class TestConceptProjection( unittest.TestCase ):
         for i, v in enumerate( list( self.a.data.keys() ) ):
             assert v == cp['publications'][i]
 
+        assert cp['publication_dates'][0] == self.a[cp['publications'][0]].publication_date
+
     ########################################################################
 
     def test_cached_concept_projection( self ):

@@ -111,3 +111,26 @@ class TestInnerProduct( unittest.TestCase ):
             'all',
         )
         npt.assert_allclose( actual[0], expected, rtol=0.05 )
+
+########################################################################
+
+class TestAsymmetryEstimator( unittest.TestCase ):
+
+    def setUp( self ):
+
+        fp = './tests/data/example_atlas/projection.h5'
+        self.c = cartography.Cartographer.from_hdf5( fp )
+
+    ########################################################################
+
+    def test_constant_estimator( self ):
+
+        # Try for some other publication
+        dir, actual = self.c.constant_asymmetry_estimator( 3, )
+        assert dir.shape == self.c.component_concepts.shape
+        assert not np.isnan( actual )
+
+        # Try for a file with a nan public=ation date.
+        dir, actual = self.c.constant_asymmetry_estimator( 0, )
+        assert dir.shape == self.c.component_concepts.shape
+        assert np.isnan( actual )

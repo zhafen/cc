@@ -432,7 +432,7 @@ class Atlas( object ):
             paragraph = ''
             for key, item in result.items():
                 for p in item:
-                    paragraph += '\cite{' + key + '}' + ': {}\n'.format( p )
+                    paragraph += '\\cite{' + key + '}' + ': {}\n'.format( p )
 
             return result, paragraph
 
@@ -502,12 +502,14 @@ class Atlas( object ):
         # Loop through and calculate components
         components_list = []
         projected_publications = []
+        pub_date = []
         for key, item in tqdm( self.data.items() ):
             comp_i, component_concepts = item.concept_projection(
                 component_concepts,
             )
             components_list.append( comp_i )
             projected_publications.append( key )
+            pub_date.append( item.publication_date )
 
         # Format components
         shape = (
@@ -527,6 +529,7 @@ class Atlas( object ):
             'norms': norm,
             'component_concepts': component_concepts.astype( str ),
             'publications': np.array( projected_publications ),
+            'publication_dates': np.array( pub_date ),
         } )
         self.projection.to_hdf5( projection_fp )
 
