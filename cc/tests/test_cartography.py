@@ -130,6 +130,29 @@ class TestAsymmetryEstimator( unittest.TestCase ):
 
     ########################################################################
 
+    def test_avoid_nans( self ):
+
+        # Replace the first row with zeros to test if handled
+        self.c.components[0] = np.zeros( self.c.components[0].size )
+
+        result = self.c.asymmetry_estimator()
+
+        # There should be exactly two well-understood nans
+        assert np.isnan( result[1:] ).sum() == 2
+
+    ########################################################################
+
+    def test_avoid_zeros( self ):
+
+        # Replace the first row with zeros to test if handled
+        self.c.components[0] = np.zeros( self.c.components[0].size )
+
+        result = self.c.asymmetry_estimator()
+
+        assert not np.any( np.isclose( result, 0. ) )
+
+    ########################################################################
+
     def test_constant_estimator( self ):
 
         # Try for some other publication

@@ -126,7 +126,7 @@ class Cartographer( object ):
     # Estimators
     ########################################################################
 
-    def asymmetry_estimator( self, estimator='constant' ):
+    def asymmetry_estimator( self, estimator='constant', **kwargs ):
         '''Estimate the asymmetry of all publications relative to prior
         publications.
 
@@ -142,11 +142,11 @@ class Cartographer( object ):
         '''
 
         all_mags = []
-        for i, pub_date in enumerate( self.publication_dates ):
+        for i, cite_key in enumerate( self.publications ):
 
             # Get the estimator
             fn = getattr( self, '{}_asymmetry_estimator'.format( estimator ) )
-            _, mag = fn( i )
+            _, mag = fn( i, **kwargs )
 
             all_mags.append( mag )
         all_mags = np.array( all_mags )
@@ -155,13 +155,17 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def constant_asymmetry_estimator( self, i, ):
+    def constant_asymmetry_estimator( self, i, min_prior=2 ):
         '''Estimate the asymmetry of a publication by calculating the difference
         between that publication's projection and all other publications.
 
         Args:
             i (int):
                 Index of the publication to calculate the estimator for.
+
+            min_prior (int):
+                The minimum number of publications prior to the target
+                publication to calculate the estimator for it.
 
         Returns:
             result (np.ndarray of floats):
@@ -173,12 +177,18 @@ class Cartographer( object ):
 
         # Don't try to calculate for publications we don't have a date for.
         pub_date = self.publication_dates[i]
-        if str( pub_date ) == 'NaT':
+        if str( pub_date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
+            return np.full( self.component_concepts.shape, np.nan ), np.nan
+
+        # Identify prior publications
+        is_prior = self.publication_dates < pub_date
+        if is_prior.sum() < min_prior:
             return np.full( self.component_concepts.shape, np.nan ), np.nan
 
         # Identify valid publications to use as input
-        is_prior = self.publication_dates < pub_date
-        is_valid = is_prior & ( range( self.publications.size ) != i )
+        is_other = np.arange( self.publications.size ) != i
+        is_minnorm = self.norms > 1e-5
+        is_valid = is_prior & is_other & is_minnorm
 
         # Differences
         p = self.components_normed[i]
