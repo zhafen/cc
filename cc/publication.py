@@ -38,6 +38,20 @@ class Publication( object ):
 
         return self.citation_key
 
+    def __getattr__( self, attr ):
+        '''Search ads_data for missing attributes.'''
+
+        # We shouldn't be looking for ADS data using __getattr__
+        if attr == 'ads_data':
+            raise AttributeError
+
+        ads_data = getattr( self, 'ads_data' )
+
+        possible_ads_keys = [ attr, attr[:-1] ]
+        for ads_key in possible_ads_keys:
+            if ads_key in ads_data:
+                return ads_data[ads_key]
+
     ########################################################################
 
     @property
