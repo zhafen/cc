@@ -38,20 +38,6 @@ class Publication( object ):
 
         return self.citation_key
 
-    def __getattr__( self, attr ):
-        '''Search ads_data for missing attributes.'''
-
-        # We shouldn't be looking for ADS data using __getattr__
-        if attr == 'ads_data':
-            raise AttributeError
-
-        ads_data = getattr( self, 'ads_data' )
-
-        possible_ads_keys = [ attr, attr[:-1] ]
-        for ads_key in possible_ads_keys:
-            if ads_key in ads_data:
-                return ads_data[ads_key]
-
     ########################################################################
 
     @property
@@ -113,14 +99,17 @@ class Publication( object ):
 
         ads_data = query_list[0]
 
+        # Store
+        # Duplication is okay
         self.ads_data = {}
         for key in fl:
             self.ads_data[key] = getattr( ads_data, key )
+            setattr( self, key, self.ads_data[key] )
 
         if keep_query_open:
             self.ads_query = ads_query
 
-        return self.ads_data
+        return ads_data
 
     ########################################################################
 
