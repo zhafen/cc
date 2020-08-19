@@ -202,12 +202,16 @@ class Cartographer( object ):
             if target_keys == prev_target_keys:
                 print( 'No new similar publications found, exiting...' )
                 break
-            else:
-                prev_target_keys = copy.copy( target_keys )
+
+            keys_to_search = []
+            for key in target_keys:
+                if key not in prev_target_keys:
+                    keys_to_search.append( key )
+            prev_target_keys = copy.copy( target_keys )
 
             # Build bibcodes to import
             bibcodes = []
-            for key in target_keys:
+            for key in keys_to_search:
                 bibcodes += list( a[key].citations )
                 bibcodes += list( a[key].references )
 

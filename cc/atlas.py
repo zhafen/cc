@@ -113,35 +113,10 @@ class Atlas( object ):
                 An atlas object, designed for exploring a collection of papers.
         '''
 
-        # ADS doesn't like np arrays
-        bibcodes = list( bibcodes )
-
-        # Retrieve data from ADS
-        q = ads.ExportQuery( bibcodes )
-        bibtex_str = q.execute()
-
-        # Reformat some lines to work with bibtexparser
-        # This is not optimized.
-        l = []
-        for line in bibtex_str.split( '\n' ):
-            # ADS puts quotes instead of double brackes around the title
-            if 'title =' in line:
-                bibtex_str = bibtex_str.replace( '"{', '{{' )
-                bibtex_str = bibtex_str.replace( '}"', '}}' )
-            # ADS' bib export for months doesn't have brackets around it...
-            if 'month =' in line:
-                line = line.replace( '= ', '= {' ).replace( ',', '},' )
-            # The eprint is usually also the arxivid.
-            if 'eprint =' in line:
-                l.append( line.replace( 'eprint', 'arxivid' ) )
-            l.append( line )
-        bibtex_str = '\n'.join( l )
-
-        # Save the bibtex
+        # Save the bibcodes to a bibtex
         if bibtex_fp is None:
             bibtex_fp = os.path.join( atlas_dir, 'cc_ads.bib' )
-        with open( bibtex_fp, 'a' ) as f:
-            f.write( bibtex_str )
+        save_bibcodes_to_bibtex( bibcodes, bibtex_fp )
 
         result = Atlas(
             atlas_dir = atlas_dir,
@@ -170,13 +145,22 @@ class Atlas( object ):
                 Saves the import bibliography data to the instance and disk.
         '''
 
-        # Import bibcodes
-        new_a = Atlas.from_bibcodes( self.atlas_dir, bibcodes, bibtex_fp )
+        # Store original keys for later removing duplicates
+        original_keys = copy.copy( list( self.data.keys() ) )
 
-        # Prune to remove already existing references
+        # Import bibcodes
+        if bibtex_fp is None:
+            bibtex_fp = os.path.join( self.atlas_dir, 'cc_ads.bib' )
+        save_bibcodes_to_bibtex( bibcodes, bibtex_fp )
+        self.import_bibtex( bibtex_fp )
+
+        # Prune to remove duplicate references
         keys_to_remove = []
-        for key, item in self.data.items():
-            for new_key, new_item in new_a.data.items():
+        for key in original_keys:
+            item = self.data[key]
+            for new_key, new_item in self.data.items():
+                if key == new_key:
+                    continue
                 if 'arxivid' not in item.citation:
                     continue
                 if 'arxivid' not in new_item.citation:
@@ -184,11 +168,7 @@ class Atlas( object ):
                 if item.citation['arxivid'] == new_item.citation['arxivid']:
                     keys_to_remove.append( new_key )
         for key in keys_to_remove:
-            del new_a.data[key]
-
-        # Update data
-        new_a.data._storage.update( self.data ) 
-        self.data = new_a.data
+            del self.data[key]
 
     ########################################################################
 
@@ -766,3 +746,35 @@ class Atlas( object ):
         ax.set_aspect( 'equal' )
 
         return cospsi_xs, cospsi_ys
+
+########################################################################
+
+def save_bibcodes_to_bibtex( bibcodes, bibtex_fp ):
+
+    # ADS doesn't like np arrays
+    bibcodes = list( bibcodes )
+
+    # Retrieve data from ADS
+    q = ads.ExportQuery( bibcodes )
+    bibtex_str = q.execute()
+
+    # Reformat some lines to work with bibtexparser
+    # This is not optimized.
+    l = []
+    for line in bibtex_str.split( '\n' ):
+        # ADS puts quotes instead of double brackes around the title
+        if 'title =' in line:
+            bibtex_str = bibtex_str.replace( '"{', '{{' )
+            bibtex_str = bibtex_str.replace( '}"', '}}' )
+        # ADS' bib export for months doesn't have brackets around it...
+        if 'month =' in line:
+            line = line.replace( '= ', '= {' ).replace( ',', '},' )
+        # The eprint is usually also the arxivid.
+        if 'eprint =' in line:
+            l.append( line.replace( 'eprint', 'arxivid' ) )
+        l.append( line )
+    bibtex_str = '\n'.join( l )
+
+    # Save the bibtex
+    with open( bibtex_fp, 'a' ) as f:
+        f.write( bibtex_str )
