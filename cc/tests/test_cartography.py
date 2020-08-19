@@ -6,6 +6,7 @@ import os
 import shutil
 import unittest
 
+import cc.atlas as atlas
 import cc.cartography as cartography
 
 ########################################################################
@@ -111,6 +112,43 @@ class TestInnerProduct( unittest.TestCase ):
             'all',
         )
         npt.assert_allclose( actual[0], expected, rtol=0.05 )
+
+########################################################################
+
+class TestExplore( unittest.TestCase ):
+
+    def setUp( self ):
+
+        # We want to start fresh for these tests
+        ads_bib_fp = './tests/data/example_atlas/cc_ads.bib'
+        if os.path.isfile( ads_bib_fp ):
+            os.remove( ads_bib_fp )
+
+        fp = './tests/data/example_atlas/projection.h5'
+        self.c = cartography.Cartographer.from_hdf5( fp )
+        self.a = atlas.Atlas( './tests/data/example_atlas' )
+
+    ########################################################################
+
+    def test_explore( self ):
+
+        previous_size = len( self.a.data )
+
+        # Build expected keys
+        expected_keys = np.union1d(
+            list( self.a.data.keys() ),
+            self.a['Hafen2019'].citations
+        )
+        expected_keys = np.union1d(
+            expected_keys,
+            self.a['Hafen2019'].references
+        )
+        expected_keys = sorted( list( expected_keys ) )
+
+        new_a = self.c.explore( 8, self.a, n=1 )
+        actual_keys = sorted( list( new_a.data.keys() ) )
+
+        assert expected_keys == actual_keys
 
 ########################################################################
 

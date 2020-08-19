@@ -69,6 +69,18 @@ class Atlas( object ):
 
     ########################################################################
 
+    def __repr__( self ):
+        return 'cc.atlas.Atlas:{}'.format( atlas_dir )
+
+    def __repr__( self ):
+        return 'Atlas'
+
+    def __getitem__( self, key ):
+
+        return self.data[key]
+
+    ########################################################################
+
     @classmethod
     def from_bibcodes(
         cls,
@@ -180,18 +192,6 @@ class Atlas( object ):
 
     ########################################################################
 
-    def __repr__( self ):
-        return 'cc.atlas.Atlas:{}'.format( atlas_dir )
-
-    def __repr__( self ):
-        return 'Atlas'
-
-    def __getitem__( self, key ):
-
-        return self.data[key]
-
-    ########################################################################
-
     def import_bibtex( self, bibtex_fp, ):
         '''Import publications from a BibTex file.
         
@@ -286,13 +286,6 @@ class Atlas( object ):
             for attr in attrs_to_save:
                 if hasattr( item, attr):
                     data_to_save[key][attr] = getattr( item, attr )
-                # Some attrs can be stored in ads_data
-                else:
-                    if hasattr( item, 'ads_data' ):
-                        possible_ads_keys = [ attr, attr[:-1] ]
-                        for ads_key in possible_ads_keys:
-                            if ads_key in item.ads_data:
-                                data_to_save[key][attr] = item.ads_data[ads_key]
             # Don't try to save empty dictionaries
             if data_to_save[key] == {}:
                 del data_to_save[key]
@@ -372,6 +365,16 @@ class Atlas( object ):
         self.unique_key_concepts = utils.uniquify_words( l, **kwargs )
 
         return self.unique_key_concepts
+
+    ########################################################################
+
+    def process_abstracts( self ):
+        '''Convenience method for downloading and processing the abstracts
+        of all publications.
+        '''
+
+        for key, item in tqdm( self.data.items() ):
+            item.process_abstract()
 
     ########################################################################
 
@@ -518,7 +521,10 @@ class Atlas( object ):
             components_list.append( comp_i )
             projected_publications.append( key )
             pub_date.append( item.publication_date )
-            entry_date.append( item.entry_date )
+            try:
+                entry_date.append( item.entry_date )
+            except AttributeError:
+                entry_date.append( 'NaT' )
 
         # Format components
         shape = (

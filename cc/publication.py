@@ -103,8 +103,11 @@ class Publication( object ):
         # Duplication is okay
         self.ads_data = {}
         for key in fl:
-            self.ads_data[key] = getattr( ads_data, key )
-            setattr( self, key, self.ads_data[key] )
+            value = getattr( ads_data, key )
+            self.ads_data[key] = value
+            if key == 'citation' or key =='reference':
+                key += 's'
+            setattr( self, key, value )
 
         if keep_query_open:
             self.ads_query = ads_query
