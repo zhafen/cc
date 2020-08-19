@@ -467,6 +467,7 @@ class Atlas( object ):
             projection_fp (str):
                 Location to save the concept projection at. Defaults to
                 $atlas_dir/projection.h5
+                If set to 'pass' then the projection is not saved.
 
             overwrite (bool):
                 If False then check for a cached concept projection.
@@ -547,7 +548,8 @@ class Atlas( object ):
             'publication_dates': np.array( pub_date ),
             'entry_dates': np.array( entry_date ),
         } )
-        self.projection.to_hdf5( projection_fp )
+        if projection_fp != 'pass':
+            self.projection.to_hdf5( projection_fp )
 
         return self.projection
 

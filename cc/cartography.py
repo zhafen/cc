@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 import pandas as pd
 
@@ -12,8 +13,11 @@ class Cartographer( object ):
     '''Class for analyzing and exploring projected data.
     '''
 
+    def __init__( self, **kwargs ):
+        self.update_data( **kwargs )
+
     @augment.store_parameters
-    def __init__(
+    def update_data(
         self,
         components,
         norms,
@@ -22,6 +26,8 @@ class Cartographer( object ):
         publication_dates,
         entry_dates,
     ):
+        '''Update the data used for calculations.
+        '''
 
         # Convert date to a more useable array
         self.publication_dates = pd.to_datetime( publication_dates )
@@ -125,12 +131,95 @@ class Cartographer( object ):
         return result
 
     ########################################################################
+
+    def cospsi( self, key_a, key_b, **kwargs ):
+        '''Cosine of the "angle" between two publications, defined as
+        <A|B> / sqrt( <A|A><B|B> ).
+
+        Args:
+            key_a (str):
+                Reference to the first object. Options are...
+                    atlas:
+                        Inner product with the full atlas.
+                    all:
+                        Array of inner product with each publication.
+                    key from self.data:
+                        Inner product for a particular publication.
+
+            key_b (str):
+                Reference to the second object, same options as key_a.
+
+        Keyword Args:
+            Passed to self.concept_projection
+
+        Returns:
+            The cosine of a and b
+        '''
+
+        ip_ab = self.inner_product( key_a, key_b, **kwargs )
+        ip_aa = self.inner_product( key_a, key_a, **kwargs )
+        ip_bb = self.inner_product( key_b, key_b, **kwargs )
+
+        return ip_ab / np.sqrt( ip_aa * ip_bb )
+
+    ########################################################################
     # Exploration
     ########################################################################
 
-    def explore( self, i, a ):
+    def explore( self, cite_key, a, n=5, max_searches=5, bibtex_fp=None ):
 
-        pass
+        # Identify target publication
+        p = a[cite_key]
+
+        # Loop until converged
+        prev_target_keys = None
+        for j in range( max_searches ):
+
+            print( 'Exploration loop {}'.format( j ) )
+            print('    Current number of publications = {}'.format(len(a.data)))
+
+            if j != 0:
+                # Make sure we have needed data
+                print( '    Retrieving and processing new abstracts...' )
+                a.process_abstracts()
+
+                # Recalculate and update parameters
+                print( '    Re-projecting publications...' )
+                cp = a.concept_projection(
+                    projection_fp = 'pass',
+                    overwrite = True,
+                    verbose = False,
+                )
+                self.update_data( **cp )
+
+            # Find publications with highest cospsi relative to target publication
+            print( '    Identifying similar publications...' )
+            cospsi = self.cospsi( cite_key, 'all' )
+            is_not_nan = np.invert( np.isnan( cospsi ) )
+            target_inds = np.argsort( cospsi[is_not_nan] )[::-1][:n]
+            target_keys = list( self.publications[is_not_nan][target_inds] )
+
+            if target_keys == prev_target_keys:
+                print( 'No new similar publications found, exiting...' )
+                break
+            else:
+                prev_target_keys = copy.copy( target_keys )
+
+            # Build bibcodes to import
+            bibcodes = []
+            for key in target_keys:
+                bibcodes += list( a[key].citations )
+                bibcodes += list( a[key].references )
+
+            # Import the new data
+            print(
+                '    Importing {} new publications...'.format( len( bibcodes ) )
+            )
+            a.import_bibcodes( bibcodes, bibtex_fp )
+
+        print( 'Finished. New atlas has {} publications.'.format(len(a.data)))
+
+        return a
 
     ########################################################################
     # Estimators
