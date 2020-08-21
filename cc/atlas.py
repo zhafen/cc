@@ -151,8 +151,8 @@ class Atlas( object ):
         # Import bibcodes
         if bibtex_fp is None:
             bibtex_fp = os.path.join( self.atlas_dir, 'cc_ads.bib' )
-        save_bibcodes_to_bibtex( bibcodes, bibtex_fp )
-        self.import_bibtex( bibtex_fp )
+        save_bibcodes_to_bibtex( bibcodes, bibtex_fp, )
+        self.import_bibtex( bibtex_fp, verbose=False )
 
         # Prune to remove duplicate references
         keys_to_remove = []
@@ -172,7 +172,7 @@ class Atlas( object ):
 
     ########################################################################
 
-    def import_bibtex( self, bibtex_fp, ):
+    def import_bibtex( self, bibtex_fp, verbose=True ):
         '''Import publications from a BibTex file.
         
         Args:
@@ -180,14 +180,16 @@ class Atlas( object ):
                 Filepath to the BibTex file.
         '''
 
-        print( 'Loading bibliography entries.' )
+        if verbose:
+            print( 'Loading bibliography entries.' )
 
         # Load the database
         with open( bibtex_fp ) as bibtex_file:
             bib_database = bibtexparser.load(bibtex_file)
 
         # Store into class
-        print( 'Storing bibliography entries.' )
+        if verbose:
+            print( 'Storing bibliography entries.' )
         for citation in tqdm( bib_database.entries ):
             citation_key = citation['ID']
             p = publication.Publication( citation_key )

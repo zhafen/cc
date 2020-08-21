@@ -201,7 +201,7 @@ class Publication( object ):
             abstract_str (str):
                 Raw abstract. If none, download from ADS.
 
-            return_empty_upon_failure (bool):
+         self.ads_data[key]    return_empty_upon_failure (bool):
                 If True, treat the abstract as an empty string when failing to
                 download the abstract from ADS.
 

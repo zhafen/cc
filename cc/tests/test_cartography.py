@@ -3,6 +3,7 @@ from mock import patch
 import numpy as np
 import numpy.testing as npt
 import os
+import pytest
 import shutil
 import unittest
 
@@ -115,6 +116,31 @@ class TestInnerProduct( unittest.TestCase ):
 
 ########################################################################
 
+class TestDistance( unittest.TestCase ):
+
+    def setUp( self ):
+
+        fp = './tests/data/example_atlas/projection.h5'
+        self.c = cartography.Cartographer.from_hdf5( fp )
+
+    ########################################################################
+
+    def test_distance( self ):
+
+        np.random.seed( 1234 )
+
+        expected = np.sqrt( (
+            ( self.c.components_normed[0,:] - self.c.components_normed[8,:] )**2.
+        ).sum() )
+
+        actual = self.c.distance(
+            'Hafen2019',
+            'VandeVoort2018a',
+        )
+        npt.assert_allclose( actual, expected, rtol=0.05 )
+
+########################################################################
+
 class TestExplore( unittest.TestCase ):
 
     def setUp( self ):
@@ -130,6 +156,7 @@ class TestExplore( unittest.TestCase ):
 
     ########################################################################
 
+    @pytest.mark.slow
     def test_explore( self ):
 
         previous_size = len( self.a.data )
@@ -145,6 +172,8 @@ class TestExplore( unittest.TestCase ):
         )
         expected_keys = sorted( list( expected_keys ) )
 
+
+        missing_from_actual = '2016MNRAS.463.4533V'
         new_a = self.c.explore( 'Hafen2019', self.a, n=1 )
         actual_keys = sorted( list( new_a.data.keys() ) )
 

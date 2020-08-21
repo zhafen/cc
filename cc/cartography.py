@@ -163,6 +163,29 @@ class Cartographer( object ):
         return ip_ab / np.sqrt( ip_aa * ip_bb )
 
     ########################################################################
+
+    def distance( self, key_a, key_b, normed=True, ):
+
+        # Get the right components
+        if normed:
+            components = self.components_normed
+        else:
+            components = self.components
+
+        # Swap a and b since it doesn't matter anyways
+        if key_b != 'all' and key_a == 'all':
+            key_a, key_b = key_b, key_a
+        
+        # Calc distance
+        p_a = components[self.publications==key_a][0]
+        d = np.linalg.norm( components - p_a, axis=1 )
+
+        if key_b != 'all':
+            return d[self.publications==key_b][0]
+        else:
+            return d
+
+    ########################################################################
     # Exploration
     ########################################################################
 
@@ -172,7 +195,7 @@ class Cartographer( object ):
         p = a[cite_key]
 
         # Loop until converged
-        prev_target_keys = None
+        prev_target_keys = []
         for j in range( max_searches ):
 
             print( 'Exploration loop {}'.format( j ) )
@@ -203,10 +226,12 @@ class Cartographer( object ):
                 print( 'No new similar publications found, exiting...' )
                 break
 
+            # Don't redownload data from ads we already downloaded
             keys_to_search = []
             for key in target_keys:
                 if key not in prev_target_keys:
                     keys_to_search.append( key )
+
             prev_target_keys = copy.copy( target_keys )
 
             # Build bibcodes to import
