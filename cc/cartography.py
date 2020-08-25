@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import pandas as pd
+from scipy.spatial.distance import cdist
 
 import augment
 import verdict
@@ -164,6 +165,40 @@ class Cartographer( object ):
 
     ########################################################################
 
+    def psi( self, key_a, key_b, scaling=np.pi/2.,**kwargs ):
+        '''The "angle" between two publications, defined as
+        arccos( <A|B> / sqrt( <A|A><B|B> ) ).
+
+        Args:
+            key_a (str):
+                Reference to the first object. Options are...
+                    atlas:
+                        Inner product with the full atlas.
+                    all:
+                        Array of inner product with each publication.
+                    key from self.data:
+                        Inner product for a particular publication.
+
+            key_b (str):
+                Reference to the second object, same options as key_a.
+
+            scaling (float):
+                The number of radians to scale the output by. Defaults to
+                pi/2, the usual maximum difference between two publications.
+
+        Keyword Args:
+            Passed to self.concept_projection
+
+        Returns:
+            psi of a and b
+        '''
+
+        cospsi = self.cospsi( key_a, key_b, **kwargs )
+
+        return np.arccos( cospsi ) / scaling
+
+    ########################################################################
+
     def distance( self, key_a, key_b, normed=True, ):
 
         # Get the right components
@@ -171,6 +206,10 @@ class Cartographer( object ):
             components = self.components_normed
         else:
             components = self.components
+
+        # For all compared to all
+        if key_a == 'all' and key_b == 'all':
+            return cdist( components, components )
 
         # Swap a and b since it doesn't matter anyways
         if key_b != 'all' and key_a == 'all':
@@ -190,6 +229,32 @@ class Cartographer( object ):
     ########################################################################
 
     def explore( self, cite_key, a, n=5, max_searches=5, bibtex_fp=None ):
+        '''Ambitiously explore an atlas region by aggressively downloading
+        all citations and references of papers that are most similar to
+        a target publication.
+        Warning: Currently over-aggresive and will chew through your ADS
+        calls.
+
+        Args:
+            cite_key (str):
+                Target publication to find similar publications to.
+
+            a (atlas.Atlas):
+                Atlas class containing relevant data.
+
+            n (int):
+                Number of similar publications.
+
+            max_searches (int):
+                Maximum number of iterations to perform before stopping.
+
+            bibtex_fp (str):
+                Location to save the bibtex file to.
+
+        Returns:
+            a (atlas.Atlas):
+                Modified atlas to include new publications.
+        '''
 
         # Identify target publication
         p = a[cite_key]
@@ -247,6 +312,47 @@ class Cartographer( object ):
             a.import_bibcodes( bibcodes, bibtex_fp )
 
         print( 'Finished. New atlas has {} publications.'.format(len(a.data)))
+
+        return a
+
+    ########################################################################
+
+    def survey( self, cite_key, a, psi_max, bibtex_fp=None, max_per_pub=100, **kwargs ):
+
+        # Find publications in region
+        psi = self.psi( cite_key, 'all', **kwargs )
+        within_region = psi < psi_max
+
+        # Choose a random publication
+        survey_key = np.random.choice( self.publications[within_region] )
+
+        # Import that publications references and citations
+        bibcodes = (
+            list( a[survey_key].citations ) +
+            list( a[survey_key].references )
+        )
+        if len( bibcodes ) > max_per_pub:
+            bibcodes = np.random.choice( bibcodes, max_per_pub, replace=False )
+        print(
+            'Importing {} new publications linked to random publication {}...'.format(
+                len( bibcodes ),
+                survey_key,
+            )
+        )
+        a.import_bibcodes( bibcodes, bibtex_fp )
+
+        # Make sure we have needed data
+        print( 'Processing abstracts...' )
+        a.process_abstracts()
+
+        # Recalculate and update parameters
+        print( 'Re-projecting publications...' )
+        cp = a.concept_projection(
+            projection_fp = 'pass',
+            overwrite = True,
+            verbose = False,
+        )
+        self.update_data( **cp )
 
         return a
 

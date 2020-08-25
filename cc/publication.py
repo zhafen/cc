@@ -63,6 +63,7 @@ class Publication( object ):
         self,
         fl = [ 'abstract', 'citation', 'reference', 'entry_date' ],
         keep_query_open = False,
+        verbose = False,
         **kwargs
     ):
         '''Retrieve all data the NASA Astrophysical Data System has regarding
@@ -91,11 +92,12 @@ class Publication( object ):
         if len( query_list ) < 1:
             raise ValueError( 'No matching papers found in ADS' )
         elif len( query_list ) > 1:
-            warnings.warn(
-                'Multiple papers found with identifying data {}'.format(
-                    kwargs
+            if verbose:
+                warnings.warn(
+                    'Multiple papers found with identifying data {}'.format(
+                        kwargs
+                    )
                 )
-            )
 
         ads_data = query_list[0]
 
@@ -193,7 +195,8 @@ class Publication( object ):
     def process_abstract(
         self,
         abstract_str = None,
-        return_empty_upon_failure = True
+        return_empty_upon_failure = True,
+        verbose = False,
     ):
         '''Process the abstract with natural language processing.
 
@@ -242,7 +245,8 @@ class Publication( object ):
                         Not processing abstract.'''.format( self.citation_key )
                     )
                     if return_empty_upon_failure:
-                        warnings.warn( failure_msg )
+                        if verbose:
+                            warnings.warn( failure_msg )
                         abstract_str = ''
                     else:
                         raise Exception( failure_msg )

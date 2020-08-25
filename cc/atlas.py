@@ -192,7 +192,13 @@ class Atlas( object ):
             print( 'Storing bibliography entries.' )
         for citation in tqdm( bib_database.entries ):
             citation_key = citation['ID']
-            p = publication.Publication( citation_key )
+
+            # Avoid overwriting existing loaded data
+            if citation_key in self.data:
+                p = self.data[citation_key]
+            else:
+                p = publication.Publication( citation_key )
+
             p.citation = citation
             self.data[citation_key] = p
 
