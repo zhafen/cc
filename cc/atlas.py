@@ -168,7 +168,11 @@ class Atlas( object ):
                 if item.citation['arxivid'] == new_item.citation['arxivid']:
                     keys_to_remove.append( new_key )
         for key in keys_to_remove:
-            del self.data[key]
+            try:
+                del self.data[key]
+            except KeyError:
+                # Already removed, it's okay
+                continue
 
     ########################################################################
 
