@@ -59,7 +59,21 @@ class TestTex( unittest.TestCase ):
 
         p.load_full_tex( filepath )
 
-        assert p.full_text[0] == '% mnras_template.tex \n'
+        assert p.full_tex[0] == '% mnras_template.tex \n'
+
+        # Check that the abstract was loaded and parsed correctly.
+        assert p.tex['abstract'].str[:6] == '\n\nWe use'
+        assert p.tex['abstract'].str[-10] == 'picture.\n\n'
+
+        # Check that the sections were loaded and parsed correctly
+        expected = [
+            'Introduction',
+            'Methods',
+            'Results',
+            'Discussion',
+            'Conclusion',
+        ]
+        assert list( p.tex['sections'].keys() ) == expected
 
 ########################################################################
 

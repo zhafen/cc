@@ -183,10 +183,10 @@ class Publication( object ):
         '''
 
         # Retrieve full text
-        self.full_text = []
+        self.full_tex = []
         with open( tex_fp ) as f:
             for line in f:
-                self.full_text.append( line )  
+                self.full_tex.append( line )  
 
     ########################################################################
     # Publication Analysis
