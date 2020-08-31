@@ -9,6 +9,7 @@ import augment
 
 from . import config
 from . import relation
+from . import tex
 from . import utils
 
 ########################################################################
@@ -187,6 +188,57 @@ class Publication( object ):
         with open( tex_fp ) as f:
             for line in f:
                 self.full_tex.append( line )  
+        self.full_tex = ''.join( self.full_tex )
+
+        # Process into sections
+        self.tex = {}
+        stack = []
+        bracket_stack = []
+        section_labels = []
+        is_appendix = False
+        for i, c in enumerate( self.full_tex ):
+            if c == '\\':
+                # Extract abstract
+                if self.full_tex[i:i+16] == '\\begin{abstract}':
+                    stack.append( i+16 )
+                elif self.full_tex[i:i+14] == '\\end{abstract}':
+                    start = stack.pop()
+                    self.tex['Abstract'] = tex.Tex( self.full_tex[start:i] )
+
+                # Extract sections
+                start_section = self.full_tex[i:i+9] == '\\section{'
+                end_document = self.full_tex[i:i+14] == '\\end{document}'
+                start_appendix = self.full_tex[i:i+9] == '\\appendix'
+                if start_section or end_document or start_appendix:
+
+                    # Finish previous section
+                    if len( stack ) > 0:
+                        start = stack.pop()
+                        label = section_labels.pop()
+                        tex_instance = tex.Tex( self.full_tex[start:i] )
+                        if not is_appendix:
+                            self.tex[label] = tex_instance
+                        if is_appendix:
+                            if 'Appendix' not in self.tex:
+                                self.tex['Appendix'] = {}
+                            self.tex['Appendix'][label] = tex_instance
+
+                    # Start looking for section name
+                    if start_section:
+                        bracket_stack.append( i+9 )
+
+                if start_appendix:
+                    is_appendix = True
+
+            elif c == '}' and len( bracket_stack ) > 0:
+
+                # Extract section name
+                start = bracket_stack.pop()
+                section_labels.append( self.full_tex[start:i] )
+
+                # Start recording section text
+                stack.append( i+1 )
+
 
     ########################################################################
     # Publication Analysis
