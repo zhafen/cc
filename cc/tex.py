@@ -92,3 +92,25 @@ class Tex( object ):
         return self._sentences
 
     ########################################################################
+
+    @property
+    def words( self ):
+
+        if not hasattr( self, '_words' ):
+
+            self._words = nltk.tokenize.word_tokenize( self.cleaned )
+
+        return self._words
+
+    ########################################################################
+
+    @property
+    def tokens( self ):
+
+        if not hasattr( self, '_tokens' ):
+
+            self._tokens = nltk.pos_tag( self.words )
+
+        return self._tokens
+
+

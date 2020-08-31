@@ -184,11 +184,12 @@ class Publication( object ):
         '''
 
         # Retrieve full text
-        self.full_tex = []
+        full_tex_str = []
         with open( tex_fp ) as f:
             for line in f:
-                self.full_tex.append( line )  
-        self.full_tex = ''.join( self.full_tex )
+                full_tex_str.append( line )  
+        full_tex_str = ''.join( full_tex_str )
+        self.full_tex = tex.Tex( full_tex_str )
 
         # Process into sections
         self.tex = {}
@@ -196,26 +197,26 @@ class Publication( object ):
         bracket_stack = []
         section_labels = []
         is_appendix = False
-        for i, c in enumerate( self.full_tex ):
+        for i, c in enumerate( full_tex_str ):
             if c == '\\':
                 # Extract abstract
-                if self.full_tex[i:i+16] == '\\begin{abstract}':
+                if full_tex_str[i:i+16] == '\\begin{abstract}':
                     stack.append( i+16 )
-                elif self.full_tex[i:i+14] == '\\end{abstract}':
+                elif full_tex_str[i:i+14] == '\\end{abstract}':
                     start = stack.pop()
-                    self.tex['Abstract'] = tex.Tex( self.full_tex[start:i] )
+                    self.tex['Abstract'] = tex.Tex( full_tex_str[start:i] )
 
                 # Extract sections
-                start_section = self.full_tex[i:i+9] == '\\section{'
-                end_document = self.full_tex[i:i+14] == '\\end{document}'
-                start_appendix = self.full_tex[i:i+9] == '\\appendix'
+                start_section = full_tex_str[i:i+9] == '\\section{'
+                end_document = full_tex_str[i:i+14] == '\\end{document}'
+                start_appendix = full_tex_str[i:i+9] == '\\appendix'
                 if start_section or end_document or start_appendix:
 
                     # Finish previous section
                     if len( stack ) > 0:
                         start = stack.pop()
                         label = section_labels.pop()
-                        tex_instance = tex.Tex( self.full_tex[start:i] )
+                        tex_instance = tex.Tex( full_tex_str[start:i] )
                         if not is_appendix:
                             self.tex[label] = tex_instance
                         if is_appendix:
@@ -234,11 +235,10 @@ class Publication( object ):
 
                 # Extract section name
                 start = bracket_stack.pop()
-                section_labels.append( self.full_tex[start:i] )
+                section_labels.append( full_tex_str[start:i] )
 
                 # Start recording section text
                 stack.append( i+1 )
-
 
     ########################################################################
     # Publication Analysis
