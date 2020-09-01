@@ -1,20 +1,57 @@
 import nltk
+import os
 
 import augment
 
 ########################################################################
 
 class Tex( object ):
-    '''Class for parsing chunks of tex, without regard to context.
+    '''Class for parsing tex, without regard to context.
+    Can load a main tex file and all included files.
     '''
 
     @augment.store_parameters
     def __init__(
         self,
-        string,
+        string = None,
+        filepath = None,
     ):
 
-        pass
+        # Accept either a string or a filepath
+        if string is not None:
+            assert filepath is None
+            return
+        if filepath is not None:
+            assert string is None
+
+        # Retrieve text
+        with open( filepath ) as f:
+            string = f.read()
+
+        # Handle include statements
+        new_string = ''
+        stack = []
+        fd = os.path.dirname( filepath )
+        for i, c in enumerate( string ):
+
+            # Search for include statements
+            if c == '\\':
+                if string[i:i+9] == '\\include{':
+                    stack.append( i+9 )
+
+            # Load include files
+            if len( stack ) > 0:
+                if c == '}':
+                    start = stack.pop()
+                    fn = string[start:i] + '.tex'
+                    fp = os.path.join( fd, fn )
+                    with open( fp ) as f:
+                        new_string += f.read()
+
+            # Otherwise
+            else:
+                new_string += c
+        self.string = new_string
 
     def __repr__( self ):
 

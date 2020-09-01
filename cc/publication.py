@@ -183,13 +183,9 @@ class Publication( object ):
                 Location of tex file to load.
         '''
 
-        # Retrieve full text
-        full_tex_str = []
-        with open( tex_fp ) as f:
-            for line in f:
-                full_tex_str.append( line )  
-        full_tex_str = ''.join( full_tex_str )
-        self.full_tex = tex.Tex( full_tex_str )
+        # Load the main file
+        self.full_tex = tex.Tex( filepath=tex_fp )
+        full_tex_str = self.full_tex.string
 
         # Process into sections
         self.tex = {}

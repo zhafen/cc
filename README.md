@@ -29,4 +29,9 @@ Paper-Writing Features:
 ########################################################################
 
 Other features:
-* Parsing and organizing of source tex files
+* Parsing and organizing of source tex files, includin...
+- Handling \include statements
+- Breaking into sections, including the appendix
+- Easy sentence and work tokenization using NLTK.
+- Easy word tagging using NLTK.
+- Separating comments

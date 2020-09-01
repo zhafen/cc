@@ -59,7 +59,10 @@ class TestTex( unittest.TestCase ):
 
         p.load_full_tex( filepath )
 
-        assert p.full_tex[:22] == '% mnras_template.tex \n'
+        assert p.full_tex.string[:22] == '% mnras_template.tex \n'
+
+        # Make sure \include is handled correctly
+        assert p.full_tex.string.splitlines()[121] == r'\newcommand{\evolutionMmaxsubMWq}{5\times10^{9}}'
 
         # Check that the abstract was loaded and parsed correctly.
         assert p.tex['Abstract'].string[:8] == '\n\nWe use'
