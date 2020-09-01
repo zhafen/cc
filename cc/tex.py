@@ -3,6 +3,8 @@ import os
 
 import augment
 
+from . import config
+
 ########################################################################
 
 class Tex( object ):
@@ -76,7 +78,7 @@ class Tex( object ):
     ########################################################################
 
     def clean( self, string ):
-        '''Clean up the text, i.e. remove comments.
+        '''Clean up the text, i.e. remove comments, handle "~" characters.
 
         Args:
             string (str):
@@ -94,9 +96,15 @@ class Tex( object ):
         comments = []
         stack = []
         for i, c in enumerate( string ):
+
             # Find comment starts
             if c == '%':
                 stack.append( i )
+
+            # Handle the ~ character
+            if c == '~' and string[i-1] != '\\':
+                c = ' '
+
             if len( stack ) > 0:
                 # Find comment ends and append
                 if c == '\n':
@@ -162,4 +170,88 @@ class Tex( object ):
 
         return self._tokens
 
+    ########################################################################
 
+    @property
+    def sentence_words( self ):
+
+        if not hasattr( self, '_sentence_words' ):
+
+            result = []
+            for sent in self.sentences:
+                words = nltk.tokenize.word_tokenize( sent )
+                tokens = nltk.pos_tag( words )
+                result.append( tokens )
+            self._sentence_words = result
+                    
+        return self._sentence_words
+
+    ########################################################################
+
+    def tier_chunk( self, tagged_words ):
+        '''Chunk the sentence according to defined "tiers" of relevance.
+        '''
+
+        tier_chunks = []
+        tiers = []
+        for sent in tagged_words:
+
+            # Sort and tag according to sentences
+            sent_chunks = []
+            sent_tiers = []
+            current = []
+            for i, (w, tag) in enumerate( sent ):
+
+                # Find the word tier
+                for tier, tags in config.nltk['tag_tier'].items():
+                    if tag in tags:
+                        current_tier = tier
+                # Edge case
+                if w == 'is':
+                    current_tier = 2
+
+                # Special case
+                if i == 0:
+                    prev_tier = current_tier
+
+                # Store chunk
+                if current_tier != prev_tier:
+                    sent_chunks.append( current )
+                    current = []
+                    sent_tiers.append( prev_tier )
+
+                # Setup next loop
+                current.append( w )
+                prev_tier = current_tier
+
+            tier_chunks.append( sent_chunks )
+            tiers.append( sent_tiers )
+
+        return tier_chunks, tiers
+
+    @property
+    def tier_chunks( self ):
+
+        if not hasattr( self, '_tier_chunks' ):
+            self._tier_chunks, self._tiers = self.tier_chunk(
+                self.sentence_words,
+            )
+                    
+        return self._tier_chunks
+    
+    ########################################################################
+
+    @property
+    def ne_chunks( self ):
+
+        if not hasattr( self, '_ne_chunks' ):
+
+            result = []
+            for sent in self.sentences:
+                words = nltk.tokenize.word_tokenize( sent )
+                tokens = nltk.pos_tag( words )
+                chunks = nltk.ne_chunk( tokens )
+                result.append( chunks )
+            self._ne_chunks = result
+                    
+        return self._ne_chunks

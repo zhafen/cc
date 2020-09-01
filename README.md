@@ -35,3 +35,4 @@ Other features:
 - Easy sentence and work tokenization using NLTK.
 - Easy word tagging using NLTK.
 - Separating comments
+- Changing ~ into whitespace unless escaped

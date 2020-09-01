@@ -33,9 +33,46 @@ Cosmological galaxy formation simulations have been used to understand the CGM i
 
         # Sentences
         actual = self.tex.sentences[0]
-        expected = 'The circumgalactic medium (CGM) of galaxies is inferred to contain a baryonic mass comparable to or in excess of the galaxy mass~\citep[e.g.][]{Werk2014,Tumlinson2017}.'
+        expected = 'The circumgalactic medium (CGM) of galaxies is inferred to contain a baryonic mass comparable to or in excess of the galaxy mass \citep[e.g.][]{Werk2014,Tumlinson2017}.'
         assert actual == expected
 
         # Comments
         actual = self.tex.comments
         expected = [ ' Broad intro', ' Simulations' ]
+        assert actual == expected
+
+    ########################################################################
+
+    def test_tier_chunks( self ):
+
+        # Chunked
+        actual = self.tex.tier_chunks[0]
+        expected = [
+            [ 'The', ],
+            [ 'circumgalactic', 'medium', ],
+            [ '(', ],
+            [ 'CGM', ],
+            [ ')', 'of', ],
+            [ 'galaxies', ],
+            [ 'is', ],
+            [ 'inferred', ],
+            [ 'to', ],
+            [ 'contain', ],
+            [ 'a', ],
+            [ 'baryonic', 'mass', 'comparable', ],
+            [ 'to', 'or', 'in', ],
+            [ 'excess', ],
+            [ 'of', 'the', ],
+            [ 'galaxy', 'mass', ],
+            [ '\citep[e.g.][]{Werk2014,Tumlinson2017}', ],
+            [ '.', ],
+        ]
+
+        #DEBUG
+        import pdb; pdb.set_trace()
+        assert actual == expected
+
+        # Tiers
+        actual = self.tex.tiers[0]
+        expected = [ 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2 ]
+        assert actual == expected
