@@ -36,3 +36,4 @@ Other features:
 - Easy word tagging using NLTK.
 - Separating comments
 - Changing ~ into whitespace unless escaped
+- Informative visual display of roughly-chunked sentences.

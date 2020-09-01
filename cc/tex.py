@@ -1,9 +1,13 @@
 import nltk
 import os
+import palettable
+
+import matplotlib.pyplot as plt
 
 import augment
 
 from . import config
+from . import utils
 
 ########################################################################
 
@@ -98,7 +102,7 @@ class Tex( object ):
         for i, c in enumerate( string ):
 
             # Find comment starts
-            if c == '%':
+            if c == '%' and string[i-1] != '\\':
                 stack.append( i )
 
             # Handle the ~ character
@@ -214,6 +218,7 @@ class Tex( object ):
                 if i == 0:
                     prev_tier = current_tier
 
+
                 # Store chunk
                 if current_tier != prev_tier:
                     sent_chunks.append( current )
@@ -223,6 +228,11 @@ class Tex( object ):
                 # Setup next loop
                 current.append( w )
                 prev_tier = current_tier
+
+                # Last loop edge case
+                if i == len( sent ) - 1:
+                    sent_chunks.append( current )
+                    sent_tiers.append( prev_tier )
 
             tier_chunks.append( sent_chunks )
             tiers.append( sent_tiers )
@@ -238,6 +248,16 @@ class Tex( object ):
             )
                     
         return self._tier_chunks
+
+    @property
+    def tiers( self ):
+
+        if not hasattr( self, '_tiers' ):
+            self._tier_chunks, self._tiers = self.tier_chunk(
+                self.sentence_words,
+            )
+                    
+        return self._tiers
     
     ########################################################################
 
@@ -255,3 +275,56 @@ class Tex( object ):
             self._ne_chunks = result
                     
         return self._ne_chunks
+
+    ########################################################################
+
+    def display_chunked_sentence(
+        self,
+        i,
+        x = 0, y = 1,
+        tier1_colors = palettable.cartocolors.qualitative.Vivid_6.mpl_colors,
+        default_color = '0.7',
+        fontsize = 24,
+        tier_fontweights = { 1: 'bold', 2: None },
+        max_word_per_line = 10,
+        **kwargs
+    ):
+
+        sentence = self.tier_chunks[i]
+        tiers = self.tiers[i]
+
+        # Loop through and assign colors
+        strings = []
+        word_colors = []
+        fontweights = []
+        j = 0
+        for i, chunk in enumerate( sentence ):
+
+            # Tier 1 cycles through the colors
+            if tiers[i] == 1:
+                color = tier1_colors[j]
+                j += 1
+                if j > len( tier1_colors ) - 1:
+                    j = 0
+
+            # Other tiers are black
+            else:
+                color = default_color
+            strings += chunk
+            word_colors += [ color, ] * len( chunk )
+
+            # Fontweights
+            fontweights += [ tier_fontweights[tiers[i]], ] * len( chunk )
+
+        utils.multicolor_text(
+            x,
+            y,
+            strings,
+            word_colors,
+            fontsize = fontsize,
+            fontweights = fontweights,
+            annotated = True,
+            **kwargs
+        )
+
+        plt.axis( 'off' )

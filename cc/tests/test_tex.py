@@ -64,12 +64,8 @@ Cosmological galaxy formation simulations have been used to understand the CGM i
             [ 'excess', ],
             [ 'of', 'the', ],
             [ 'galaxy', 'mass', ],
-            [ '\citep[e.g.][]{Werk2014,Tumlinson2017}', ],
-            [ '.', ],
+            [ '\citep[e.g.][]{Werk2014,Tumlinson2017}', '.', ],
         ]
-
-        #DEBUG
-        import pdb; pdb.set_trace()
         assert actual == expected
 
         # Tiers

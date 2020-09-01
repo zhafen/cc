@@ -3,6 +3,10 @@ import nltk
 from nltk.metrics import edit_distance
 import numpy as np
 
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.transforms as transforms
+
 import verdict
 
 ########################################################################
@@ -145,3 +149,88 @@ def stem( l ):
         sl.append( ' '.join( stemmed_words ) )
     sl = np.array( list( set( sl ) ) )
     return sl
+
+########################################################################
+
+def multicolor_text(
+    x,
+    y,
+    strings,
+    colors,
+    fontweights = None,
+    ax = None,
+    fontsize = 24,
+    annotated = False,
+    annote_fontsize = 12,
+    spacing = 1.1,
+    **kwargs
+):
+
+    if ax is None:
+        figure = plt.figure( figsize=(16,0.1), facecolor='w' )
+        ax = plt.gca()
+
+    n_lines = 0
+    t = ax.transData
+    for i, s in enumerate( strings ):
+
+        c = colors[i]
+
+        if fontweights is not None:
+            fontweight = fontweights[i]
+        else:
+            fontweight = None
+
+        text = ax.text(
+            x,
+            y,
+            r'' + s + " ",
+            color = c,
+            transform = t,
+            fontweight = fontweight,
+            fontsize = fontsize,
+            **kwargs
+        )
+
+        # Need to draw to update the text position.
+        text.draw( ax.figure.canvas.get_renderer() )
+        ex = text.get_window_extent()
+
+        if annotated:
+            annot_t = transforms.offset_copy(
+                t,
+                y = ex.height,
+                units = 'dots',
+            )
+            ax.text(
+                x,
+                y,
+                str( i ),
+                transform = annot_t,
+                color = '0.7',
+                fontsize = annote_fontsize,
+                **kwargs
+            )
+
+        # Wrap
+        out_of_bounds = ex.transformed( ax.transAxes.inverted() ).x1 > 1.
+        if not out_of_bounds:
+
+            # Normal offset
+            t = transforms.offset_copy(
+                t,
+                x = ex.width,
+                units = 'dots',
+            )
+
+        else:
+
+            # Wrap reset
+            n_lines += 1
+            t = ax.transData
+            t = transforms.offset_copy(
+                t,
+                y = -n_lines * ex.height * ( 1. + annotated ) * spacing,
+                units = 'dots',
+            )
+
