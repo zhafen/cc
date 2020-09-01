@@ -30,6 +30,7 @@ class Tex( object ):
 
         # Handle include statements
         new_string = ''
+        statement_str = ''
         stack = []
         fd = os.path.dirname( filepath )
         for i, c in enumerate( string ):
@@ -38,15 +39,26 @@ class Tex( object ):
             if c == '\\':
                 if string[i:i+9] == '\\include{':
                     stack.append( i+9 )
+                if string[i:i+7] == '\\input{':
+                    stack.append( i+7 )
 
             # Load include files
             if len( stack ) > 0:
+
+                statement_str += c
+
                 if c == '}':
                     start = stack.pop()
                     fn = string[start:i] + '.tex'
                     fp = os.path.join( fd, fn )
-                    with open( fp ) as f:
-                        new_string += f.read()
+                    try:
+                        with open( fp ) as f:
+                            new_string += f.read()
+
+                    # For missing files just keep the command
+                    except FileNotFoundError:
+                        new_string += statement_str
+                        statement_str = ''
 
             # Otherwise
             else:
