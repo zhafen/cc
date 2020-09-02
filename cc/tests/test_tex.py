@@ -76,6 +76,71 @@ Cosmological galaxy formation simulations have been used to understand the CGM i
 
 ########################################################################
 
+class TestHandleCommands( unittest.TestCase ):
+
+    def test_simple( self ):
+
+        # Create object
+        string = '''
+        \newcommand{\DM}{D_M}
+
+        A value of $\DM = 5$.
+        '''
+        tex = cc.tex.Tex( string )
+
+        # Test cleaned
+        actual = tex.cleaned
+        expected = '''
+        
+
+        A value of $D_M = 5$.
+        '''
+        assert actual == expected
+
+    ########################################################################
+
+    def test_arg( self ):
+
+        # Create object
+        string = '''
+        \newcommand{\rr}[1]{\textcolor{red}{(\bf #1)}}
+
+        This is \rr{wrong}!
+        '''
+        tex = cc.tex.Tex( string )
+
+        # Test cleaned
+        actual = tex.cleaned
+        expected = '''
+        
+
+        This is \textcolor{red}{(\bf wrong)}!
+        '''
+        assert actual == expected
+
+    ########################################################################
+
+    def test_def( self ):
+
+        # Create object
+        string = '''
+        \def\simlt{\stackrel{<}{{}_\sim}}
+
+        $1 \simlt 2$
+        '''
+        tex = cc.tex.Tex( string )
+
+        # Test cleaned
+        actual = tex.cleaned
+        expected = '''
+        
+
+        $1 \stackrel{<}{{}_\sim} 2$
+        '''
+        assert actual == expected
+
+########################################################################
+
 class TestWordTokenize( unittest.TestCase ):
 
     def test_mathmode( self ):
