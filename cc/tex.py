@@ -159,7 +159,7 @@ class Tex( object ):
 
         if not hasattr( self, '_words' ):
 
-            self._words = nltk.tokenize.word_tokenize( self.cleaned )
+            self._words = word_tokenize( self.cleaned )
 
         return self._words
 
@@ -183,7 +183,7 @@ class Tex( object ):
 
             result = []
             for sent in self.sentences:
-                words = nltk.tokenize.word_tokenize( sent )
+                words = word_tokenize( sent )
                 tokens = nltk.pos_tag( words )
                 result.append( tokens )
             self._sentence_words = result
@@ -268,7 +268,7 @@ class Tex( object ):
 
             result = []
             for sent in self.sentences:
-                words = nltk.tokenize.word_tokenize( sent )
+                words = word_tokenize( sent )
                 tokens = nltk.pos_tag( words )
                 chunks = nltk.ne_chunk( tokens )
                 result.append( chunks )
@@ -332,6 +332,19 @@ class Tex( object ):
 ########################################################################
 
 def word_tokenize( sent, **kwargs ):
+    '''Word tokenize that accounts for math-mode in LaTex, producing more
+    comprehendible results.
+    * All math mode inside one set of "$"s is grouped into one word.
+    * All escaped "\\$"s outside mathmode are replaced with "$"s.
+
+    Args:
+        sent (str): Sentence to Tokenize
+
+        **kwargs: Passed to nltk.tokenize.word_tokenize
+
+    Returns:
+        words (list of strs): Word tokenized sentence.
+    '''
 
     nltk_words = nltk.tokenize.word_tokenize( sent, **kwargs )
 
