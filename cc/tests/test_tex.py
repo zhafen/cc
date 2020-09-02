@@ -2,6 +2,7 @@ from mock import patch
 import numpy as np
 import numpy.testing as npt
 import os
+import pytest
 import unittest
 
 import cc.tex
@@ -77,10 +78,10 @@ Cosmological galaxy formation simulations have been used to understand the CGM i
 
 class TestWordTokenize( unittest.TestCase ):
 
-    def test_latex( self ):
+    def test_mathmode( self ):
 
-        words = 'A mass of $M_\\rm{ h } \\sim 10^7M_\\odot$ or so'
-        actual = cc.tex.word_tokenize( words )
+        sent = 'A mass of $M_\\rm{ h } \\sim 10^7M_\\odot$ or so'
+        actual = cc.tex.word_tokenize( sent )
         expected = [
             'A',
             'mass',
@@ -93,15 +94,33 @@ class TestWordTokenize( unittest.TestCase ):
 
     ########################################################################
 
-    def test_latex_escaped_characters( self ):
+    def test_mathmode_escaped_characters( self ):
 
-        words = '$\\$ $ = 1\\$ = $1^2\\$ = 1^3 \\$ $'
-        actual = cc.tex.word_tokenize( words )
+        sent = '$\\$ $ = 1\\$ = $1^2\\$ = 1^3 \\$ $'
+        actual = cc.tex.word_tokenize( sent )
         expected = [
             '$ \\$$',
             '=',
             '1$',
             '=',
             '$ 1^2\\$ = 1^3 \\$$',
+        ]
+        assert actual == expected
+
+    ########################################################################
+
+    @pytest.mark.onhold
+    def test_mathmode_no_space( self ):
+        '''Word tokenize may fail with cases like that below.
+        This is on hold because it requires locating the spaces that were
+        stripped off during the NLTK step.
+        '''
+
+        sent = 'deg$^2$ deg $^2$'
+        actual = cc.tex.word_tokenize( sent )
+        expected = [
+            'deg$^2$',
+            'deg',
+            '$^2$',
         ]
         assert actual == expected
