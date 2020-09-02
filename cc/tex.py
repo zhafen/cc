@@ -282,7 +282,7 @@ class Tex( object ):
         self,
         i,
         x = 0, y = 1,
-        tier1_colors = palettable.cartocolors.qualitative.Vivid_6.mpl_colors,
+        tier1_colors = palettable.cartocolors.qualitative.Antique_10.mpl_colors,
         default_color = '0.7',
         fontsize = 24,
         tier_fontweights = { 1: 'bold', 2: None },
@@ -328,3 +328,40 @@ class Tex( object ):
         )
 
         plt.axis( 'off' )
+
+########################################################################
+
+def word_tokenize( sent, **kwargs ):
+
+    nltk_words = nltk.tokenize.word_tokenize( sent, **kwargs )
+
+    # Account for LaTex
+    words = []
+    stack = ''
+    for i, w in enumerate( nltk_words ):
+
+        # Search for LaTex
+        if w == '$':
+
+            # Start the stack
+            stack += w
+
+            # Finish the stack off
+            if len( stack ) > 1:
+                words.append( stack )
+                stack = ''
+
+        else:
+            # Build the stack if started
+            if len( stack ) != 0:
+                if w == '{':
+                    seperator = ''
+                else:
+                    seperator = ' '
+                stack += seperator + w
+            # If not in the middle of latex, just append
+            else:
+                words.append( w )
+
+    return words
+
