@@ -95,12 +95,13 @@ class TestWordTokenize( unittest.TestCase ):
 
     def test_latex_escaped_characters( self ):
 
-        words = '1 \\$ = $1^2\\$ = 1^3 \\$ $'
+        words = '$\\$ $ = 1\\$ = $1^2\\$ = 1^3 \\$ $'
         actual = cc.tex.word_tokenize( words )
         expected = [
-            '1',
-            '$',
-            '= ',
-            '$1^2\\$ = 1^3 \\$ $',
+            '$ \\$$',
+            '=',
+            '1$',
+            '=',
+            '$ 1^2\\$ = 1^3 \\$$',
         ]
         assert actual == expected

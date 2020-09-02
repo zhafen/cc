@@ -335,13 +335,18 @@ def word_tokenize( sent, **kwargs ):
 
     nltk_words = nltk.tokenize.word_tokenize( sent, **kwargs )
 
-    # Account for LaTex
+    # Account for Math Mode
     words = []
     stack = ''
     for i, w in enumerate( nltk_words ):
 
+        escaped = (
+            i > 0 and
+            ( nltk_words[i-1] == '\\' or nltk_words[i-1][-1] == '\\' )
+        )
+
         # Search for LaTex
-        if w == '$':
+        if w == '$' and not escaped:
 
             # Start the stack
             stack += w
@@ -354,14 +359,18 @@ def word_tokenize( sent, **kwargs ):
         else:
             # Build the stack if started
             if len( stack ) != 0:
-                if w == '{':
+                if w == '{' or escaped:
                     seperator = ''
                 else:
                     seperator = ' '
                 stack += seperator + w
             # If not in the middle of latex, just append
             else:
-                words.append( w )
+                if not escaped:
+                    words.append( w )
+                else:
+                    # Remove slash and place $
+                    words[-1] = words[-1][:-1] + w
 
     return words
 
