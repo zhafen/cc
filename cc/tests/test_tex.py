@@ -82,14 +82,14 @@ class TestHandleCommands( unittest.TestCase ):
 
         # Create object
         string = '''
-        \newcommand{\DM}{D_M}
+        \\newcommand{\DM}{D_M}
 
-        A value of $\DM = 5$.
+        A value of $\\DM = 5$.
         '''
         tex = cc.tex.Tex( string )
 
         # Test cleaned
-        actual = tex.cleaned
+        actual = tex.interpreted
         expected = '''
         
 
@@ -103,18 +103,39 @@ class TestHandleCommands( unittest.TestCase ):
 
         # Create object
         string = '''
-        \newcommand{\rr}[1]{\textcolor{red}{(\bf #1)}}
+        \\newcommand{\\rr}[1]{\\textcolor{red}{(\\bf #1)}}
 
-        This is \rr{wrong}!
+        This is \\rr{wrong}!
         '''
         tex = cc.tex.Tex( string )
 
         # Test cleaned
-        actual = tex.cleaned
+        actual = tex.interpreted
         expected = '''
         
 
-        This is \textcolor{red}{(\bf wrong)}!
+        This is \\textcolor{red}{(\\bf wrong)}!
+        '''
+        assert actual == expected
+
+    ########################################################################
+
+    def test_arg2( self ):
+
+        # Create object
+        string = '''
+        \\newcommand{\\rr}[1]{\\textcolor{red}{(\\bf #1)}}
+
+        This is \\rr1!
+        '''
+        tex = cc.tex.Tex( string )
+
+        # Test cleaned
+        actual = tex.interpreted
+        expected = '''
+        
+
+        This is \\textcolor{red}{(\\bf 1)}!
         '''
         assert actual == expected
 
@@ -124,18 +145,18 @@ class TestHandleCommands( unittest.TestCase ):
 
         # Create object
         string = '''
-        \def\simlt{\stackrel{<}{{}_\sim}}
+        \\def\\simlt{\\stackrel{<}{{}_\\sim}}
 
-        $1 \simlt 2$
+        $1 \\simlt 2$
         '''
         tex = cc.tex.Tex( string )
 
         # Test cleaned
-        actual = tex.cleaned
+        actual = tex.interpreted
         expected = '''
         
 
-        $1 \stackrel{<}{{}_\sim} 2$
+        $1 \\stackrel{<}{{}_\\sim} 2$
         '''
         assert actual == expected
 

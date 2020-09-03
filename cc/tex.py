@@ -21,6 +21,7 @@ class Tex( object ):
         self,
         string = None,
         filepath = None,
+        commands = {},
     ):
 
         # Accept either a string or a filepath
@@ -103,17 +104,13 @@ class Tex( object ):
 
             # Find comment starts
             if c == '%' and string[i-1] != '\\':
-                stack.append( i )
-
-            # Handle the ~ character
-            if c == '~' and string[i-1] != '\\':
-                c = ' '
+                stack.append( i+1 )
 
             if len( stack ) > 0:
                 # Find comment ends and append
                 if c == '\n':
                     start = stack.pop()
-                    comments.append( string[start+1:i] )
+                    comments.append( string[start:i] )
             else:
                 cleaned += c
 
@@ -140,6 +137,80 @@ class Tex( object ):
             self._cleaned, self._comments = self.clean( self.string )
 
         return self._comments
+
+    ########################################################################
+
+    def interpret( self, string ):
+        '''Interpret the LaTeX, i.e. process macros, and some commands and
+        characters.
+        '''
+
+        # We will use this to skip parts of the string we're modifying.
+        # Initialize to a value that won't cause accidental skipping
+        j = -1
+
+        interpreted = ''
+        stack = []
+        for i, c in enumerate( string ):
+
+            # Skip characters that have been removed and replaced
+            if i < j:
+                continue
+
+            # Locate possible commands
+            if c == '\\':
+                stack.append( i+1 )
+
+            # Handle the ~ character
+            if c == '~' and string[i-1] != '\\':
+                c = ' '
+
+            if len( stack ) > 0:
+
+                # Don't quit on the stack we just started
+                if i+1 == stack[-1]:
+                    continue
+
+                # Start the command interpretation
+                if not c.isalpha():
+
+                    # Split command from input tex
+                    # Input tex is the entire remaining document. The commands
+                    # will parse when the input ends
+                    start = stack.pop()
+                    command = string[start:i]
+                    subsequent_tex = string[i:]
+
+                    command_tex, dj, self.commands = interpret(
+                        command,
+                        subsequent_tex,
+                        commands = self.commands,
+                    )
+
+                    # Store results
+                    interpreted += command_tex
+                    j = i + dj
+
+                    # Edge case: the command has no arguments,
+                    # so c should be stored
+                    if i >= j:
+                        interpreted += c
+
+            else:
+                interpreted += c
+
+        return interpreted
+
+    @property
+    def interpreted( self ):
+        '''String with comments removed.
+        '''
+
+        if not hasattr( self, '_interpreted' ):
+
+            self._interpreted = self.interpret( self.cleaned )
+
+        return self._interpreted
 
     ########################################################################
 
@@ -387,3 +458,152 @@ def word_tokenize( sent, **kwargs ):
 
     return words
 
+########################################################################
+
+def interpret( command, subsequent_tex, commands={}, **kwargs ):
+
+    # Check if the command is one we can interpret
+    if command in globals():
+        command_tex, i, new_commands = globals()[command]( subsequent_tex )
+    elif command in commands:
+        command_tex, i, new_commands = commands[command]( subsequent_tex )
+    # If the command cannot be interpreted stick it back into the string
+    else:
+        command_tex = '\\' + command
+        i = 0
+        new_commands = {}
+
+    # Store any new commands created
+    commands.update( new_commands )
+
+    return command_tex, i, new_commands
+
+########################################################################
+
+def newcommand( subsequent_tex ):
+
+    command_name = ''
+    output = ''
+    bracket_count = 0
+    for i, c in enumerate( subsequent_tex ):
+        
+        # Process command
+        if c == '{' or c == '}' and subsequent_tex[i-1] != '\\':
+            bracket_count += 1
+            continue
+
+        # Command name
+        if bracket_count == 1:
+            
+            # Don't include the \
+            if command_name == '' and c == '\\':
+                continue
+
+            command_name += c
+
+        elif bracket_count == 2:
+            pass
+        elif bracket_count == 3:
+            output += c
+        elif bracket_count == 4:
+            # The command should be ended
+            assert not subsequent_tex[i+1].isalpha()
+            break
+
+    # The command text and the arguments are removed
+    command_tex = ''
+
+    # Create the new command
+    def command_fn( tex_in ):
+        '''Macros always return this output, regardless of what else follows.'''
+        return output, 0, {}
+
+    new_commands = { command_name: command_fn }
+
+    return command_tex, i, new_commands
+
+        
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
