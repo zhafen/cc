@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import augment
 
 from . import config
+from . import tex_commands
 from . import utils
 
 ########################################################################
@@ -142,7 +143,8 @@ class Tex( object ):
 
     def interpret( self, string ):
         '''Interpret the LaTeX, i.e. process macros, and some commands and
-        characters.
+        characters to make more compatible with the suite of cc language
+        analysis tools.
         '''
 
         # We will use this to skip parts of the string we're modifying.
@@ -460,67 +462,54 @@ def word_tokenize( sent, **kwargs ):
 
 ########################################################################
 
-def interpret( command, subsequent_tex, commands={}, **kwargs ):
+def interpret( command, subsequent_tex, commands={}, ):
+    '''Interpret a LaTeX command. Uninterpretable commands are left in.
+    In this context, to interpret a command means to modify the tex
+    to be more compatible with the suite of cc language analysis tools.
+
+    Args:
+        command (str):
+            Name of the command to interpret.
+
+        subsequent_tex (str):
+            All LaTex following the \\command call.
+
+        commands (dict of fns):
+            Functions dictating how to handle given commands.
+            Built-in-functions consist of the module level functions in
+            tex_commands.py
+
+    Returns:
+        command_tex (str):
+            What to replace the call to \\command with.
+
+        dj (int):
+            How much of subsequent_tex is the argument for \\command
+            I.e. subsequent_tex[:dj] is the input to the command.
+
+        commands (dict of functions):
+            Update dictionary of interpretable commands,
+            outside of those in globals()
+    '''
 
     # Check if the command is one we can interpret
-    if command in globals():
-        command_tex, i, new_commands = globals()[command]( subsequent_tex )
+    if hasattr( tex_commands, command ):
+        command_fn = getattr( tex_commands, command )
+        command_tex, dj, new_commands = command_fn( subsequent_tex )
     elif command in commands:
-        command_tex, i, new_commands = commands[command]( subsequent_tex )
+        command_fn = commands[command]
+        command_tex, dj, new_commands = command_fn( subsequent_tex )
     # If the command cannot be interpreted stick it back into the string
     else:
         command_tex = '\\' + command
-        i = 0
+        dj = 0
         new_commands = {}
 
     # Store any new commands created
     commands.update( new_commands )
 
-    return command_tex, i, new_commands
+    return command_tex, dj, commands
 
-########################################################################
-
-def newcommand( subsequent_tex ):
-
-    command_name = ''
-    output = ''
-    bracket_count = 0
-    for i, c in enumerate( subsequent_tex ):
-        
-        # Process command
-        if c == '{' or c == '}' and subsequent_tex[i-1] != '\\':
-            bracket_count += 1
-            continue
-
-        # Command name
-        if bracket_count == 1:
-            
-            # Don't include the \
-            if command_name == '' and c == '\\':
-                continue
-
-            command_name += c
-
-        elif bracket_count == 2:
-            pass
-        elif bracket_count == 3:
-            output += c
-        elif bracket_count == 4:
-            # The command should be ended
-            assert not subsequent_tex[i+1].isalpha()
-            break
-
-    # The command text and the arguments are removed
-    command_tex = ''
-
-    # Create the new command
-    def command_fn( tex_in ):
-        '''Macros always return this output, regardless of what else follows.'''
-        return output, 0, {}
-
-    new_commands = { command_name: command_fn }
-
-    return command_tex, i, new_commands
 
         
 
