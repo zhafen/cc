@@ -158,7 +158,53 @@ class TestHandleCommands( unittest.TestCase ):
 
         $1 \\stackrel{<}{{}_\\sim} 2$
         '''
+
+        #DEBUG
+        import pdb; pdb.set_trace()
         assert actual == expected
+
+########################################################################
+
+class ParseArgs( unittest.TestCase ):
+
+    def test_simple( self ):
+
+        string = '{abc} '
+        args, subsequent_tex = tex_commands.parse_args( string )
+        assert args == [ 'abc', ]
+        assert subsequent_tex == ' '
+
+    ########################################################################
+
+    def test_multiple_args( self ):
+
+        string = '{abc}{def} '
+        args, subsequent_tex = tex_commands.parse_args( string )
+        assert args == [ 'abc', 'def' ]
+        assert subsequent_tex == ' '
+
+        string = '{abc}{def}{ghi} '
+        args, subsequent_tex = tex_commands.parse_args( string )
+        assert args == [ 'abc', 'def', 'ghi' ]
+        assert subsequent_tex == ' '
+
+    ########################################################################
+
+    def test_no_brackets( self ):
+
+        string = '\\urgh{whynobrackets}?'
+        args, subsequent_tex = tex_commands.parse_args( string )
+        assert args == [ 'urgh', 'whynobrackets', ]
+        assert subsequent_tex == '?'
+
+    ########################################################################
+
+    def test_complicated( self ):
+
+        string = '\\are{U}serious{mate}?'
+        args, subsequent_tex = tex_commands.parse_args( string )
+        assert args == [ 'are', 'U', 'serious', 'mate' ]
+        assert subsequent_tex == '?'
 
 ########################################################################
 

@@ -221,7 +221,7 @@ class Tex( object ):
 
         if not hasattr( self, '_sentences' ):
 
-            self._sentences = nltk.tokenize.sent_tokenize( self.cleaned )
+            self._sentences = nltk.tokenize.sent_tokenize( self.interpreted )
                     
         return self._sentences
 
@@ -232,7 +232,7 @@ class Tex( object ):
 
         if not hasattr( self, '_words' ):
 
-            self._words = word_tokenize( self.cleaned )
+            self._words = word_tokenize( self.interpreted )
 
         return self._words
 
@@ -498,6 +498,11 @@ def interpret( command, subsequent_tex, commands={}, ):
         command_tex, dj, new_commands = command_fn( subsequent_tex )
     elif command in commands:
         command_fn = commands[command]
+        command_tex, dj, new_commands = command_fn( subsequent_tex )
+    # Special exception because we can't have a function named def
+    # Treat def as newcommand
+    elif command == 'def':
+        command_fn = tex_commands.newcommand
         command_tex, dj, new_commands = command_fn( subsequent_tex )
     # If the command cannot be interpreted stick it back into the string
     else:

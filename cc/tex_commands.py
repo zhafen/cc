@@ -95,6 +95,13 @@ def newcommand( subsequent_tex ):
         stack = ''
         for i, c in enumerate( tex_in ):
 
+            # Look for arguments not in brackets
+            if outer_bracket_count == 0 and len( args ) < n_allowed_args:
+                if c != '{':
+                    args.append( c )
+                    # We treat this as a bracket
+                    outer_bracket_count += 2
+
             # Keep track of brackets
             if c == '{' and subsequent_tex[i-1] != '\\':
                 if bracket_count == 0:
@@ -127,7 +134,7 @@ def newcommand( subsequent_tex ):
                 stack += c
 
         # Count the length of the arguments
-        dj = i
+        dj = max( i, len( args ) )
 
         # Modify the output
         used_output = ''
@@ -154,6 +161,4 @@ def newcommand( subsequent_tex ):
     new_commands = { command_name: command_fn }
 
     return command_tex, dj, new_commands
-
-########################################################################
 

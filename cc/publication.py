@@ -185,7 +185,7 @@ class Publication( object ):
 
         # Load the main file
         self.full_tex = tex.Tex( filepath=tex_fp )
-        full_tex_str = self.full_tex.string
+        full_tex_str = self.full_tex.interpreted
 
         # Process into sections
         self.tex = {}
