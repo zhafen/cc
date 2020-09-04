@@ -1,5 +1,7 @@
 '''cc.tex.interpret() is capable of processing the commands in this module.'''
 
+########################################################################
+
 def newcommand( subsequent_tex ):
     '''Handle the LaTeX command \\newcommand{\\A}{B}. Will generate a
     new command \\A that will always result in output B.
@@ -24,15 +26,33 @@ def newcommand( subsequent_tex ):
     command_name = ''
     output = ''
     bracket_count = 0
+    outer_bracket_count = 0
+    args_tex = ''
     for i, c in enumerate( subsequent_tex ):
         
-        # Process command
-        if c == '{' or c == '}' and subsequent_tex[i-1] != '\\':
+        # Keep track of brackets
+        if c == '{' and subsequent_tex[i-1] != '\\':
+            if bracket_count == 0:
+                outer_bracket_count += 1
             bracket_count += 1
-            continue
+
+            # Outermost brackets are part of the command creation
+            # don't process them
+            if bracket_count == 1:
+                continue
+
+        elif c == '}' and subsequent_tex[i-1] != '\\':
+            bracket_count -= 1
+            if bracket_count == 0:
+                outer_bracket_count += 1
+
+            # Outermost brackets are part of the command creation
+            # don't process them
+            if bracket_count == 0:
+                continue
 
         # Command name
-        if bracket_count == 1:
+        if outer_bracket_count == 1:
             
             # Don't include the \
             if command_name == '' and c == '\\':
@@ -40,19 +60,93 @@ def newcommand( subsequent_tex ):
 
             command_name += c
 
-        elif bracket_count == 2:
-            pass
-        elif bracket_count == 3:
+        # Arguments for new command
+        elif outer_bracket_count == 2:
+            args_tex += c
+
+        # Macro itself
+        elif outer_bracket_count == 3:
             output += c
-        elif bracket_count == 4:
+
+        # New command should be done
+        elif outer_bracket_count == 4:
             # The command should be ended
             assert not subsequent_tex[i+1].isalpha()
             break
 
+    # Process the args_tex if given
+    if args_tex != '':
+
+        # Check for proper formatting
+        assert args_tex[0] == '[' and args_tex[2] == ']'
+
+        n_allowed_args = int( args_tex[1] )
+    else:
+        n_allowed_args = 0
+
     # Create the new command
     def command_fn( tex_in ):
-        '''Macros always return this output, regardless of what else follows.'''
-        return output, 0, {}
+
+        max_bracket_count = n_allowed_args * 2
+
+        outer_bracket_count = 0
+        bracket_count = 0
+        args = []
+        stack = ''
+        for i, c in enumerate( tex_in ):
+
+            # Keep track of brackets
+            if c == '{' and subsequent_tex[i-1] != '\\':
+                if bracket_count == 0:
+                    outer_bracket_count += 1
+                bracket_count += 1
+
+                # Outermost brackets are part of the macro
+                # don't process them
+                if bracket_count == 1:
+                    continue
+
+            elif c == '}' and subsequent_tex[i-1] != '\\':
+                bracket_count -= 1
+                if bracket_count == 0:
+                    outer_bracket_count += 1
+
+                # Outermost brackets are part of the macro
+                # don't process them
+                if bracket_count == 0:
+                    args.append( stack )
+                    stack = ''
+                    continue
+
+            # When done
+            if outer_bracket_count >= max_bracket_count:
+                break
+
+            # When retrieving args to pass
+            if bracket_count > 0:
+                stack += c
+
+        # Count the length of the arguments
+        dj = i
+
+        # Modify the output
+        used_output = ''
+        skip_next = False
+        for k, c in enumerate( output ):
+
+            # This allows us to skip the actual number acting as an arg
+            if skip_next:
+                skip_next = False
+                continue
+
+            if c == '#' and output[k-1] != '\\':
+                arg_ind = int(output[k+1]) - 1
+                used_output +=  args[arg_ind]
+                skip_next = True
+            else:
+                used_output += c
+
+        return used_output, dj, {}
 
     # Format output
     command_tex = ''
@@ -60,3 +154,6 @@ def newcommand( subsequent_tex ):
     new_commands = { command_name: command_fn }
 
     return command_tex, dj, new_commands
+
+########################################################################
+
