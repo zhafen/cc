@@ -515,7 +515,7 @@ class Atlas( object ):
             projected_publications.append( key )
             pub_date.append( item.publication_date )
             try:
-                entry_date.append( item.entry_date )
+                entry_date.append( str( item.entry_date ) )
             except AttributeError:
                 entry_date.append( 'NaT' )
 

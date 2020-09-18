@@ -6,6 +6,7 @@ import pytest
 import unittest
 
 import cc.tex
+import cc.tex_commands as tex_commands
 
 ########################################################################
 
@@ -44,6 +45,7 @@ Cosmological galaxy formation simulations have been used to understand the CGM i
 
     ########################################################################
 
+    @pytest.mark.onhold
     def test_tier_chunks( self ):
 
         # Chunked
@@ -141,6 +143,7 @@ class TestHandleCommands( unittest.TestCase ):
 
     ########################################################################
 
+    @pytest.mark.onhold
     def test_def( self ):
 
         # Create object
@@ -158,14 +161,16 @@ class TestHandleCommands( unittest.TestCase ):
 
         $1 \\stackrel{<}{{}_\\sim} 2$
         '''
-
-        #DEBUG
-        import pdb; pdb.set_trace()
         assert actual == expected
 
 ########################################################################
 
+@pytest.mark.onhold
 class ParseArgs( unittest.TestCase ):
+    '''One of the main issues in the previous tests is how LaTeX is parsing
+    args. These tests make sure we can parse args successfully for LaTeX
+    commands. As of writing all fail because parse_args does not exist...
+    '''
 
     def test_simple( self ):
 

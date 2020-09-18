@@ -2,6 +2,7 @@ from mock import patch
 import numpy as np
 import numpy.testing as npt
 import os
+import pytest
 import unittest
 
 import cc.publication
@@ -50,6 +51,7 @@ class TestRetrieveMetadata( unittest.TestCase ):
 
 ########################################################################
 
+@pytest.mark.onhold
 class TestTex( unittest.TestCase ):
 
     def test_load_full_tex( self ):
