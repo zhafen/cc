@@ -274,13 +274,21 @@ class TestAsymmetryEstimator( unittest.TestCase ):
     def test_kernel_constant_estimator( self ):
 
         # Try for some publication
-        dir, actual = self.c.kernel_constant_asymmetry_estimator( 3, date_type='publication_dates' )
-        assert dir.shape == self.c.component_concepts.shape
-        assert not np.isnan( actual )
+        vec, actual = self.c.asymmetry_estimator(
+            [ 3, ],
+            estimator = 'kernel_constant',
+            date_type = 'publication_dates'
+        )
+        assert vec[0].shape == self.c.component_concepts.shape
+        assert not np.isnan( actual[0] )
 
         # Try for a file with a nan publication date.
-        dir, actual = self.c.kernel_constant_asymmetry_estimator( 0, date_type='publication_dates' )
-        assert dir.shape == self.c.component_concepts.shape
-        assert np.isnan( actual )
+        vec, actual = self.c.asymmetry_estimator(
+            [ 0, ],
+            estimator = 'kernel_constant',
+            date_type = 'publication_dates'
+        )
+        assert vec[0].shape == self.c.component_concepts.shape
+        assert np.isnan( actual[0] )
 
         

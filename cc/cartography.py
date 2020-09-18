@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import pandas as pd
+import scipy.spatial
 from scipy.spatial.distance import cdist
 
 import augment
@@ -428,7 +429,7 @@ class Cartographer( object ):
 
             # Get the estimator
             fn = getattr( self, '{}_asymmetry_estimator'.format( estimator ) )
-            vec, mag = fn( p, other_p, **kwargs )
+            vec, mag = fn( p, other_p,  **kwargs )
 
             all_vecs.append( vec )
             all_mags.append( mag )
@@ -466,6 +467,51 @@ class Cartographer( object ):
 
         # Differences
         result = ( p - other_p ).sum( axis=0 )
+        mag = np.linalg.norm( result )
+
+        return result, mag
+
+    ########################################################################
+
+    def kernel_constant_asymmetry_estimator(
+        self,
+        p,
+        other_p,
+        kernel_size = 16,
+    ):
+        '''Estimate the asymmetry of a publication by calculating the difference
+        between that publication's projection and all other publications.
+
+        Args:
+            p ((n_concepts,) np.ndarray of floats):
+                The vector of the publication to calculate the asymmetry
+                estimator for.
+
+            other_p ((n_other,n_concepts) np.ndarray of floats):
+                Vectors of the other publication used when calculating the
+                estimator.
+
+            kernel_size (int):
+                Number of nearest neighbors to calculate the asymmetry on.
+
+        Returns:
+            result (np.ndarray of floats):
+                Full asymmetry estimator in vector form.
+
+            mag (float):
+                Magnitude of the asymmetry estimator.
+        '''
+
+        # We can't have the kernel larger than the number of valid publications
+        if kernel_size > other_p.shape[0]:
+            kernel_size = other_p.shape[0]
+
+        # Identify the publications to use in the calculation
+        kd_tree = scipy.spatial.cKDTree( other_p )
+        dist, inds = kd_tree.query( p, k=kernel_size, )
+        used_p = other_p[inds]
+
+        result = ( p - used_p ).sum( axis=0 )
         mag = np.linalg.norm( result )
 
         return result, mag
