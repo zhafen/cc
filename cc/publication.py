@@ -126,6 +126,9 @@ class Publication( object ):
         after processing and saving the abstracts.
         '''
 
+        if self.citations is None:
+            return 0.
+
         time_elapsed = (
             pd.to_datetime( 'now', ) - 
             pd.to_datetime( self.entry_date, ).tz_localize(None)
