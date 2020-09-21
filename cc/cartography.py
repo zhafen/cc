@@ -62,7 +62,10 @@ class Cartographer( object ):
 
         if not hasattr( self, '_components_normed' ):
 
-            self._components_normed = self.components / self.norms[:,np.newaxis]
+            # Divide by NaN is unimportant and handled
+            with np.errstate(divide='ignore',invalid='ignore'):
+
+                self._components_normed = self.components / self.norms[:,np.newaxis]
 
         return self._components_normed
 
