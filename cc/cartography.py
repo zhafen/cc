@@ -365,10 +365,10 @@ class Cartographer( object ):
     # Estimators
     ########################################################################
 
-    def asymmetry_estimator(
+    def citation_estimator(
         self,
         publications = None,
-        estimator = 'constant',
+        estimator = 'constant_asymmetry',
         min_prior = 2,
         date_type = 'entry_dates',
         **kwargs
@@ -379,8 +379,12 @@ class Cartographer( object ):
         Args:
            estimator (str):
                 What estimator to use. Options are...
-                    constant:
-                        |A> = sum( |P>-|P_i> )
+                    constant_asymmetry:
+                        e = mag( sum( |P>-|P_i> ) )
+                    kernel_constant_asymmetry:
+                        e = mag( sum( |P>-|P_i> ) ), w/in kernel only
+                    density:
+                        e = kernel_size/(4/3pi*h**3)
 
             min_prior (int):
                 The minimum number of publications prior to the target
@@ -391,8 +395,8 @@ class Cartographer( object ):
                 publications
 
         Returns:
-            all_mags (np.ndarray of floats):
-                Asymmetry magnitude for all arrays.
+            es (np.ndarray of floats):
+                Estimator vallue for all publications.
         '''
 
         # By default calculate for all publications
@@ -402,27 +406,20 @@ class Cartographer( object ):
         # Identify valid publications to use as input
         is_minnorm = self.norms > 1e-5
 
-        all_mags = []
-        all_vecs = []
+        es = []
         for i in tqdm( publications ):
 
             # Don't try to calculate for publications we don't have a date for.
             dates = getattr( self, date_type )
             date = dates[i]
             if str( date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
-                vec = np.full( self.component_concepts.shape, np.nan )
-                all_vecs.append( vec )
-                mag = np.nan
-                all_mags.append( mag )
+                es.append( np.nan )
                 continue
 
             # Identify prior publications
             is_prior = dates < date
             if is_prior.sum() < min_prior:
-                vec = np.full( self.component_concepts.shape, np.nan )
-                all_vecs.append( vec )
-                mag = np.nan
-                all_mags.append( mag )
+                es.append( np.nan )
                 continue
 
             # Choose valid publications
@@ -432,15 +429,13 @@ class Cartographer( object ):
             other_p = self.components_normed[is_valid]
 
             # Get the estimator
-            fn = getattr( self, '{}_asymmetry_estimator'.format( estimator ) )
-            vec, mag = fn( p, other_p,  **kwargs )
+            fn = getattr( self, '{}_estimator'.format( estimator ) )
+            e = fn( p, other_p,  **kwargs )
 
-            all_vecs.append( vec )
-            all_mags.append( mag )
-        all_mags = np.array( all_mags )
-        all_vecs = np.array( all_vecs )
+            es.append( e )
+        es = np.array( es )
 
-        return all_vecs, all_mags
+        return es
 
     ########################################################################
 
@@ -473,7 +468,7 @@ class Cartographer( object ):
         result = ( p - other_p ).sum( axis=0 )
         mag = np.linalg.norm( result )
 
-        return result, mag
+        return mag
 
     ########################################################################
 
@@ -518,4 +513,27 @@ class Cartographer( object ):
         result = ( p - used_p ).sum( axis=0 )
         mag = np.linalg.norm( result )
 
-        return result, mag
+        return mag
+
+    ########################################################################
+
+    def density_estimator(
+        self,
+        p,
+        other_p,
+        kernel_size = 16,
+    ):
+
+        # We can't have the kernel larger than the number of valid publications
+        if kernel_size > other_p.shape[0]:
+            kernel_size = other_p.shape[0]
+
+        # Identify the publications to use in the calculation
+        kd_tree = scipy.spatial.cKDTree( other_p )
+        dist, inds = kd_tree.query( p, k=kernel_size, )
+
+        # Calculate density from smoothing length
+        h = np.nanmax( dist )
+        density = kernel_size / ( 4./3.*np.pi * h**3. )
+        
+        return density
