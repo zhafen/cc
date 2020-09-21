@@ -21,6 +21,7 @@ class Publication( object ):
         self,
         citation_key,
         notes_categories = [ 'key_concepts', 'key_points', 'uncategorized' ],
+        ignore_failed = True,
     ):
 
         # Setup notes dictionary
@@ -126,8 +127,12 @@ class Publication( object ):
         after processing and saving the abstracts.
         '''
 
-        if self.citations is None:
-            return 0.
+        if self.ignore_failed:
+            if not hasattr( self, 'citations' ):
+                return np.nan
+
+            if self.citations is None:
+                return 0.
 
         time_elapsed = (
             pd.to_datetime( 'now', ) - 
