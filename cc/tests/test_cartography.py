@@ -221,7 +221,7 @@ class TestAsymmetryEstimator( unittest.TestCase ):
 
     def test_general( self ):
 
-        _, result = self.c.asymmetry_estimator()
+        result = self.c.citation_estimator()
         assert result.shape == self.c.publications.shape
 
     ########################################################################
@@ -231,7 +231,7 @@ class TestAsymmetryEstimator( unittest.TestCase ):
         # Replace the first row with zeros to test if handled
         self.c.components[0] = np.zeros( self.c.components[0].size )
 
-        _, result = self.c.asymmetry_estimator( date_type='publication_dates' )
+        result = self.c.citation_estimator( date_type='publication_dates' )
 
         # There should be exactly two well-understood nans
         assert np.isnan( result[1:] ).sum() == 2
@@ -243,52 +243,68 @@ class TestAsymmetryEstimator( unittest.TestCase ):
         # Replace the first row with zeros to test if handled
         self.c.components[0] = np.zeros( self.c.components[0].size )
 
-        _, result = self.c.asymmetry_estimator()
+        result = self.c.citation_estimator()
 
         assert not np.any( np.isclose( result, 0. ) )
 
     ########################################################################
 
-    def test_constant_estimator( self ):
+    def test_constant_asymmetry_estimator( self ):
 
         # Try for some publication
-        vec, actual = self.c.asymmetry_estimator(
+        actual = self.c.citation_estimator(
             [ 3, ],
-            estimator = 'constant',
+            estimator = 'constant_asymmetry',
             date_type = 'publication_dates'
         )
-        assert vec[0].shape == self.c.component_concepts.shape
         assert not np.isnan( actual[0] )
 
         # Try for a file with a nan publication date.
-        vec, actual = self.c.asymmetry_estimator(
+        actual = self.c.citation_estimator(
             [ 0, ],
-            estimator = 'constant',
+            estimator = 'constant_asymmetry',
             date_type = 'publication_dates'
         )
-        assert vec[0].shape == self.c.component_concepts.shape
         assert np.isnan( actual[0] )
 
     ########################################################################
 
-    def test_kernel_constant_estimator( self ):
+    def test_kernel_constant_asymmetry_estimator( self ):
 
         # Try for some publication
-        vec, actual = self.c.asymmetry_estimator(
+        actual = self.c.citation_estimator(
             [ 3, ],
-            estimator = 'kernel_constant',
+            estimator = 'kernel_constant_asymmetry',
             date_type = 'publication_dates'
         )
-        assert vec[0].shape == self.c.component_concepts.shape
         assert not np.isnan( actual[0] )
 
         # Try for a file with a nan publication date.
-        vec, actual = self.c.asymmetry_estimator(
+        actual = self.c.citation_estimator(
             [ 0, ],
-            estimator = 'kernel_constant',
+            estimator = 'kernel_constant_asymmetry',
             date_type = 'publication_dates'
         )
-        assert vec[0].shape == self.c.component_concepts.shape
+        assert np.isnan( actual[0] )
+
+    ########################################################################
+
+    def test_density_estimator( self ):
+
+        # Try for some publication
+        actual = self.c.citation_estimator(
+            [ 3, ],
+            estimator = 'density',
+            date_type = 'publication_dates'
+        )
+        assert not np.isnan( actual[0] )
+
+        # Try for a file with a nan publication date.
+        actual = self.c.citation_estimator(
+            [ 0, ],
+            estimator = 'density',
+            date_type = 'publication_dates'
+        )
         assert np.isnan( actual[0] )
 
         
