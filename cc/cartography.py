@@ -537,3 +537,4 @@ class Cartographer( object ):
         density = kernel_size / ( 4./3.*np.pi * h**3. )
         
         return density
+
