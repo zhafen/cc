@@ -210,7 +210,7 @@ class TestExplore( unittest.TestCase ):
 
 ########################################################################
 
-class TestAsymmetryEstimator( unittest.TestCase ):
+class TestAsymmetryMetric( unittest.TestCase ):
 
     def setUp( self ):
 
@@ -221,7 +221,7 @@ class TestAsymmetryEstimator( unittest.TestCase ):
 
     def test_general( self ):
 
-        result = self.c.citation_estimator()
+        result = self.c.topography_metric()
         assert result.shape == self.c.publications.shape
 
     ########################################################################
@@ -231,7 +231,7 @@ class TestAsymmetryEstimator( unittest.TestCase ):
         # Replace the first row with zeros to test if handled
         self.c.components[0] = np.zeros( self.c.components[0].size )
 
-        result = self.c.citation_estimator( date_type='publication_dates' )
+        result = self.c.topography_metric( date_type='publication_dates' )
 
         # There should be exactly two well-understood nans
         assert np.isnan( result[1:] ).sum() == 2
@@ -243,66 +243,66 @@ class TestAsymmetryEstimator( unittest.TestCase ):
         # Replace the first row with zeros to test if handled
         self.c.components[0] = np.zeros( self.c.components[0].size )
 
-        result = self.c.citation_estimator()
+        result = self.c.topography_metric()
 
         assert not np.any( np.isclose( result, 0. ) )
 
     ########################################################################
 
-    def test_constant_asymmetry_estimator( self ):
+    def test_constant_asymmetry_metric( self ):
 
         # Try for some publication
-        actual = self.c.citation_estimator(
+        actual = self.c.topography_metric(
             [ 3, ],
-            estimator = 'constant_asymmetry',
+            metric = 'constant_asymmetry',
             date_type = 'publication_dates'
         )
         assert not np.isnan( actual[0] )
 
         # Try for a file with a nan publication date.
-        actual = self.c.citation_estimator(
+        actual = self.c.topography_metric(
             [ 0, ],
-            estimator = 'constant_asymmetry',
+            metric = 'constant_asymmetry',
             date_type = 'publication_dates'
         )
         assert np.isnan( actual[0] )
 
     ########################################################################
 
-    def test_kernel_constant_asymmetry_estimator( self ):
+    def test_kernel_constant_asymmetry_metric( self ):
 
         # Try for some publication
-        actual = self.c.citation_estimator(
+        actual = self.c.topography_metric(
             [ 3, ],
-            estimator = 'kernel_constant_asymmetry',
+            metric = 'kernel_constant_asymmetry',
             date_type = 'publication_dates'
         )
         assert not np.isnan( actual[0] )
 
         # Try for a file with a nan publication date.
-        actual = self.c.citation_estimator(
+        actual = self.c.topography_metric(
             [ 0, ],
-            estimator = 'kernel_constant_asymmetry',
+            metric = 'kernel_constant_asymmetry',
             date_type = 'publication_dates'
         )
         assert np.isnan( actual[0] )
 
     ########################################################################
 
-    def test_density_estimator( self ):
+    def test_density_metric( self ):
 
         # Try for some publication
-        actual = self.c.citation_estimator(
+        actual = self.c.topography_metric(
             [ 3, ],
-            estimator = 'density',
+            metric = 'density',
             date_type = 'publication_dates'
         )
         assert not np.isnan( actual[0] )
 
         # Try for a file with a nan publication date.
-        actual = self.c.citation_estimator(
+        actual = self.c.topography_metric(
             [ 0, ],
-            estimator = 'density',
+            metric = 'density',
             date_type = 'publication_dates'
         )
         assert np.isnan( actual[0] )

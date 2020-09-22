@@ -365,10 +365,10 @@ class Cartographer( object ):
     # Estimators
     ########################################################################
 
-    def citation_estimator(
+    def topography_metric(
         self,
         publications = None,
-        estimator = 'constant_asymmetry',
+        metric = 'constant_asymmetry',
         min_prior = 2,
         date_type = 'entry_dates',
         **kwargs
@@ -377,8 +377,8 @@ class Cartographer( object ):
         publications.
 
         Args:
-           estimator (str):
-                What estimator to use. Options are...
+           metric (str):
+                What metric to use. Options are...
                     constant_asymmetry:
                         e = mag( sum( |P>-|P_i> ) )
                     kernel_constant_asymmetry:
@@ -388,7 +388,7 @@ class Cartographer( object ):
 
             min_prior (int):
                 The minimum number of publications prior to the target
-                publication to calculate the estimator for it.
+                publication to calculate the metric for it.
 
             date_type (str):
                 What date to use for the publications when calculating prior
@@ -428,8 +428,8 @@ class Cartographer( object ):
             is_valid = is_prior & is_other & is_minnorm
             other_p = self.components_normed[is_valid]
 
-            # Get the estimator
-            fn = getattr( self, '{}_estimator'.format( estimator ) )
+            # Get the metric
+            fn = getattr( self, '{}_metric'.format( metric ) )
             e = fn( p, other_p,  **kwargs )
 
             es.append( e )
@@ -439,7 +439,7 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def constant_asymmetry_estimator(
+    def constant_asymmetry_metric(
         self,
         p,
         other_p,
@@ -450,18 +450,18 @@ class Cartographer( object ):
         Args:
             p ((n_concepts,) np.ndarray of floats):
                 The vector of the publication to calculate the asymmetry
-                estimator for.
+                metric for.
 
             other_p ((n_other,n_concepts) np.ndarray of floats):
                 Vectors of the other publication used when calculating the
-                estimator.
+                metric.
 
         Returns:
             result (np.ndarray of floats):
-                Full asymmetry estimator in vector form.
+                Full asymmetry metric in vector form.
 
             mag (float):
-                Magnitude of the asymmetry estimator.
+                Magnitude of the asymmetry metric.
         '''
 
         # Differences
@@ -472,7 +472,7 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def kernel_constant_asymmetry_estimator(
+    def kernel_constant_asymmetry_metric(
         self,
         p,
         other_p,
@@ -484,21 +484,21 @@ class Cartographer( object ):
         Args:
             p ((n_concepts,) np.ndarray of floats):
                 The vector of the publication to calculate the asymmetry
-                estimator for.
+                metric for.
 
             other_p ((n_other,n_concepts) np.ndarray of floats):
                 Vectors of the other publication used when calculating the
-                estimator.
+                metric.
 
             kernel_size (int):
                 Number of nearest neighbors to calculate the asymmetry on.
 
         Returns:
             result (np.ndarray of floats):
-                Full asymmetry estimator in vector form.
+                Full asymmetry metric in vector form.
 
             mag (float):
-                Magnitude of the asymmetry estimator.
+                Magnitude of the asymmetry metric.
         '''
 
         # We can't have the kernel larger than the number of valid publications
@@ -521,7 +521,7 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def density_estimator(
+    def density_metric(
         self,
         p,
         other_p,
