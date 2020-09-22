@@ -510,7 +510,11 @@ class Cartographer( object ):
         dist, inds = kd_tree.query( p, k=kernel_size, )
         used_p = other_p[inds]
 
-        result = ( p - used_p ).sum( axis=0 )
+        # Result is the sum of the normalized vectors
+        diff = p - used_p
+        diff_normed = diff / dist[:,np.newaxis] 
+        result = diff_normed.sum( axis=0 )
+
         mag = np.linalg.norm( result )
 
         return mag
