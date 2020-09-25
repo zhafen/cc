@@ -312,4 +312,24 @@ class TestAsymmetryMetric( unittest.TestCase ):
 
             assert len( w ) == 2
 
-        
+    ########################################################################
+
+    def test_smoothing_length_metric( self ):
+
+        # Try for some publication
+        actual = self.c.topography_metric(
+            [ 3, ],
+            metric = 'smoothing_length',
+            date_type = 'publication_dates'
+        )
+        assert not np.isnan( actual[0] )
+
+        # Try for a file with a nan publication date.
+        actual = self.c.topography_metric(
+            [ 0, ],
+            metric = 'smoothing_length',
+            date_type = 'publication_dates'
+        )
+        assert np.isnan( actual[0] )
+
+    

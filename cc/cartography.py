@@ -530,9 +530,10 @@ class Cartographer( object ):
     ):
         '''Estimate the density of a publication by calculating the
         spherical volume that encloses kernel_size other publications.
-        NOTE: This is typically calculated in a many-dimensional space,
-        and naiive estimates of calculating the spherical volume numerically
-        fail due to overflow errors.
+        WARNING: This is typically calculated in a many-dimensional space,
+        and our naiive estimates of calculating the spherical volume
+        numerically fail due to overflow errors. Consider using smoothing
+        length as a proxy.
 
         Args:
             p ((n_concepts,) np.ndarray of floats):
@@ -577,3 +578,46 @@ class Cartographer( object ):
                 
         return density
 
+    ########################################################################
+
+    def smoothing_length_metric(
+        self,
+        p,
+        other_p,
+        kernel_size = 16,
+    ):
+        '''Proxy for the density of a publication defined as the minimum
+        radius that encloses kernel_size other publications.
+
+        Args:
+            p ((n_concepts,) np.ndarray of floats):
+                The vector of the publication to calculate the asymmetry
+                metric for.
+
+            other_p ((n_other,n_concepts) np.ndarray of floats):
+                Vectors of the other publication used when calculating the
+                metric.
+
+            kernel_size (int):
+                Number of nearest neighbors to calculate the asymmetry on.
+
+        Returns:
+            result (np.ndarray of floats):
+                Full asymmetry metric in vector form.
+
+            mag (float):
+                Magnitude of the asymmetry metric.
+        '''
+
+        # We can't have the kernel larger than the number of valid publications
+        if kernel_size > other_p.shape[0]:
+            kernel_size = other_p.shape[0]
+
+        # Identify the publications to use in the calculation
+        kd_tree = scipy.spatial.cKDTree( other_p )
+        dist, inds = kd_tree.query( p, k=kernel_size, )
+
+        # Calculate the smoothing length
+        h = np.nanmax( dist )
+
+        return h
