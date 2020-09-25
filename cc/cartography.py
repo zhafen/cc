@@ -4,6 +4,7 @@ import pandas as pd
 import scipy.spatial
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
+import warnings
 
 import augment
 import verdict
@@ -527,6 +528,33 @@ class Cartographer( object ):
         other_p,
         kernel_size = 16,
     ):
+        '''Estimate the density of a publication by calculating the
+        spherical volume that encloses kernel_size other publications.
+        NOTE: This is typically calculated in a many-dimensional space,
+        and naiive estimates of calculating the spherical volume numerically
+        fail due to overflow errors.
+
+        Args:
+            p ((n_concepts,) np.ndarray of floats):
+                The vector of the publication to calculate the asymmetry
+                metric for.
+
+            other_p ((n_other,n_concepts) np.ndarray of floats):
+                Vectors of the other publication used when calculating the
+                metric.
+
+            kernel_size (int):
+                Number of nearest neighbors to calculate the asymmetry on.
+
+        Returns:
+            result (np.ndarray of floats):
+                Full asymmetry metric in vector form.
+
+            mag (float):
+                Magnitude of the asymmetry metric.
+        '''
+
+        warnings.warn( 'Density is not currently well-defined in our code for many dimensions, which is the default. Consider using smoothing length instead.' )
 
         # We can't have the kernel larger than the number of valid publications
         if kernel_size > other_p.shape[0]:
@@ -538,7 +566,14 @@ class Cartographer( object ):
 
         # Calculate density from smoothing length
         h = np.nanmax( dist )
-        density = kernel_size / ( 4./3.*np.pi * h**3. )
-        
+        n_dim = self.component_concepts.size
+        # Volume of an n-ball in n-dimensional Euclidean space
+        volume = (
+            np.pi**(n_dim/2.)
+            * h**n_dim
+            / scipy.special.gamma( n_dim/2. + 1 )
+        )
+        density = h / volume
+                
         return density
 
