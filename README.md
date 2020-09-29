@@ -1,40 +1,42 @@
 # cc
-Helping scientists explore the literature.
+Data-centric exploration of literature.
+This package is in development.
+While well-documented internally, it does not yet have user-facing documentation.
 
-Why does this package exist?
-Modern science has expanded to the point where it is incomprehensible by a single person.
-A quick calculation to demonstrate this:
-Let's say as a scientist you can take the time to read and comprehend 5 papers per day (being generous).
-However on astro-ph alone ~40-80 papers come out per day.
-Specializing in an area makes it feasible to read all relevant papers, but does not typically allow the scientist to see the larger view.
-This package is aimed at addressing these issues using the wealth of paper data and metadata easily available online through ADS and arXiv.
+## Features
 
-Utility Features:
-* Import of data from BibTex files using [bibtexparser](https://github.com/sciunto-org/python-bibtexparser).
-* Import and storage of ADS data using [the ads Python package](https://ads.readthedocs.io/en/latest/#the-ads-python-package). This includes...
-- All references and citations.
-- The latest citation information (no need to manually check if an arXiv paper has been published and update the citation).
-* A function for identifying unique words, accounting for stemming and mispellings (but not for words that are too short, and therefore can turn into too many other words)
-* Generate a bibtex file using unique calls to ADS as input.
+### Data-Access Features
+* Import of metadata from BibTex files using [bibtexparser](https://github.com/sciunto-org/python-bibtexparser).
+* Import and storage of ADS metadata using [the ads Python package](https://ads.readthedocs.io/en/latest/#the-ads-python-package). This includes...
+  * All references and citations and their metadata
+  * The latest citation information (no need to manually check if an arXiv publication has been published and update the citation).
+* Import and storage of arXiv source files (in-progress).
 
-Exploration Features:
-* Natural language processing of abstracts to extract important concepts.
-* Parsing of annotations to extract important concepts.
+### Data-Processing Features
+* Natural language processing of abstracts to extract key words according to word tagging.
+* Identify unique words in a text, accounting for stemming and mispellings (but not for words that are too short, and therefore can turn into too many other words).
+* Parsing of custom annotations.
 * Multiple consistent methods for calculating the "angle" between two publications or between a publication and a collection of publications.
-* Easy import of papers that cite or are referenced by a given paper.
-
-Paper-Writing Features:
-* Automatic approximate generation of relevant text for a key concept.
-
-########################################################################
-
-Other features:
+* Projection of abstracts into a virtual linear space
 * Parsing and organizing of source tex files to allow for easier language analysis, including...
-- Handling \include statements
-- Handling macros
-- Breaking into sections, including the appendix
-- Easy sentence and work tokenization using NLTK.
-- Easy word tagging using NLTK.
-- Separating comments
-- Changing ~ into whitespace unless escaped
-- Informative visual display of roughly-chunked sentences.
+  - Breaking into sections, including the appendix
+  - Easy sentence and work tokenization using NLTK.
+  - Easy word tagging using NLTK.
+  - Removing comments.
+  - Handling \include statements
+  - Handling macros
+  - Changing ~ into whitespace unless escaped
+  - Informative visual display of roughly-chunked sentences.
+
+### Practicing Scientist Utility Features:
+* Automatic approximate generation of relevant text for a given concept.
+* Generate a bibtex file from ADS calls.
+
+## Why does this package exist?
+
+Modern science has expanded to be incomprehensible for a single person.
+A quick calculation to demonstrate this:
+As a scientist you may be able to read and comprehend up to roughly 10 papers per day and still get other work done.
+However, on the astrophysics arxiv alone dozens to more than one hundred publications come out per day.
+Specializing in an area makes it feasible to read all relevant papers, but does not typically allow the scientist to see the larger view.
+This package is aimed at addressing these issues using the wealth of paper data and metadata easily available online.
