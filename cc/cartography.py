@@ -71,6 +71,36 @@ class Cartographer( object ):
         return self._components_normed
 
     ########################################################################
+
+    def get_age( self, date_type ):
+
+        time_elapsed = (                                                        
+            pd.to_datetime( 'now', ) -                                          
+            getattr( self, date_type).tz_localize(None)              
+        )                                                                       
+        time_elapsed_years = time_elapsed.total_seconds() / 3.154e7 
+
+        return time_elapsed_years
+
+    @property
+    def age_years( self ):
+
+        if not hasattr( self, '_age_years' ):
+
+            self._age_years = self.get_age( 'entry_dates' )
+
+        return self._age_years
+
+    @property
+    def publication_age_years( self ):
+
+        if not hasattr( self, '_publication_age_years' ):
+
+            self._publication_age_years = self.get_age( 'publication_dates' )
+
+        return self._publication_age_years
+
+    ########################################################################
     # Basic Analysis
     ########################################################################
 
@@ -533,7 +563,9 @@ class Cartographer( object ):
         WARNING: This is typically calculated in a many-dimensional space,
         and our naiive estimates of calculating the spherical volume
         numerically fail due to overflow errors. Consider using smoothing
-        length as a proxy.
+        length as a proxy. If we think density is essential we can
+        calculate volume in n-dimensions using a monte-carlo approach
+        (fraction of random points in a volume).
 
         Args:
             p ((n_concepts,) np.ndarray of floats):
