@@ -1,5 +1,6 @@
 import ads
 import bibtexparser
+import copy
 import nltk
 import numpy as np
 import pandas as pd
@@ -528,15 +529,38 @@ class Publication( object ):
 
         # Combine with existing component concepts
         if component_concepts is not None:
-            diff_conc = np.setdiff1d( component_concepts, nonzero_concepts )
-            components = np.hstack( [
-                values,
-                np.zeros( len( diff_conc ) )
-            ] )
-            component_concepts = np.hstack( [
-                nonzero_concepts,
-                diff_conc
-            ] )
+
+            # Store the concepts shared with other publications
+            components = []
+            new_concepts = copy.copy( list( nonzero_concepts ) )
+            new_components = copy.copy( list( values ) )
+            for i, ci in enumerate( component_concepts ):
+                no_match = True
+                for j, cj in enumerate( nonzero_concepts ):
+                    # If a match is found
+                    if ci == cj:
+                        components.append( values[j] )
+                        new_concepts.pop( j )
+                        new_components.pop( j )
+                        no_match = False
+                        break
+                # If made to the end of the loop with no match
+                if no_match:
+                    components.append( 0. )
+            
+            # Combine
+            component_concepts = component_concepts + new_concepts
+            components = components + new_components
+                
+            # diff_conc = np.setdiff1d( component_concepts, nonzero_concepts )
+            # components = np.hstack( [
+            #     values,
+            #     np.zeros( len( diff_conc ) )
+            # ] )
+            # component_concepts = np.hstack( [
+            #     nonzero_concepts,
+            #     diff_conc
+            # ] )
         else:
             components = values
             component_concepts = nonzero_concepts

@@ -325,14 +325,19 @@ class ComponentProjection( unittest.TestCase ):
 
     def test_concept_projection_existing_vector( self ):
 
-        comp_concepts = [ 'accret', 'dog' ]
+        comp_concepts_orig = [ 'accret', 'dog' ]
         values, comp_concepts = self.p.concept_projection(
-            comp_concepts
+            comp_concepts_orig
         )
 
         # Should be one 0
-        assert values[-1] == 0
-        assert comp_concepts[-1] == 'dog'
+        assert values[1] == 0
+
+        # Should match with the formatting of the original vector
+        for i, comp_concept in enumerate( comp_concepts_orig ):
+            assert comp_concept == comp_concepts[i]
+
+        assert len( values ) == len( comp_concepts )
 
         # Spot checks
         assert 'wind' in comp_concepts
