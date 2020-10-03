@@ -531,56 +531,44 @@ class Publication( object ):
 
         # Combine with existing component concepts
         if component_concepts is not None:
-
             @numba.njit
             def combine(
                 original_concepts,
-                new_concepts,
-                new_components,
-                added_concepts,
                 added_components,
+                added_concepts,
             ):
                 # Store the concepts shared with other publications
+                dup_inds = List()
                 components = List()
+                component_concepts = List( original_concepts )
                 for i, ci in enumerate( original_concepts ):
                     no_match = True
                     for j, cj in enumerate( added_concepts ):
                         # If a match is found
                         if ci == cj:
                             components.append( added_components[j] )
-                            new_concepts.pop( j )
-                            new_components.pop( j )
+                            dup_inds.append( j )
                             no_match = False
                             break
                     # If made to the end of the loop with no match
                     if no_match:
                         components.append( 0 )
 
-                return new_concepts, new_components, components
+                # Finish combining
+                for i in range( len( added_concepts ) ):
+                    if i in dup_inds:
+                        continue
+                    components.append( added_components[i] )
+                    component_concepts.append( added_concepts[i] )
 
-            new_concepts, new_components, components = combine(
+                return components, component_concepts
+
+            components, component_concepts = combine(
                 original_concepts = List( component_concepts ),
-                new_concepts = List( nonzero_concepts ),
-                new_components = List( values ),
-                added_concepts = List( nonzero_concepts ),
                 added_components = List( values ),
-            )
-            components = (
-                list( components ) + list( new_components )
-            )
-            component_concepts = (
-                list( component_concepts ) + list( new_concepts )
+                added_concepts = List( nonzero_concepts ),
             )
                 
-            # diff_conc = np.setdiff1d( component_concepts, nonzero_concepts )
-            # components = np.hstack( [
-            #     values,
-            #     np.zeros( len( diff_conc ) )
-            # ] )
-            # component_concepts = np.hstack( [
-            #     nonzero_concepts,
-            #     diff_conc
-            # ] )
         else:
             components = values
             component_concepts = nonzero_concepts

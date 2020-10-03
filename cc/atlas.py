@@ -535,7 +535,7 @@ class Atlas( object ):
         self.projection = verdict.Dict( {
             'components': components,
             'norms': norm,
-            'component_concepts': component_concepts.astype( str ),
+            'component_concepts': np.array( component_concepts ).astype( str ),
             'publications': np.array( projected_publications ),
             'publication_dates': np.array( pub_date ),
             'entry_dates': np.array( entry_date ),

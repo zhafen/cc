@@ -345,6 +345,10 @@ class TestConceptProjection( unittest.TestCase ):
 
         assert cp['publication_dates'][0] == self.a[cp['publications'][0]].publication_date
 
+        # There should be no component with entirely zeros
+        unnormed_a = cp['components'].sum( axis=0 )
+        assert np.nanmin( unnormed_a  ) > 0.
+
     ########################################################################
 
     def test_cached_concept_projection( self ):
