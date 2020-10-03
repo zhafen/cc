@@ -2,6 +2,8 @@ import ads
 import bibtexparser
 import copy
 import nltk
+import numba
+from numba.typed import List
 import numpy as np
 import pandas as pd
 import warnings
@@ -530,27 +532,45 @@ class Publication( object ):
         # Combine with existing component concepts
         if component_concepts is not None:
 
-            # Store the concepts shared with other publications
-            components = []
-            new_concepts = copy.copy( list( nonzero_concepts ) )
-            new_components = copy.copy( list( values ) )
-            for i, ci in enumerate( component_concepts ):
-                no_match = True
-                for j, cj in enumerate( nonzero_concepts ):
-                    # If a match is found
-                    if ci == cj:
-                        components.append( values[j] )
-                        new_concepts.pop( j )
-                        new_components.pop( j )
-                        no_match = False
-                        break
-                # If made to the end of the loop with no match
-                if no_match:
-                    components.append( 0. )
-            
-            # Combine
-            component_concepts = component_concepts + new_concepts
-            components = components + new_components
+            @numba.njit
+            def combine(
+                original_concepts,
+                new_concepts,
+                new_components,
+                added_concepts,
+                added_components,
+            ):
+                # Store the concepts shared with other publications
+                components = List()
+                for i, ci in enumerate( original_concepts ):
+                    no_match = True
+                    for j, cj in enumerate( added_concepts ):
+                        # If a match is found
+                        if ci == cj:
+                            components.append( added_components[j] )
+                            new_concepts.pop( j )
+                            new_components.pop( j )
+                            no_match = False
+                            break
+                    # If made to the end of the loop with no match
+                    if no_match:
+                        components.append( 0 )
+
+                return new_concepts, new_components, components
+
+            new_concepts, new_components, components = combine(
+                original_concepts = List( component_concepts ),
+                new_concepts = List( nonzero_concepts ),
+                new_components = List( values ),
+                added_concepts = List( nonzero_concepts ),
+                added_components = List( values ),
+            )
+            components = (
+                list( components ) + list( new_components )
+            )
+            component_concepts = (
+                list( component_concepts ) + list( new_concepts )
+            )
                 
             # diff_conc = np.setdiff1d( component_concepts, nonzero_concepts )
             # components = np.hstack( [
