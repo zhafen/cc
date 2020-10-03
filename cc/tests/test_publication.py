@@ -260,6 +260,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
 
         del p.citation['arxivid']
         del p.citation['doi']
+        del p.citation['abstract']
 
         p.process_abstract()
 
@@ -289,6 +290,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
         p = cc.publication.Publication( 'Hafen2019' )
         p.process_bibtex_annotations( './tests/data/example_atlas/example.bib' )
 
+        del p.citation['abstract']
         p.citation['arxivid'] = 'bad'
         p.citation['doi'] = 'bad'
 

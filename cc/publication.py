@@ -276,7 +276,10 @@ class Publication( object ):
         # Load abstract if not given
         if abstract_str is None:
 
-            if not hasattr( self, 'ads_data' ):
+            if 'abstract' in self.citation:
+                abstract_str = self.citation['abstract']
+
+            elif not hasattr( self, 'ads_data' ):
 
                 # Search ADS using provided unique identifying keys
                 identifying_keys = [ 'arxivid', 'doi' ]
