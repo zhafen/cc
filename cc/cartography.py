@@ -6,6 +6,10 @@ from scipy.spatial.distance import cdist
 from tqdm import tqdm
 import warnings
 
+import plotly
+import plotly.graph_objects as go
+import palettable
+
 import augment
 import verdict
 
@@ -653,3 +657,102 @@ class Cartographer( object ):
         h = np.nanmax( dist )
 
         return h
+
+    ########################################################################
+    # Mapping
+    ########################################################################
+
+    def concept_rank_map(
+        self,
+        n_concepts = 100,
+        publications = None,
+        highlighted_publications = None,
+        default_color = '#000000',
+        cmap = palettable.cartocolors.qualitative.Safe_10.hex_colors,
+    ):
+
+        # Parameters
+        n_x = self.publications.size
+        n_y = n_concepts
+        if publications is None:
+            publications = self.publications
+        if highlighted_publications is None:
+            highlighted_publications = []
+        
+        # Default rank is the concepts that contribute most to the projection
+        rank = self.components_normed.sum( axis=0 )
+        sort_inds = np.argsort( rank )[::-1]
+
+        # Get the sorted components
+        comp_norm_s = self.components_normed[:,sort_inds][:,:n_y]
+        conc_s = self.component_concepts[sort_inds][:n_y]
+
+        # Reformat for the scatter plot
+        xs = comp_norm_s.transpose().flatten()
+        ys = np.tile(
+            np.arange( 0., n_y, 1. ),
+            ( n_x, 1 ),
+        ).transpose().flatten()
+        labels = np.tile( publications, n_y )
+
+        # Setup the colors for the highlighted publications
+        # Values used
+        colors = np.zeros( ( n_x, ) ).astype( int )
+        for i, hp in enumerate( highlighted_publications ):
+
+            is_hp = hp == publications
+            colors[is_hp] = i + 1
+
+            if is_hp.sum() == 0:
+                raise KeyError( 'No publication {} found'.format( hp ) )
+        colors = np.tile( np.array( colors ), n_y )
+
+        # Colormap formatted for plotly
+        cmap = [ default_color, ] + cmap
+        colorscale = []
+        for i, color in enumerate( cmap ):
+            colorscale.append( [ i / len( cmap ), color ] )
+            colorscale.append( [ ( i + 1 )  /len( cmap ), color ] )
+
+        # Remove zeros
+        is_nonzero = np.invert( np.isclose( xs, 0. ) )
+        xs = xs[is_nonzero]
+        ys = ys[is_nonzero]
+        colors = colors[is_nonzero]
+        labels = labels[is_nonzero]
+            
+        # So the highlighted publications are plotted over the others
+        resort_inds = np.argsort( colors )
+        xs = xs[resort_inds]
+        ys = ys[resort_inds]
+        colors = colors[resort_inds]
+        labels = labels[resort_inds]
+
+        # Size of the markers
+        size = 5 + ( colors != 0 ).astype( int ) * 5
+
+        # Plotly Plot
+        fig = go.Figure(
+            data=go.Scatter(
+                x = xs,
+                y = ys,
+                mode = 'markers',
+                text = labels,
+                marker = dict(
+                    color = colors,
+                    colorscale = colorscale,
+                    size = size,
+                )
+            ),
+            layout = go.Layout( width=800, height=800),
+        )
+        fig.update_xaxes(
+            title_text = r'$\langle c_y | P \rangle$',
+            range = [ 0, 1 ],
+        )
+        fig.update_yaxes(
+            title_text = r'Concept Rank',
+            range = [ -0.5, n_y - 0.5 ],
+        )
+
+        return fig
