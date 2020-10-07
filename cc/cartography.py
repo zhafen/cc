@@ -665,17 +665,42 @@ class Cartographer( object ):
     def concept_rank_map(
         self,
         n_concepts = 100,
-        publications = None,
         highlighted_publications = None,
         default_color = '#000000',
         cmap = palettable.cartocolors.qualitative.Safe_10.hex_colors,
     ):
+        '''An exploratory visualization designed to identify which papers are
+        associated with which concepts, focusing on the highest ranked concepts
+        (default rank is a metric of the most used within the atlas).
+
+        In detail, the "concept rank map" has one integer per concept on the
+        y axis, with lowest having the largest contribution to the atlas as
+        measured by $\sum \mid P_{i, {\rm normed}} \rangle$.
+        The x-axis is the value of the vector in the direction of that concept.
+        This plot is best explored by mousing over the points of interest.
+
+        Args:
+            n_concepts (int):
+                Number of concepts to plot.
+
+            highlighted_publications (list of strs):
+                These publications will have larger markers that are also
+                colored.
+
+            default_color (str or other specifier of color):
+                The color to use for the unhighlighted publications.
+
+            cmap (discrete colormap):
+                The colors to use for the highlighted publications.
+
+        Returns:
+            fig (plotly figure)
+        '''
 
         # Parameters
         n_x = self.publications.size
         n_y = n_concepts
-        if publications is None:
-            publications = self.publications
+        publications = self.publications # Can maybe make this flexible later
         if highlighted_publications is None:
             highlighted_publications = []
         
