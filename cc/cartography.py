@@ -694,6 +694,8 @@ class Cartographer( object ):
             ( n_x, 1 ),
         ).transpose().flatten()
         labels = np.tile( publications, n_y )
+        for i, y in enumerate( ys ):
+            labels[i] = labels[i] + ', {}'.format( conc_s[int(y)] )
 
         # Setup the colors for the highlighted publications
         # Values used
