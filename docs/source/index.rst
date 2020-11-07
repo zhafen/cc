@@ -12,6 +12,7 @@ Welcome to cc's documentation!
 
     usage/installation
     usage/mapping
+    usage/contributing
 
 Indices and tables
 ==================
