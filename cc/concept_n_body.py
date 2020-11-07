@@ -13,7 +13,7 @@ class Simulation( object ):
         r_c = 5.,
         rep_power = 3.,
         att_power = 1.,
-        inital_dims = ( 10., 10., 10. )
+        inital_dims = ( 10., 10., 10. ),
         inital_vdims = ( 2., 2., 2. )
     ):
         '''The force between two particles is the derivative of
@@ -72,7 +72,4 @@ class Simulation( object ):
                     net_force += p_e.m * scaled_repulsive_force( r )
 
     ########################################################################
-
-    def setup( self ):
-
 

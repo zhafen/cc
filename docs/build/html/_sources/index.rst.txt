@@ -23,7 +23,7 @@ In the location where you want to install do:
 Charting
 ========
 
-`Tutorial and examples here.<http://zhafen.github.io/cc/docs/charting.html>`_
+`Tutorial and examples here. <http://zhafen.github.io/cc/docs/charting.html>`__
 
 .. toctree::
    :maxdepth: 1
