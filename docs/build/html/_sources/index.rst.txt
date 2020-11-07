@@ -20,6 +20,12 @@ In the location where you want to install do:
     cd cc
     pip install -e .
 
+Next, download data used by the nltk.
+
+.. code-block:: console
+
+    python -m nltk.downloader all
+
 Charting
 ========
 
