@@ -83,10 +83,13 @@ If set to ‘pass’ then the projection is not saved.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>components ((n_pub,n_concepts) np.ndarray of ints):</dt><dd><p>The value at [i,j] is the value of the projection for
+<dd class="field-even"><p><p>Dictionary containing…
+components ((n_pub,n_concepts) np.ndarray of ints):</p>
+<blockquote>
+<div><p>The value at [i,j] is the value of the projection for
 publication for each i for each concept j.</p>
-</dd>
+</div></blockquote>
+<dl class="simple">
 <dt>components_normed ((n_pub,n_concepts) np.ndarray of floats):</dt><dd><p>components normalized for each publication</p>
 </dd>
 <dt>component_concepts ((n_concepts,) np.ndarray of strs):</dt><dd><p>The basis concepts used. By default the union of all
