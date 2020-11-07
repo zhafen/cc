@@ -13078,7 +13078,7 @@ div#notebook {
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Overview">Overview<a class="anchor-link" href="#Overview">&#182;</a></h1><p>This notebook will walk a user through how to project and visualize publication libraries, or atlases.</p>
-<p><a href="https://github.com/zhafen/cc/tree/master/examples/charting">The interactive source notebook is available here.</a></p>
+<p><a href="https://github.com/zhafen/cc/tree/master/examples/charting">The source notebook can be downloaded from here and run by the user for an interactive tutorial.</a></p>
 
 </div>
 </div>
@@ -13269,8 +13269,10 @@ Loading saved atlas data.
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h3 id="Download-Abstracts">Download Abstracts<a class="anchor-link" href="#Download-Abstracts">&#182;</a></h3><p>The following command will download the abstracts of our publications and perform some basic natural language processing on them.</p>
-<blockquote><p><strong><em>Note: Identifying information required.</em></strong>  This command requires the publications to have either a DOI or arXiv ID stored in their bibliography entry.</p>
-<p><strong><em>Note: Publications must be cataloged in a compatible database.</em></strong> This requires the publications to be recorded on a compatible online database. As of writing the only compatible database is <a href="https://ui.adsabs.harvard.edu/">the NASA ADS system</a>.</p>
+<blockquote><p><strong>IMPORTANT:</strong></p>
+<p><strong><em>Publications must be cataloged in a compatible database.</em></strong> The below command requires the publications to be recorded on a compatible online database. As of writing the only compatible database is <a href="https://ui.adsabs.harvard.edu/">the NASA ADS system</a>.</p>
+<p><strong><em>An ADS API key is required.</em></strong> The below commands access the NASA ADS database, and therefore requires the user to have an API key. <a href="https://ui.adsabs.harvard.edu/">Create an ADS account</a>, and generate a new API token from account settings. Then save the key to <code>~/.ads/dev_key</code> or as an environment variable named <code>ADS_DEV_KEY</code>. <a href="https://github.com/adsabs/adsabs-dev-api">The official ADS API documentation is found here.</a></p>
+<p><strong><em>Identifying fields are required in the source bibliography for the Atlas.</em></strong>  The below command requires the publications to have either a DOI or arXiv ID stored in their bibliography entry.</p>
 </blockquote>
 
 </div>
@@ -13860,8 +13862,7 @@ if (outputEl) {{
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Expanding-the-Atlas">Expanding the Atlas<a class="anchor-link" href="#Expanding-the-Atlas">&#182;</a></h1><p>There are several methods for algorithmically expanding a given atlas.</p>
-<blockquote><p><strong><em>Note: ADS API Key Required.</em></strong> The below commands access the NASA ADS database, and therefore require you to have an API key. <a href="https://ui.adsabs.harvard.edu/">Create an ADS account</a>, and generate a new API token from account settings. Then save the key to <code>~/.ads/dev_key</code> or as an environment variable named <code>ADS_DEV_KEY</code>. <a href="https://github.com/adsabs/adsabs-dev-api">The official ADS API documentation is found here.</a></p>
-<p><strong><em>Note: ADS has rate limits.</em></strong> As with most (all?) APIs, there are limits on the amount of data you can download per day. For ADS that's 5000 calls to the system. If you're not careful you can hit this relatively easily, and lose access to ADS until the daily reset.</p>
+<blockquote><p><strong><em>Note: ADS has rate limits.</em></strong> As with most (all?) APIs, there are limits on the amount of data you can download per day. For ADS that's 5000 calls to the system. If you're not careful you can hit this relatively easily, and lose access to ADS until the daily reset.</p>
 </blockquote>
 
 </div>
