@@ -1,0 +1,466 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cc.cartography module &#8212; cc 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cc 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">cc.cartography module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-cc.cartography">
+<span id="cc-cartography-module"></span><h1>cc.cartography module<a class="headerlink" href="#module-cc.cartography" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="cc.cartography.Cartographer">
+<em class="property">class </em><code class="sig-prename descclassname">cc.cartography.</code><code class="sig-name descname">Cartographer</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class for analyzing and exploring projected data.</p>
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.age_years">
+<em class="property">property </em><code class="sig-name descname">age_years</code><a class="headerlink" href="#cc.cartography.Cartographer.age_years" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.components_normed">
+<em class="property">property </em><code class="sig-name descname">components_normed</code><a class="headerlink" href="#cc.cartography.Cartographer.components_normed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Components normalized such that &lt;P|P&gt;=1 .</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.concept_rank_map">
+<code class="sig-name descname">concept_rank_map</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_concepts</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">highlighted_publications</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">default_color</span><span class="o">=</span><span class="default_value">'#000000'</span></em>, <em class="sig-param"><span class="n">cmap</span><span class="o">=</span><span class="default_value">['#88CCEE', '#CC6677', '#DDCC77', '#117733', '#332288', '#AA4499', '#44AA99', '#999933', '#882255', '#661100']</span></em>, <em class="sig-param"><span class="n">return_data</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.concept_rank_map" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>An exploratory visualization designed to identify which papers are</dt><dd><p>associated with which concepts, focusing on the highest ranked concepts
+(default rank is a metric of the most used within the atlas).</p>
+<p>In detail, the “concept rank map” has one integer per concept on the
+y axis, with lowest having the largest contribution to the atlas as
+measured by $sum mid P_{i, {</p>
+</dd>
+</dl>
+<p>m normed}}
+angle$.</p>
+<blockquote>
+<div><p>The x-axis is the value of the vector in the direction of that concept.
+This plot is best explored by mousing over the points of interest.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>n_concepts (int):</dt><dd><p>Number of concepts to plot.</p>
+</dd>
+<dt>highlighted_publications (list of strs):</dt><dd><p>These publications will have larger markers that are also
+colored.</p>
+</dd>
+<dt>default_color (str or other specifier of color):</dt><dd><p>The color to use for the unhighlighted publications.</p>
+</dd>
+<dt>cmap (discrete colormap):</dt><dd><p>The colors to use for the highlighted publications.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>fig (plotly figure)</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.constant_asymmetry_metric">
+<code class="sig-name descname">constant_asymmetry_metric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span></em>, <em class="sig-param"><span class="n">other_p</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.constant_asymmetry_metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the asymmetry of a publication by calculating the difference
+between that publication’s projection and all other publications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>(</em><em>n_concepts</em><em>,</em><em>) </em><em>np.ndarray of floats</em>) – The vector of the publication to calculate the asymmetry
+metric for.</p></li>
+<li><p><strong>other_p</strong> (<em>(</em><em>n_other</em><em>,</em><em>n_concepts</em><em>) </em><em>np.ndarray of floats</em>) – Vectors of the other publication used when calculating the
+metric.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Full asymmetry metric in vector form.</p>
+<dl class="simple">
+<dt>mag (float):</dt><dd><p>Magnitude of the asymmetry metric.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>result (np.ndarray of floats)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.cospsi">
+<code class="sig-name descname">cospsi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key_a</span></em>, <em class="sig-param"><span class="n">key_b</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.cospsi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cosine of the “angle” between two publications, defined as
+&lt;A|B&gt; / sqrt( &lt;A|A&gt;&lt;B|B&gt; ).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key_a</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – <dl class="simple">
+<dt>Reference to the first object. Options are…</dt><dd><dl class="simple">
+<dt>atlas:</dt><dd><p>Inner product with the full atlas.</p>
+</dd>
+<dt>all:</dt><dd><p>Array of inner product with each publication.</p>
+</dd>
+<dt>key from self.data:</dt><dd><p>Inner product for a particular publication.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>key_b</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Reference to the second object, same options as key_a.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>to self.concept_projection</strong> (<em>Passed</em>) – </p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The cosine of a and b</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.density_metric">
+<code class="sig-name descname">density_metric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span></em>, <em class="sig-param"><span class="n">other_p</span></em>, <em class="sig-param"><span class="n">kernel_size</span><span class="o">=</span><span class="default_value">16</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.density_metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the density of a publication by calculating the
+spherical volume that encloses kernel_size other publications.
+WARNING: This is typically calculated in a many-dimensional space,
+and our naiive estimates of calculating the spherical volume
+numerically fail due to overflow errors. Consider using smoothing
+length as a proxy. If we think density is essential we can
+calculate volume in n-dimensions using a monte-carlo approach
+(fraction of random points in a volume).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>(</em><em>n_concepts</em><em>,</em><em>) </em><em>np.ndarray of floats</em>) – The vector of the publication to calculate the asymmetry
+metric for.</p></li>
+<li><p><strong>other_p</strong> (<em>(</em><em>n_other</em><em>,</em><em>n_concepts</em><em>) </em><em>np.ndarray of floats</em>) – Vectors of the other publication used when calculating the
+metric.</p></li>
+<li><p><strong>kernel_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of nearest neighbors to calculate the asymmetry on.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Full asymmetry metric in vector form.</p>
+<dl class="simple">
+<dt>mag (float):</dt><dd><p>Magnitude of the asymmetry metric.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>result (np.ndarray of floats)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.distance">
+<code class="sig-name descname">distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key_a</span></em>, <em class="sig-param"><span class="n">key_b</span></em>, <em class="sig-param"><span class="n">normed</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.distance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.explore">
+<code class="sig-name descname">explore</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cite_key</span></em>, <em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">n</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">max_searches</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">bibtex_fp</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.explore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ambitiously explore an atlas region by aggressively downloading
+all citations and references of papers that are most similar to
+a target publication.
+Warning: Currently over-aggresive and will chew through your ADS
+calls.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cite_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Target publication to find similar publications to.</p></li>
+<li><p><strong>a</strong> (<a class="reference internal" href="cc.atlas.html#cc.atlas.Atlas" title="cc.atlas.Atlas"><em>atlas.Atlas</em></a>) – Atlas class containing relevant data.</p></li>
+<li><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of similar publications.</p></li>
+<li><p><strong>max_searches</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Maximum number of iterations to perform before stopping.</p></li>
+<li><p><strong>bibtex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Location to save the bibtex file to.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Modified atlas to include new publications.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>a (<a class="reference internal" href="cc.atlas.html#cc.atlas.Atlas" title="cc.atlas.Atlas">atlas.Atlas</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.from_hdf5">
+<em class="property">classmethod </em><code class="sig-name descname">from_hdf5</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.from_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the cartographer from a saved file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Filepath to the projected data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Cartographer instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.get_age">
+<code class="sig-name descname">get_age</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">date_type</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.get_age" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.inner_product">
+<code class="sig-name descname">inner_product</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key_a</span></em>, <em class="sig-param"><span class="n">key_b</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.inner_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the inner product between a and b, using the
+pre-generated concept projection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key_a</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – <dl class="simple">
+<dt>Reference to the first object. Options are…</dt><dd><dl class="simple">
+<dt>atlas:</dt><dd><p>Inner product with the full atlas.</p>
+</dd>
+<dt>all:</dt><dd><p>Array of inner product with each publication.</p>
+</dd>
+<dt>key from self.data:</dt><dd><p>Inner product for a particular publication.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>key_b</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Reference to the second object, same options as key_a.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>to self.concept_projection</strong> (<em>Passed</em>) – </p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The inner product of a and b</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.kernel_constant_asymmetry_metric">
+<code class="sig-name descname">kernel_constant_asymmetry_metric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span></em>, <em class="sig-param"><span class="n">other_p</span></em>, <em class="sig-param"><span class="n">kernel_size</span><span class="o">=</span><span class="default_value">16</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.kernel_constant_asymmetry_metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the asymmetry of a publication by calculating the difference
+between that publication’s projection and all other publications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>(</em><em>n_concepts</em><em>,</em><em>) </em><em>np.ndarray of floats</em>) – The vector of the publication to calculate the asymmetry
+metric for.</p></li>
+<li><p><strong>other_p</strong> (<em>(</em><em>n_other</em><em>,</em><em>n_concepts</em><em>) </em><em>np.ndarray of floats</em>) – Vectors of the other publication used when calculating the
+metric.</p></li>
+<li><p><strong>kernel_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of nearest neighbors to calculate the asymmetry on.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Full asymmetry metric in vector form.</p>
+<dl class="simple">
+<dt>mag (float):</dt><dd><p>Magnitude of the asymmetry metric.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>result (np.ndarray of floats)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.psi">
+<code class="sig-name descname">psi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key_a</span></em>, <em class="sig-param"><span class="n">key_b</span></em>, <em class="sig-param"><span class="n">scaling</span><span class="o">=</span><span class="default_value">1.5707963267948966</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>The “angle” between two publications, defined as
+arccos( &lt;A|B&gt; / sqrt( &lt;A|A&gt;&lt;B|B&gt; ) ).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key_a</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – <dl class="simple">
+<dt>Reference to the first object. Options are…</dt><dd><dl class="simple">
+<dt>atlas:</dt><dd><p>Inner product with the full atlas.</p>
+</dd>
+<dt>all:</dt><dd><p>Array of inner product with each publication.</p>
+</dd>
+<dt>key from self.data:</dt><dd><p>Inner product for a particular publication.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>key_b</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Reference to the second object, same options as key_a.</p></li>
+<li><p><strong>scaling</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The number of radians to scale the output by. Defaults to
+pi/2, the usual maximum difference between two publications.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>to self.concept_projection</strong> (<em>Passed</em>) – </p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>psi of a and b</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.publication_age_years">
+<em class="property">property </em><code class="sig-name descname">publication_age_years</code><a class="headerlink" href="#cc.cartography.Cartographer.publication_age_years" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.smoothing_length_metric">
+<code class="sig-name descname">smoothing_length_metric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span></em>, <em class="sig-param"><span class="n">other_p</span></em>, <em class="sig-param"><span class="n">kernel_size</span><span class="o">=</span><span class="default_value">16</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.smoothing_length_metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Proxy for the density of a publication defined as the minimum
+radius that encloses kernel_size other publications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>(</em><em>n_concepts</em><em>,</em><em>) </em><em>np.ndarray of floats</em>) – The vector of the publication to calculate the asymmetry
+metric for.</p></li>
+<li><p><strong>other_p</strong> (<em>(</em><em>n_other</em><em>,</em><em>n_concepts</em><em>) </em><em>np.ndarray of floats</em>) – Vectors of the other publication used when calculating the
+metric.</p></li>
+<li><p><strong>kernel_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of nearest neighbors to calculate the asymmetry on.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Full asymmetry metric in vector form.</p>
+<dl class="simple">
+<dt>mag (float):</dt><dd><p>Magnitude of the asymmetry metric.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>result (np.ndarray of floats)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.survey">
+<code class="sig-name descname">survey</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cite_key</span></em>, <em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">psi_max</span></em>, <em class="sig-param"><span class="n">bibtex_fp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_per_pub</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.survey" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.topography_metric">
+<code class="sig-name descname">topography_metric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">publications</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">'constant_asymmetry'</span></em>, <em class="sig-param"><span class="n">min_prior</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">date_type</span><span class="o">=</span><span class="default_value">'entry_dates'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.topography_metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the asymmetry of all publications relative to prior
+publications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – <blockquote>
+<div><dl class="simple">
+<dt>What metric to use. Options are…</dt><dd><dl class="simple">
+<dt>constant_asymmetry:</dt><dd><p>e = mag( sum( <a href="#id1"><span class="problematic" id="id2">|</span></a>P&gt;-<a href="#id3"><span class="problematic" id="id4">|</span></a>P_i&gt; ) )</p>
+</dd>
+<dt>kernel_constant_asymmetry:</dt><dd><p>e = mag( sum( <a href="#id5"><span class="problematic" id="id6">|</span></a>P&gt;-<a href="#id7"><span class="problematic" id="id8">|</span></a>P_i&gt; ) ), w/in kernel only</p>
+</dd>
+<dt>density:</dt><dd><p>e = kernel_size/(4/3pi*h**3)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="simple">
+<dt>min_prior (int):</dt><dd><p>The minimum number of publications prior to the target
+publication to calculate the metric for it.</p>
+</dd>
+<dt>date_type (str):</dt><dd><p>What date to use for the publications when calculating prior
+publications</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Estimator vallue for all publications.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>es (np.ndarray of floats)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.cartography.Cartographer.update_data">
+<code class="sig-name descname">update_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">components</span></em>, <em class="sig-param"><span class="n">norms</span></em>, <em class="sig-param"><span class="n">component_concepts</span></em>, <em class="sig-param"><span class="n">publications</span></em>, <em class="sig-param"><span class="n">publication_dates</span></em>, <em class="sig-param"><span class="n">entry_dates</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.cartography.Cartographer.update_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the data used for calculations.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cc.cartography.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cc 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">cc.cartography module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Zach Hafen.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

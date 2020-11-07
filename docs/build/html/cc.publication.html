@@ -1,0 +1,304 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cc.publication module &#8212; cc 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cc 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">cc.publication module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-cc.publication">
+<span id="cc-publication-module"></span><h1>cc.publication module<a class="headerlink" href="#module-cc.publication" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="cc.publication.Publication">
+<em class="property">class </em><code class="sig-prename descclassname">cc.publication.</code><code class="sig-name descname">Publication</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt id="cc.publication.Publication.citations_per_year">
+<code class="sig-name descname">citations_per_year</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.citations_per_year" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the citations per year. This depends on the instance
+having access to the ADS entry date and citation list, self.entry_date
+and self.citations. Note that this is usually automatically done
+after processing and saving the abstracts.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.publication.Publication.concept_projection">
+<code class="sig-name descname">concept_projection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">component_concepts</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.concept_projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project the abstract into concept space.
+In simplest form this can just be counting up the number of
+times each unique, stemmed noun, verb, or adjective shows up in the
+abstract.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>component_concepts</strong> (<em>array-like of strs</em>) – Basis concepts to project onto. Defaults to all concepts in
+the abstract.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>The value of the projection for each concept (by default the</dt><dd><p>number of times a word shows up in the abstract).</p>
+</dd>
+<dt>component_concepts (np.ndarray of strs):</dt><dd><p>The component concepts. If the component_concepts argument
+is None then all non-zero concepts in the abstract are used.
+If not None then the union of the non-zero concepts and
+the component_concepts arg.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>components (np.ndarray of ints)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.publication.Publication.get_ads_data">
+<code class="sig-name descname">get_ads_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fl</span><span class="o">=</span><span class="default_value">['abstract', 'citation', 'reference', 'entry_date']</span></em>, <em class="sig-param"><span class="n">keep_query_open</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.get_ads_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve all data the NASA Astrophysical Data System has regarding
+a paper.</p>
+<p>NOTE: For this to work you MUST have your ADS API key
+saved to ~/.ads/dev_key</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fl</strong> (<em>list of strs</em>) – Fields to preload when the data is first retrieved.</p></li>
+<li><p><strong>kwargs</strong> – Unique identifiers of the publication, e.g. the arXiv number
+with arxiv=’1811.11753’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dictionary containing ADS data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>self.ads_data (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.publication.Publication.identify_unique_key_concepts">
+<code class="sig-name descname">identify_unique_key_concepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.identify_unique_key_concepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify the unique key concepts derived from notes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Passed to concept.uniquify_concepts.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.publication.Publication.inner_product_custom">
+<code class="sig-name descname">inner_product_custom</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'cached key-point concepts'</span></em>, <em class="sig-param"><span class="n">max_edit_distance</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.inner_product_custom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the inner product between the publication and another
+object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> – The other object to calcualte the inner product with.</p></li>
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – <p>How to calculate the inner product. Options are…
+‘key-point concepts’:</p>
+<blockquote>
+<div><p>The inner product is the the sum of the inner products
+between all relations in the two publications, and the
+inner product between two relations is the number of
+key concepts they share.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>’cached key-point concepts’:</dt><dd><p>Faster but less-accurate version of ‘key-point concepts’.</p>
+</dd>
+<dt>’abstract similarity’:</dt><dd><p>The inner product is the sum of the inner product between
+all sentences in the abstract of each publications. The
+inner product between two abstract sentences is the number
+of nouns, verbs, and adjectives (“important” words)
+shared by the two sentences.
+(“Important” is up to user choice. I’ve defined it in the
+config using nltk[‘tag_tier’].)</p>
+</dd>
+<dt>max_edit_distance (int):</dt><dd><p>If not None this is the Maximum Levenshtein edit-distance
+between two words for them to count as the same word.
+Computationally expensive currently.</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>**kwargs</strong> – Passed to the inner product between relations.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.publication.Publication.load_full_tex">
+<code class="sig-name descname">load_full_tex</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tex_fp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.load_full_tex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a tex file for further manipulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Location of tex file to load.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.publication.Publication.process_abstract">
+<code class="sig-name descname">process_abstract</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abstract_str</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_empty_upon_failure</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.process_abstract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process the abstract with natural language processing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>abstract_str</strong> – Raw abstract. If none, download from ADS.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Modifies:</dt><dd><dl class="simple">
+<dt>self.abstract (dict):</dt><dd><p>Parsed abstract data.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.publication.Publication.process_annotation_line">
+<code class="sig-name descname">process_annotation_line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">line</span></em>, <em class="sig-param"><span class="n">notes</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">word_per_concept</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.process_annotation_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a line of annotation to extract more information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>line</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The line of annotation to process.</p></li>
+<li><p><strong>notes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – The dictionary storing notes on various lines.
+Defaults to using self.notes.</p></li>
+<li><p><strong>word_per_concept</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, break each concept into its composite words.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dictionary containing updates notes on annotations.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>notes (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.publication.Publication.process_bibtex_annotations">
+<code class="sig-name descname">process_bibtex_annotations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bibtex_fp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">word_per_concept</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.process_bibtex_annotations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process notes residing in a .bib file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bibtex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Filepath of the .bib file. Defaults to assuming one
+is already loaded.</p></li>
+<li><p><strong>reload</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Forcibly reprocess annotations, even if already processed.</p></li>
+<li><p><strong>word_per_concept</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, break each concept into its composite words.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Modifies:</dt><dd><dl class="simple">
+<dt>self.notes (dict):</dt><dd><p>Dictionary containing processed bibtex annotations.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.publication.Publication.publication_date">
+<em class="property">property </em><code class="sig-name descname">publication_date</code><a class="headerlink" href="#cc.publication.Publication.publication_date" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cc.publication.Publication.read_citation">
+<code class="sig-name descname">read_citation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bibtex_fp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.read_citation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve a citation from a BibTex file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>bibtex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Filepath containing the BibTex file to read from.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dictionary containing entries for a BibTex-style citation.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>self.citation (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cc.publication.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cc 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">cc.publication module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Zach Hafen.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

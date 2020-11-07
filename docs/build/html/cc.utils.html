@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cc.utils module &#8212; cc 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cc 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">cc.utils module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-cc.utils">
+<span id="cc-utils-module"></span><h1>cc.utils module<a class="headerlink" href="#module-cc.utils" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="cc.utils.match_words">
+<code class="sig-prename descclassname">cc.utils.</code><code class="sig-name descname">match_words</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em>, <em class="sig-param"><span class="n">max_edit_distance</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">min_len_ed</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">stemmed</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.match_words" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the matching words in two lists.
+This involves…
+1. Stemming the words in the lists
+2. Matching words with a sufficiently low edit distance</p>
+<blockquote>
+<div><p>(accounts for mispellings)</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>list of strs</em>) – The first to look for matching words in.</p></li>
+<li><p><strong>b</strong> (<em>list of strs</em>) – The second to look for matching words in.</p></li>
+<li><p><strong>max_edit_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Maximum Levenshtein edit-distance between two concepts for them
+to count as the same concept.</p></li>
+<li><p><strong>min_len_ed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Words below this length will not be considered the same even if
+they are within the given edit distance.</p></li>
+<li><p><strong>stemmed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True the words are already stemmed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Set of matching words between the two lists.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>result (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.9)">set</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="cc.utils.multicolor_text">
+<code class="sig-prename descclassname">cc.utils.</code><code class="sig-name descname">multicolor_text</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">strings</span></em>, <em class="sig-param"><span class="n">colors</span></em>, <em class="sig-param"><span class="n">fontweights</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fontsize</span><span class="o">=</span><span class="default_value">24</span></em>, <em class="sig-param"><span class="n">annotated</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">annote_fontsize</span><span class="o">=</span><span class="default_value">12</span></em>, <em class="sig-param"><span class="n">spacing</span><span class="o">=</span><span class="default_value">1.1</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.multicolor_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="cc.utils.stem">
+<code class="sig-prename descclassname">cc.utils.</code><code class="sig-name descname">stem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">l</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.stem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stem the words in a list of words.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>l</strong> (<em>list of strs</em>) – The words to stem.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of stemmed words.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>sl (list of strs)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="cc.utils.uniquify_words">
+<code class="sig-prename descclassname">cc.utils.</code><code class="sig-name descname">uniquify_words</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.uniquify_words" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the unique words in a list
+This involves…
+1. Stemming the words in the lists
+2. Matching words with a sufficiently low edit distance</p>
+<blockquote>
+<div><p>(accounts for mispellings)</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>list of strs</em>) – The list to uniquify</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><dl class="simple">
+<dt>max_edit_distance (int):</dt><dd><p>Maximum Levenshtein edit-distance between two words for them
+to count as the same word.</p>
+</dd>
+<dt>min_len_ed (int):</dt><dd><p>Words below this length will not be considered the same even if
+they are within the given edit distance.</p>
+</dd>
+<dt>stemmed (bool):</dt><dd><p>If True the words are already stemmed.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cc.utils.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cc 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">cc.utils module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Zach Hafen.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

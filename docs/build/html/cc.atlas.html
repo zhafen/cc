@@ -1,0 +1,402 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cc.atlas module &#8212; cc 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cc 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">cc.atlas module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-cc.atlas">
+<span id="cc-atlas-module"></span><h1>cc.atlas module<a class="headerlink" href="#module-cc.atlas" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="cc.atlas.Atlas">
+<em class="property">class </em><code class="sig-prename descclassname">cc.atlas.</code><code class="sig-name descname">Atlas</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Generate an Atlas from a bibliography.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atlas_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Primary location atlas data is stored in.</p></li>
+<li><p><strong>bibtex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Location to save the bibliography data at. Defaults to
+$atlas_dir/cc_ads.bib</p></li>
+<li><p><strong>data_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Location to save other atlas data at. Defaults to
+$atlas_dir/atlas_data.h5</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An atlas object, designed for exploring a collection of papers.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#cc.atlas.Atlas" title="cc.atlas.Atlas">Atlas</a></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="cc.atlas.Atlas.all_key_concepts">
+<em class="property">property </em><code class="sig-name descname">all_key_concepts</code><a class="headerlink" href="#cc.atlas.Atlas.all_key_concepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>A set of all key concepts across publications.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.concept_projection">
+<code class="sig-name descname">concept_projection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">component_concepts</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">projection_fp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">overwrite</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.concept_projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project the abstract of each publication into concept space.
+In simplest form this finds all shared, stemmed nouns, verbs, and
+adjectives between all publications and counts them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>component_concepts</strong> (<em>array-like of strs</em>) – Basis concepts to project onto. Defaults to all concepts across
+all publications.</p></li>
+<li><p><strong>projection_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Location to save the concept projection at. Defaults to
+$atlas_dir/projection.h5
+If set to ‘pass’ then the projection is not saved.</p></li>
+<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If False then check for a cached concept projection.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>components ((n_pub,n_concepts) np.ndarray of ints):</dt><dd><p>The value at [i,j] is the value of the projection for
+publication for each i for each concept j.</p>
+</dd>
+<dt>components_normed ((n_pub,n_concepts) np.ndarray of floats):</dt><dd><p>components normalized for each publication</p>
+</dd>
+<dt>component_concepts ((n_concepts,) np.ndarray of strs):</dt><dd><p>The basis concepts used. By default the union of all
+stemmed nouns, adjectives, and verbs across all abstracts.</p>
+</dd>
+<dt>projected_publications ((n_pubs,) np.ndarray of strs):</dt><dd><p>The publications that are projected.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.concept_search">
+<code class="sig-name descname">concept_search</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">concept</span></em>, <em class="sig-param"><span class="n">max_edit_distance</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">return_paragraph</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.concept_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search all publications for those that are noted as discussing
+a given concept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>concept</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Concept to search for.</p></li>
+<li><p><strong>max_edit_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Maximum Levenshtein edit-distance between two concepts for them
+to count as the same concept.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>tuple containing…</dt><dd><dl class="simple">
+<dt>dict:</dt><dd><p>Dictionary with list of points discussing the concept per
+publication.</p>
+</dd>
+<dt>string:</dt><dd><p>Paragraph with points for the concept from each publication.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.cospsi_data">
+<code class="sig-name descname">cospsi_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.cospsi_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the cos(psi) between the atlas’ data and another object.
+psi is the “angle” between two objects, defined as
+cos( psi ) = &lt;self | other&gt; / sqrt( &lt;self | self&gt; * &lt;other | other&gt; )</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> – The other object.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments passed to inner_product.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>cos(psi) calculated for each item of self.data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>cospsi (verdict.Dict of floats or ints)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.from_bibcodes">
+<em class="property">classmethod </em><code class="sig-name descname">from_bibcodes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">atlas_dir</span></em>, <em class="sig-param"><span class="n">bibcodes</span></em>, <em class="sig-param"><span class="n">bibtex_fp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">data_fp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.from_bibcodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an Atlas from bibcodes by downloading and saving the
+citations from ADS as a new bibliography.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atlas_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Primary location atlas data is stored in.</p></li>
+<li><p><strong>bibcodes</strong> (<em>list of strs</em>) – Publications to retrieve.</p></li>
+<li><p><strong>bibtex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Location to save the bibliography data at. Defaults to
+$atlas_dir/cc_ads.bib</p></li>
+<li><p><strong>data_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Location to save other atlas data at. Defaults to
+$atlas_dir/atlas_data.h5</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An atlas object, designed for exploring a collection of papers.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#cc.atlas.Atlas" title="cc.atlas.Atlas">Atlas</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.get_unique_key_concepts">
+<code class="sig-name descname">get_unique_key_concepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.get_unique_key_concepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique key concepts, as simplified using nltk tools.
+Steps to retrieve unique key concepts:
+1. Union of the same stems.
+2. Concepts with a sufficiently low edit distance</p>
+<blockquote>
+<div><p>(accounts for mispellings)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Optional Args:</dt><dd><dl class="simple">
+<dt>max_edit_distance (int):</dt><dd><p>Maximum Levenshtein edit-distance between two concepts for them
+to count as the same concept.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.import_bibcodes">
+<code class="sig-name descname">import_bibcodes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bibcodes</span></em>, <em class="sig-param"><span class="n">bibtex_fp</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.import_bibcodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import bibliography data using bibcodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bibcodes</strong> (<em>list of strs</em>) – Publications to retrieve.</p></li>
+<li><p><strong>bibtex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Location to save the bibliography data at. Defaults to
+$atlas_dir/cc_ads.bib</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Updates:</dt><dd><dl class="simple">
+<dt>self.data and the file at bibtex_fp:</dt><dd><p>Saves the import bibliography data to the instance and disk.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.import_bibtex">
+<code class="sig-name descname">import_bibtex</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bibtex_fp</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.import_bibtex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import publications from a BibTex file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>bibtex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Filepath to the BibTex file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.inner_product_custom">
+<code class="sig-name descname">inner_product_custom</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.inner_product_custom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the inner product with another object.
+This is much more customizable than inner_product, but much, much
+slower.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.key_concepts">
+<em class="property">property </em><code class="sig-name descname">key_concepts</code><a class="headerlink" href="#cc.atlas.Atlas.key_concepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Easier access for key_concepts. Must be loaded for individual
+publications first.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.key_points">
+<em class="property">property </em><code class="sig-name descname">key_points</code><a class="headerlink" href="#cc.atlas.Atlas.key_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Easier access for key_points. Must be loaded for individual
+publications first.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.load_data">
+<code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fp</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load general data saved to atlas_data.h5</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Filepath to the atlas_data.h5 file.
+If None, looks in self.atlas_dir</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.plot_cospsi2d">
+<code class="sig-name descname">plot_cospsi2d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_key</span></em>, <em class="sig-param"><span class="n">y_key</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_kwargs</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">y_kwargs</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.plot_cospsi2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scatter plot cos(psi) of two objects calculated with all the
+publications in the library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obj</strong> – The x object to calculate cos(psi) with.</p></li>
+<li><p><strong>y_obj</strong> – The y object to calculate cos(psi) with.</p></li>
+<li><p><strong>ax</strong> – The axis to place the plot on.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments to pass to the inner products.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Dictionary of values for the x_obj.</p>
+<dl class="simple">
+<dt>cospsi_y:</dt><dd><p>Dictionary of values for the y_obj.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>cospsi_x</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.plot_cospsi2d_custom">
+<code class="sig-name descname">plot_cospsi2d_custom</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_obj</span></em>, <em class="sig-param"><span class="n">y_obj</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_kwargs</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">y_kwargs</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.plot_cospsi2d_custom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scatter plot cos(psi) of two objects calculated with all the
+publications in the library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obj</strong> – The x object to calculate cos(psi) with.</p></li>
+<li><p><strong>y_obj</strong> – The y object to calculate cos(psi) with.</p></li>
+<li><p><strong>ax</strong> – The axis to place the plot on.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments to pass to the inner products.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Dictionary of values for the x_obj.</p>
+<dl class="simple">
+<dt>cospsi_y:</dt><dd><p>Dictionary of values for the y_obj.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>cospsi_x</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.process_abstracts">
+<code class="sig-name descname">process_abstracts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.process_abstracts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method for downloading and processing the abstracts
+of all publications.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cc.atlas.Atlas.save_data">
+<code class="sig-name descname">save_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">attrs_to_save</span><span class="o">=</span><span class="default_value">['abstract', 'citations', 'references', 'bibcode', 'entry_date']</span></em>, <em class="sig-param"><span class="n">handle_jagged_arrs</span><span class="o">=</span><span class="default_value">'row datasets'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.Atlas.save_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save general data saved to atlas_data.h5</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Filepath to the atlas_data.h5 file.
+If None, looks in self.atlas_dir</p></li>
+<li><p><strong>attrs_to_save</strong> (<em>list of strs</em>) – List of attributes for each item of self.data to save.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="cc.atlas.save_bibcodes_to_bibtex">
+<code class="sig-prename descclassname">cc.atlas.</code><code class="sig-name descname">save_bibcodes_to_bibtex</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bibcodes</span></em>, <em class="sig-param"><span class="n">bibtex_fp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.atlas.save_bibcodes_to_bibtex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cc.atlas.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cc 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">cc.atlas module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Zach Hafen.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>
