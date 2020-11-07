@@ -1,7 +1,8 @@
 # cc
 Data-centric exploration of literature.
 This package is in development.
-While well-documented internally, it does not yet have user-facing documentation.
+
+Documentation at [zhafen.github.io/cc](https://zhafen.github.io/cc/).
 
 ## Features
 
