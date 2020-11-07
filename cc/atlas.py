@@ -254,6 +254,7 @@ class Atlas( object ):
             'entry_date'
         ],
         handle_jagged_arrs = 'row datasets',
+        return_data = False,
     ):
         '''Save general data saved to atlas_data.h5
         
@@ -286,7 +287,8 @@ class Atlas( object ):
         print( 'Saving to {}'.format( fp ) )
         data_to_save.to_hdf5( fp, handle_jagged_arrs=handle_jagged_arrs )
 
-        return data_to_save
+        if return_data:
+            return data_to_save
 
     ########################################################################
     # Data Processing
@@ -446,6 +448,7 @@ class Atlas( object ):
         projection_fp = None,
         overwrite = False,
         verbose = True,
+        return_data = False,
     ):
         '''Project the abstract of each publication into concept space.
         In simplest form this finds all shared, stemmed nouns, verbs, and
@@ -465,7 +468,8 @@ class Atlas( object ):
                 If False then check for a cached concept projection.
 
         Returns:
-            Dictionary containing...
+            Dictionary:
+                Dictionary containing...
                 components ((n_pub,n_concepts) np.ndarray of ints):
                     The value at [i,j] is the value of the projection for
                     publication for each i for each concept j.
@@ -543,7 +547,8 @@ class Atlas( object ):
         if projection_fp != 'pass':
             self.projection.to_hdf5( projection_fp )
 
-        return self.projection
+        if return_data:
+            return self.projection
 
     ########################################################################
     # Publication-to-publication comparison

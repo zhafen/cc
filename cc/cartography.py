@@ -668,6 +668,7 @@ class Cartographer( object ):
         highlighted_publications = None,
         default_color = '#000000',
         cmap = palettable.cartocolors.qualitative.Safe_10.hex_colors,
+        return_data = False,
     ):
         '''An exploratory visualization designed to identify which papers are
         associated with which concepts, focusing on the highest ranked concepts
@@ -709,8 +710,10 @@ class Cartographer( object ):
         sort_inds = np.argsort( rank )[::-1]
 
         # Get the sorted components
-        comp_norm_s = self.components_normed[:,sort_inds][:,:n_y]
-        conc_s = self.component_concepts[sort_inds][:n_y]
+        comp_norm_s_all = self.components_normed[:,sort_inds]
+        comp_norm_s = comp_norm_s_all[:,:n_y]
+        conc_s_all = self.component_concepts[sort_inds]
+        conc_s = conc_s_all[:n_y]
 
         # Reformat for the scatter plot
         xs = comp_norm_s.transpose().flatten()
@@ -781,5 +784,8 @@ class Cartographer( object ):
             title_text = r'Concept Rank',
             range = [ -0.5, n_y - 0.5 ],
         )
+
+        if return_data:
+            return fig, (comp_norm_s_all, conc_s_all)
 
         return fig

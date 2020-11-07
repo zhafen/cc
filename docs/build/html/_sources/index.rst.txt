@@ -20,11 +20,13 @@ In the location where you want to install do:
     cd cc
     pip install -e .
 
+Charting
+========
+
+`Tutorial and examples here.<http://zhafen.github.io/cc/docs/charting.html>`_
+
 .. toctree::
    :maxdepth: 1
-
-    usage/charting
-    usage/contributing
 
 Indices and tables
 ==================
