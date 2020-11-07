@@ -20,16 +20,16 @@ In the location where you want to install do:
     cd cc
     pip install -e .
 
-Next, download data used by the nltk.
+Next, download data used by the Natural Language Processing Toolkit.
 
 .. code-block:: console
 
     python -m nltk.downloader all
 
-Charting
-========
+Usage
+=====
 
-`Tutorial and examples here. <http://zhafen.github.io/cc/docs/charting.html>`__
+For an interactive tutorial and example, open `the charting.ipynb notebook in the examples folder of the repository <https://github.com/zhafen/cc/blob/master/examples/charting.ipynb>`__.
 
 .. toctree::
    :maxdepth: 1
