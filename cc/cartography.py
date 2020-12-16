@@ -367,10 +367,15 @@ class Cartographer( object ):
         survey_key = np.random.choice( self.publications[within_region] )
 
         # Import that publications references and citations
-        bibcodes = (
-            list( a[survey_key].citations ) +
-            list( a[survey_key].references )
-        )
+        if a[survey_key].citations is not None:
+            citations = list( a[survey_key].citations )
+        else:
+            citations = []
+        if a[survey_key].references is not None:
+            references = list( a[survey_key].references )
+        else:
+            references = []
+        bibcodes = citations + references
         if len( bibcodes ) > max_per_pub:
             bibcodes = np.random.choice( bibcodes, max_per_pub, replace=False )
         print(
