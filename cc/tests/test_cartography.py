@@ -190,7 +190,7 @@ class TestExplore( unittest.TestCase ):
         previous_size = len( self.a.data )
 
         # Build expected keys
-        cite_key = 'Howk2017'
+        cite_key = 'Hafen2019a'
         expected_keys = np.union1d(
             list( self.a.data.keys() ),
             self.a[cite_key].citations
@@ -202,11 +202,11 @@ class TestExplore( unittest.TestCase ):
         expected_keys = sorted( list( expected_keys ) )
 
         # Calculation
-        new_a = self.c.survey( 'Hafen2019', self.a, 0.5 )
+        new_a = self.c.survey( 'Hafen2019', self.a, 0.6 )
         actual_keys = sorted( list( new_a.data.keys() ) )
 
         # Check that we have the expected length
-        n_duplicates = 3 # Found manually
+        n_duplicates = 8 # Found manually
         assert len( expected_keys ) - n_duplicates == len( actual_keys )
 
 ########################################################################
