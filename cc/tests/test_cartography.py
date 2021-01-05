@@ -40,7 +40,10 @@ class TestInnerProduct( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.components * self.c.components[8,:] ).sum()
+        # Identify the right publication
+        ind = np.argmax( self.c.publications == 'Hafen2019' )
+
+        expected = ( self.c.components * self.c.components[ind,:] ).sum()
         actual = self.c.inner_product(
             'Hafen2019',
             'atlas',
@@ -52,7 +55,7 @@ class TestInnerProduct( unittest.TestCase ):
         actual = actual / np.sqrt( ip_atlas_atlas * ip_pub_pub )
         comp_norm = self.c.components / self.c.norms[:,np.newaxis]
         expected = (
-            self.c.components / np.sqrt( ip_atlas_atlas ) * comp_norm[8,:]
+            self.c.components / np.sqrt( ip_atlas_atlas ) * comp_norm[ind,:]
         ).sum()
         assert actual < 1.
         npt.assert_allclose( actual, expected, rtol=0.05 )
@@ -91,9 +94,13 @@ class TestInnerProduct( unittest.TestCase ):
 
     def test_inner_product_publication_publication( self ):
 
+        # Identify the right publication
+        ind_h = np.argmax( self.c.publications == 'Hafen2019' )
+        ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
+
         np.random.seed( 1234 )
 
-        expected = ( self.c.components[0,:] * self.c.components[8,:] ).sum()
+        expected = ( self.c.components[ind_v,:] * self.c.components[ind_h,:] ).sum()
 
         actual = self.c.inner_product(
             'Hafen2019',
@@ -105,15 +112,19 @@ class TestInnerProduct( unittest.TestCase ):
 
     def test_inner_product_publication_all( self ):
 
+        # Identify the right publication
+        ind_h = np.argmax( self.c.publications == 'Hafen2019' )
+        ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
+
         np.random.seed( 1234 )
 
-        expected = ( self.c.components[0,:] * self.c.components[8,:] ).sum()
+        expected = ( self.c.components[ind_v,:] * self.c.components[ind_h,:] ).sum()
 
         actual = self.c.inner_product(
             'Hafen2019',
             'all',
         )
-        npt.assert_allclose( actual[0], expected, rtol=0.05 )
+        npt.assert_allclose( actual[ind_v], expected, rtol=0.05 )
 
 ########################################################################
 
@@ -128,10 +139,14 @@ class TestDistance( unittest.TestCase ):
 
     def test_distance( self ):
 
+        # Identify the right publication
+        ind_h = np.argmax( self.c.publications == 'Hafen2019' )
+        ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
+
         np.random.seed( 1234 )
 
         expected = np.sqrt( (
-            ( self.c.components_normed[0,:] - self.c.components_normed[8,:] )**2.
+            ( self.c.components_normed[ind_v,:] - self.c.components_normed[ind_h,:] )**2.
         ).sum() )
 
         actual = self.c.distance(
