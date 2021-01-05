@@ -579,6 +579,7 @@ class Atlas( object ):
         component_concepts = None,
         projection_fp = None,
         overwrite = False,
+        existing = None,
         verbose = True,
         return_data = True,
     ):
@@ -599,6 +600,15 @@ class Atlas( object ):
             overwrite (bool):
                 If False then check for a cached concept projection.
 
+            existing (dict or None):
+                Dictionary of existing result to build the projection upon.
+
+            verbose (bool):
+                If True print additional information while running.
+
+            return_data (bool):
+                If True return the resultant dictionary.
+
         Returns:
             Dictionary:
                 Dictionary containing...
@@ -606,15 +616,22 @@ class Atlas( object ):
                     The value at [i,j] is the value of the projection for
                     publication for each i for each concept j.
 
-                components_normed ((n_pub,n_concepts) np.ndarray of floats):
-                    components normalized for each publication
+                norms ((n_pub,) np.ndarray of floats):
+                    Normalization for each publication.
 
                 component_concepts ((n_concepts,) np.ndarray of strs):
                     The basis concepts used. By default the union of all
                     stemmed nouns, adjectives, and verbs across all abstracts.
 
-                projected_publications ((n_pubs,) np.ndarray of strs):
+                publications ((n_pubs,) np.ndarray of strs):
                     The publications that are projected.
+
+                publication_dates ((n_pubs,) np.ndarray of strs):
+                    Dates of publication.
+
+                entry_dates ((n_pubs) np.ndarray of strs):
+                    Dates the database became aware of the publication.
+                    Typically pre-publication, due to preprints.
         '''
 
         if verbose:
@@ -631,6 +648,13 @@ class Atlas( object ):
         if os.path.isfile( projection_fp ) and not overwrite:
             if verbose:
                 print( 'Using saved concept projection...' )
+            if existing is not None:
+                warnings.warn(
+                    'Passing an existing concept projection and not ' \
+                    + 'overwriting. The concept projection will fail if the ' \
+                    + 'existing and new concept projection share a save ' \
+                    + 'location.'
+                )
             self.projection = verdict.Dict.from_hdf5( projection_fp )
             return self.projection
         if hasattr( self, 'projection' ) and not overwrite:
@@ -638,12 +662,28 @@ class Atlas( object ):
                 print( 'Using cached concept projection...' )
             return self.projection
 
+        # Set up for component calculation
+        if existing is not None:
+            assert component_concepts is None, "Cannot pass component " \
+                + "concepts in addition to an existing projection."
+            component_concepts = list( existing['component_concepts'] )
+            components_list = list( existing['components'] )
+            projected_publications = list( existing['publications'] )
+            pub_date = list( existing['publication_dates'] )
+            entry_date = list( existing['entry_dates'] )
+        else:
+            components_list = []
+            projected_publications = []
+            pub_date = []
+            entry_date = []
+
         # Loop through and calculate components
-        components_list = []
-        projected_publications = []
-        pub_date = []
-        entry_date = []
         for key, item in tqdm( self.data.items() ):
+
+            # Don't reproject existing publications
+            if key in projected_publications:
+                continue
+
             comp_i, component_concepts = item.concept_projection(
                 component_concepts,
             )

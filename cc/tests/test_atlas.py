@@ -364,6 +364,40 @@ class TestConceptProjection( unittest.TestCase ):
         # Cached should equal full
         npt.assert_allclose( cp['components'], cp_cache['components'] )
 
+    ########################################################################
+
+    def test_concept_projection_extend_existing( self ):
+
+        # Make sure we don't count cached files
+        fp = './tests/data/example_atlas/projection.h5' 
+        if os.path.isfile( fp ):
+            os.remove( fp )
+
+        a_partial = copy.deepcopy( self.a )
+        for key in [ 'Hafen2019', 'Howk2017', 'Stern2018' ]:
+            del a_partial.data[key]
+
+        # Test
+        cp_partial = a_partial.concept_projection()
+        cp = self.a.concept_projection( existing=cp_partial, overwrite=True )
+
+        # The dimensions of the concept projection
+        expected_dim = (
+            len( self.a.data ),
+            len( cp['component_concepts'] )
+        )
+        assert cp['components'].shape == expected_dim
+
+        # Projected publications check
+        for i, v in enumerate( list( self.a.data.keys() ) ):
+            assert v in cp['publications']
+
+        assert cp['publication_dates'][0] == self.a[cp['publications'][0]].publication_date
+
+        # There should be no component with entirely zeros
+        unnormed_a = cp['components'].sum( axis=0 )
+        assert np.nanmin( unnormed_a  ) > 0.
+
 ########################################################################
 
 class TestComparison( unittest.TestCase ):
