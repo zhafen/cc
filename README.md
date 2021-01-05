@@ -11,6 +11,7 @@ Documentation at [zhafen.github.io/cc](https://zhafen.github.io/cc/).
 * Import and storage of ADS metadata using [the ads Python package](https://ads.readthedocs.io/en/latest/#the-ads-python-package). This includes...
   * All references and citations and their metadata
   * The latest citation information (no need to manually check if an arXiv publication has been published and update the citation).
+  * Import and storage is API-call-efficient: up to ~100 publications retrieved per API call.
 * Import and storage of arXiv source files (in-progress).
 
 ### Data-Processing Features
