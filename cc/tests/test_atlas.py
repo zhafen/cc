@@ -192,7 +192,7 @@ class TestAtlasData( unittest.TestCase ):
     def test_save_data_ads_abstract( self ):
 
         # Get the data
-        self.a.data.process_abstract()
+        self.a.process_abstracts()
 
         # Function itself
         self.a.save_data()
@@ -201,19 +201,17 @@ class TestAtlasData( unittest.TestCase ):
         d = verdict.Dict.from_hdf5( 
             './tests/data/empty_atlas/atlas_data.h5',
         )
-                
+                        
         for key, item in self.a.data.items():
             abstract = item.abstract['nltk']
             for ikey, iitem in abstract.items():
                 for i, v_i in enumerate( iitem ):
                     for j, v_j in enumerate( v_i ):
                         for k, v_k in enumerate( v_j ):
-                            try:
-                                assert v_k == d[key]['abstract']['nltk'][ikey][i][j][k]
-                            except:
-
-                                #DEBUG
-                                import pdb; pdb.set_trace()
+                            assert (
+                                v_k ==
+                                d[key]['abstract']['nltk'][ikey][i][j][k]
+                            )
 
 ########################################################################
 

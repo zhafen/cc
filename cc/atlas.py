@@ -43,6 +43,9 @@ class Atlas( object ):
 
     @augment.store_parameters
     def __init__( self, atlas_dir, bibtex_fp=None, data_fp=None ):
+
+        # Make sure the atlas directory exists
+        os.makedirs( atlas_dir, exist_ok=True )
         
         self.data = verdict.Dict( {} )
 
@@ -112,6 +115,9 @@ class Atlas( object ):
             Atlas:
                 An atlas object, designed for exploring a collection of papers.
         '''
+
+        # Make sure the atlas directory exists
+        os.makedirs( atlas_dir, exist_ok=True )
 
         # Save the bibcodes to a bibtex
         if bibtex_fp is None:
@@ -362,13 +368,139 @@ class Atlas( object ):
 
     ########################################################################
 
-    def process_abstracts( self ):
-        '''Convenience method for downloading and processing the abstracts
-        of all publications.
+    def get_ads_data(
+        self,
+        fl = [ 'abstract', 'citation', 'reference', 'entry_date', ],
+        publications_per_request = 300,
+        characters_per_request = 3500,
+        identifier = 'arxiv',
+    ):
+        '''Get the ADS data for all publications.
+
+        Args:
+            fl (list of strs):
+                Fields to retrieve from ADS.
+
+            publications_per_request (int):
+                Maximum number of publications to request per call to ADS.
+                Not as limiting as characters_per_request in most cases.
+
+            characters_per_request (int):
+                Maximum number of characters per call to ADS. This is set a bit
+                below the character limit ADS seems to haave.
+
+            identifier (str):
+                What identifier to use to download papers. Options are...
+                'key_as_bibcode':
+                    This assumes self.data.keys() are ADS bibcodes
+                    and we can just use them.
+                'arxiv':
+                    Use the arxiv ID contained in each publication's citation.
+                    Requires some extra wonk to identify relevant papers.
         '''
 
+        if identifier == 'key_as_bibcode':
+            ids = list( self.data.keys() )
+            identifier == 'bibcode'
+        elif identifier == 'arxiv':
+            # Make sure we can identify what's retrieved
+            fl.append( 'identifier' ) 
+            # Create IDs
+            ids = []
+            for p in list( self.data.values() ):
+                try:
+                    ids.append( p.citation['arxivid'] )
+                except KeyError:
+                    ids.append( 'NULL' )
+        else:
+            raise KeyError( 'Unrecognized identifier, {}'.format( identifier ))
+
+        # Build query strings
+        ids_str = ''
+        ids_strs = []
+        for i, id in enumerate( ids ):
+
+            if id == 'NULL':
+                continue
+
+            ids_str += '{}:{}'.format( identifier, id )
+
+            # Break conditions
+            end = i + 1 >= len( ids )
+            max_pubs = i + 1 >= publications_per_request
+            max_chars = len( ids_str ) >= characters_per_request
+            if end:
+                ids_strs.append( ids_str )
+                break
+            if max_pubs or max_chars:
+                ids_strs.append( ids_str )
+                ids_str = ''
+                continue
+
+            ids_str += ' OR '
+
+        # Query
+        results = []
+        for ids_str in tqdm( ids_strs ):
+            q = ads.SearchQuery(
+                query_dict={
+                    'q': ids_str,
+                    'fl': fl,
+                    'rows': publications_per_request,
+                },
+            )
+            results += list( q )
+
+        # Collate results
+        if identifier == 'arxiv':
+            def key_fn( result ):
+                '''Need a special key fn for arxiv ID because it's not
+                easily accessible in the returned ADS results. Need to hunt
+                it down in a list of possible identifiers.'''
+                for _ in result.identifier:
+                    if _[:6] == 'arXiv:':
+                        return _[6:]
+        else:
+            key_fn = lambda x: getattr( x, identifier )
+        result_dict = {}
+        for result in results:
+            result_dict[key_fn(result)] = result
+
+        # Assign properties
+        for i, item in enumerate( self.data.values() ):
+            id = ids[i]
+
+            # Handle missing publications
+            if id == 'NULL':
+                continue
+
+            item.ads_data = {}
+            for f in fl:
+                value = getattr( result_dict[id], f )
+                item.ads_data[f] = value
+                attr_f = copy.copy( f )
+                if attr_f == 'citation' or attr_f == 'reference':
+                    attr_f += 's'
+                setattr( item, attr_f, value )
+
+    ########################################################################
+
+    def process_abstracts( self, *args, **kwargs ):
+        '''Download and process the abstracts of all publications.
+        Faster and with fewer API calls than for each paper individually.
+
+        *Args, **Kwargs:
+            Passed to self.get_ads_data
+        '''
+
+        self.get_ads_data( *args, **kwargs )
+
         for key, item in tqdm( self.data.items() ):
-            item.process_abstract()
+            if hasattr( item, 'ads_data' ):
+                abstract_str = item.ads_data['abstract']
+            else:
+                abstract_str = ''
+            item.process_abstract( abstract_str=abstract_str, overwrite=True )
 
     ########################################################################
 
@@ -448,7 +580,7 @@ class Atlas( object ):
         projection_fp = None,
         overwrite = False,
         verbose = True,
-        return_data = False,
+        return_data = True,
     ):
         '''Project the abstract of each publication into concept space.
         In simplest form this finds all shared, stemmed nouns, verbs, and

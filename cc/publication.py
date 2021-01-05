@@ -256,6 +256,7 @@ class Publication( object ):
         abstract_str = None,
         return_empty_upon_failure = True,
         verbose = False,
+        overwrite = False,
     ):
         '''Process the abstract with natural language processing.
 
@@ -273,7 +274,7 @@ class Publication( object ):
         '''
 
         # Don't parse the abstract if already parsed
-        if hasattr( self, 'abstract' ):
+        if hasattr( self, 'abstract' ) and not overwrite:
             return
 
         # Load abstract if not given
@@ -285,7 +286,7 @@ class Publication( object ):
             elif not hasattr( self, 'ads_data' ):
 
                 # Search ADS using provided unique identifying keys
-                identifying_keys = [ 'arxivid', 'doi' ]
+                identifying_keys = [ 'arxivid', ]
                 for key in identifying_keys:
 
                     # Try to get the data
