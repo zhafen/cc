@@ -164,6 +164,11 @@ class Cartographer( object ):
             result = np.dot( a, b )
         except ValueError:
             result = np.dot( b, a )
+        except TypeError:
+
+            #DEBUG
+            import pdb; pdb.set_trace()
+
 
         # Finish dot product
         if key_a == 'atlas' or key_b == 'atlas':
@@ -311,12 +316,20 @@ class Cartographer( object ):
                 print( '    Retrieving and processing new abstracts...' )
                 a.process_abstracts()
 
+                # Format existing projection
+                existing = {}
+                for key in self.stored_parameters:
+                    existing[key] = getattr( self, key )
+                    if 'date' in key:
+                        existing[key] = [ str(_) for _ in existing[key] ]
+
                 # Recalculate and update parameters
                 print( '    Re-projecting publications...' )
                 cp = a.concept_projection(
                     projection_fp = 'pass',
                     overwrite = True,
                     verbose = False,
+                    existing = existing,
                 )
                 self.update_data( **cp )
 
@@ -390,12 +403,20 @@ class Cartographer( object ):
         print( 'Processing abstracts...' )
         a.process_abstracts()
 
+        # Format existing projection
+        existing = {}
+        for key in self.stored_parameters:
+            existing[key] = getattr( self, key )
+            if 'date' in key:
+                existing[key] = [ str(_) for _ in existing[key] ]
+
         # Recalculate and update parameters
         print( 'Re-projecting publications...' )
         cp = a.concept_projection(
             projection_fp = 'pass',
             overwrite = True,
             verbose = False,
+            existing = existing,
         )
         self.update_data( **cp )
 

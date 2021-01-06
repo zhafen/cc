@@ -476,7 +476,13 @@ class Atlas( object ):
 
             item.ads_data = {}
             for f in fl:
-                value = getattr( result_dict[id], f )
+                try:
+                    value = getattr( result_dict[id], f )
+                # Some IDs may fail
+                except KeyError:
+                    ids[i] = 'NULL'
+                    del item.ads_data
+                    break
                 item.ads_data[f] = value
                 attr_f = copy.copy( f )
                 if attr_f == 'citation' or attr_f == 'reference':
