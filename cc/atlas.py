@@ -372,7 +372,7 @@ class Atlas( object ):
         self,
         fl = [ 'abstract', 'citation', 'reference', 'entry_date', ],
         publications_per_request = 300,
-        characters_per_request = 3500,
+        characters_per_request = 3000,
         identifier = 'arxiv',
     ):
         '''Get the ADS data for all publications.
