@@ -417,6 +417,7 @@ class Atlas( object ):
 
         # Build query strings
         ids_str = ''
+        n_pubs = 0
         ids_strs = []
         for i, id in enumerate( ids ):
 
@@ -424,22 +425,25 @@ class Atlas( object ):
                 continue
 
             ids_str += '{}:{}'.format( identifier, id )
+            n_pubs += 1
 
             # Break conditions
             end = i + 1 >= len( ids )
-            max_pubs = i + 1 >= publications_per_request
+            max_pubs = n_pubs >= publications_per_request
             max_chars = len( ids_str ) >= characters_per_request
             if end:
                 ids_strs.append( ids_str )
                 break
             if max_pubs or max_chars:
                 ids_strs.append( ids_str )
+                n_pubs = 0
                 ids_str = ''
                 continue
 
             ids_str += ' OR '
 
         # Query
+        print( '    Making {} ADS calls...'.format( len( ids_strs ) ) )
         results = []
         for ids_str in tqdm( ids_strs ):
             q = ads.SearchQuery(
@@ -500,6 +504,8 @@ class Atlas( object ):
         '''
 
         self.get_ads_data( *args, **kwargs )
+
+        print( '    Doing NLP...' )
 
         for key, item in tqdm( self.data.items() ):
             if hasattr( item, 'ads_data' ):
