@@ -78,6 +78,10 @@ class TestFromBibcodes( unittest.TestCase ):
         for key in [ 'title', 'year', 'arxivid' ]:
             assert a.data['2019MNRAS.488.1248H'].citation[key] == self.a.data['Hafen2019'].citation[key]
 
+        # Test we can get the abstracts
+        n_abs, n_err = a.process_abstracts()
+        assert ( n_abs, n_err ) == ( 2, 0 )
+
     ########################################################################
 
     def test_from_bibcodes_existing_bib( self ):

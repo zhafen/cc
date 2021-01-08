@@ -402,9 +402,9 @@ class Atlas( object ):
         if identifier == 'key_as_bibcode' or identifier == 'bibcode':
             ids = list( self.data.keys() )
             identifier = 'bibcode'
+            if identifier not in fl:
+                fl.append( identifier )
         elif identifier == 'arxiv':
-            # Make sure we can identify what's retrieved
-            fl.append( 'identifier' ) 
             # Create IDs
             ids = []
             for p in list( self.data.values() ):
@@ -412,6 +412,9 @@ class Atlas( object ):
                     ids.append( p.citation['arxivid'] )
                 except KeyError:
                     ids.append( 'NULL' )
+            # Make sure we can identify what's retrieved
+            if 'identifier' not in fl:
+                fl.append( 'identifier' ) 
         else:
             raise KeyError( 'Unrecognized identifier, {}'.format( identifier ))
 
@@ -507,12 +510,17 @@ class Atlas( object ):
 
         print( '    Doing NLP...' )
 
+        n_abs = len( self.data )
+        n_err = 0
         for key, item in tqdm( self.data.items() ):
             if hasattr( item, 'ads_data' ):
                 abstract_str = item.ads_data['abstract']
             else:
                 abstract_str = ''
+                n_err += 1
             item.process_abstract( abstract_str=abstract_str, overwrite=True )
+
+        return n_abs, n_err
 
     ########################################################################
 
@@ -708,14 +716,10 @@ class Atlas( object ):
                 entry_date.append( 'NaT' )
 
         # Format components
-        try:
-            shape = (
-                len( projected_publications ),
-                len( component_concepts )
-            )
-        except:
-            #DEBUG
-            import pdb; pdb.set_trace()
+        shape = (
+            len( projected_publications ),
+            len( component_concepts )
+        )
         components = np.zeros( shape )
         for i, component in enumerate( components_list ):
             components[i,:len(component)] = component
