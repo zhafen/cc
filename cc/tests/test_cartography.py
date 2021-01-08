@@ -189,7 +189,7 @@ class TestExplore( unittest.TestCase ):
         expected_keys = sorted( list( expected_keys ) )
 
         missing_from_actual = '2016MNRAS.463.4533V'
-        new_a = self.c.explore( 'Hafen2019', self.a, n=1 )
+        new_a = self.c.explore( 'Hafen2019', self.a, n=1, identifier='arxiv' )
         actual_keys = sorted( list( new_a.data.keys() ) )
 
         n_duplicates = 7 # Found manually
@@ -217,7 +217,7 @@ class TestExplore( unittest.TestCase ):
         expected_keys = sorted( list( expected_keys ) )
 
         # Calculation
-        new_a = self.c.survey( 'Hafen2019', self.a, 0.6 )
+        new_a = self.c.survey( 'Hafen2019', self.a, 0.6, identifier='arxiv' )
         actual_keys = sorted( list( new_a.data.keys() ) )
 
         # Check that we have the expected length

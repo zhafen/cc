@@ -373,7 +373,7 @@ class Atlas( object ):
         fl = [ 'abstract', 'citation', 'reference', 'entry_date', ],
         publications_per_request = 300,
         characters_per_request = 3000,
-        identifier = 'arxiv',
+        identifier = 'key_as_bibcode',
     ):
         '''Get the ADS data for all publications.
 
@@ -399,9 +399,9 @@ class Atlas( object ):
                     Requires some extra wonk to identify relevant papers.
         '''
 
-        if identifier == 'key_as_bibcode':
+        if identifier == 'key_as_bibcode' or identifier == 'bibcode':
             ids = list( self.data.keys() )
-            identifier == 'bibcode'
+            identifier = 'bibcode'
         elif identifier == 'arxiv':
             # Make sure we can identify what's retrieved
             fl.append( 'identifier' ) 
@@ -708,10 +708,14 @@ class Atlas( object ):
                 entry_date.append( 'NaT' )
 
         # Format components
-        shape = (
-            len( projected_publications ),
-            len( component_concepts )
-        )
+        try:
+            shape = (
+                len( projected_publications ),
+                len( component_concepts )
+            )
+        except:
+            #DEBUG
+            import pdb; pdb.set_trace()
         components = np.zeros( shape )
         for i, component in enumerate( components_list ):
             components[i,:len(component)] = component

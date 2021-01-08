@@ -273,7 +273,15 @@ class Cartographer( object ):
     # Exploration
     ########################################################################
 
-    def explore( self, cite_key, a, n=5, max_searches=5, bibtex_fp=None ):
+    def explore(
+        self,
+        cite_key,
+        a,
+        n = 5,
+        max_searches = 5,
+        bibtex_fp = None,
+        identifier = 'key_as_bibcode'
+    ):
         '''Ambitiously explore an atlas region by aggressively downloading
         all citations and references of papers that are most similar to
         a target publication.
@@ -296,6 +304,10 @@ class Cartographer( object ):
             bibtex_fp (str):
                 Location to save the bibtex file to.
 
+            identifier (str):
+                What identifer to use for retrieving new papers. Defaults to
+                ADS bibcode.
+
         Returns:
             a (atlas.Atlas):
                 Modified atlas to include new publications.
@@ -314,7 +326,7 @@ class Cartographer( object ):
             if j != 0:
                 # Make sure we have needed data
                 print( '    Retrieving and processing new abstracts...' )
-                a.process_abstracts()
+                a.process_abstracts( identifier=identifier )
 
                 # Format existing projection
                 existing = {}
@@ -370,7 +382,16 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def survey( self, cite_key, a, psi_max, bibtex_fp=None, max_per_pub=100, **kwargs ):
+    def survey(
+        self,
+        cite_key,
+        a,
+        psi_max,
+        bibtex_fp = None,
+        max_per_pub = 100,
+        identifier = 'key_as_bibcode',
+        **kwargs
+    ):
 
         # Find publications in region
         psi = self.psi( cite_key, 'all', **kwargs )
@@ -401,7 +422,7 @@ class Cartographer( object ):
 
         # Make sure we have needed data
         print( 'Processing abstracts...' )
-        a.process_abstracts()
+        a.process_abstracts( identifier=identifier )
 
         # Format existing projection
         existing = {}
