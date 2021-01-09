@@ -413,7 +413,7 @@ class Cartographer( object ):
         if len( bibcodes ) > max_per_pub:
             bibcodes = np.random.choice( bibcodes, max_per_pub, replace=False )
         print(
-            'Importing {} new publications linked to random publication {}...'.format(
+            'Importing {} publications linked to random publication {}...'.format(
                 len( bibcodes ),
                 survey_key,
             )

@@ -510,7 +510,6 @@ class Atlas( object ):
 
         print( '    Doing NLP...' )
 
-        n_abs = len( self.data )
         n_err = 0
         for key, item in tqdm( self.data.items() ):
             if hasattr( item, 'ads_data' ):
@@ -519,8 +518,7 @@ class Atlas( object ):
                 abstract_str = ''
                 n_err += 1
             item.process_abstract( abstract_str=abstract_str, overwrite=True )
-
-        return n_abs, n_err
+        self.n_err_abs = n_err
 
     ########################################################################
 
