@@ -128,6 +128,57 @@ class TestFromBibcodes( unittest.TestCase ):
 
 ########################################################################
 
+class TestUnofficialPublication( unittest.TestCase ):
+
+    def setUp( self ):
+
+        # Delete and recreate
+        self.empty_dir = './tests/data/empty_atlas'
+        try:
+            shutil.rmtree( self.empty_dir )
+        except FileNotFoundError:
+            pass
+        os.makedirs( self.empty_dir )
+        shutil.copyfile(
+            './tests/data/example_atlas/example.bib',
+            os.path.join( self.empty_dir, 'example.bib' ),
+        )
+
+        self.a = atlas.Atlas( self.empty_dir )
+
+    ########################################################################
+
+    def test_add_unpub( self ):
+
+        point_a = (
+            'A robust outcome of thermal instability/precipitation ' \
+            'models is that the gaseous halos (and coronae) in general ' \
+            'cannot spend a lot of time with min(tcool/tff)<10.'
+        )
+        self.a.add_unpub(
+            citation_key = 'Prateek Sharma',
+            point = point_a,
+            conditions = { 'tcool/tff': np.array([ -np.inf, 10. ]) }
+        )
+        assert a.data['Prateek Sharma'].points == [ point_a, ]
+
+        def tcool_tff_constraint( tcool, tff ):
+            return tcool/tff < 10.
+
+        point_b = (
+            'Hot halos are prone to condensation of cold gas which' \
+            'decouples from the hot phase and precipitates' \
+            'and circularizes at some small radius.'
+        )
+        self.a.add_unpub(
+            citation_key = 'Prateek Sharma',
+            point = point_b,
+            conditions = { ('tcool', 'tff'): tcool_tff_constraint }
+        )
+        assert a.data['Prateek Sharma'].points == [ point_a, point_b ]
+
+########################################################################
+
 class TestAtlasData( unittest.TestCase ):
 
     def setUp( self ):
