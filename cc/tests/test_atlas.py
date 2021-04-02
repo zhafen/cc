@@ -246,10 +246,37 @@ class TestAtlasData( unittest.TestCase ):
 
     def test_save_data_ads_abstract( self ):
 
-        # Get the data
-        self.a.process_abstracts()
+        a_copy = copy.deepcopy( self.a )
 
-        # Function itself
+        # Get the data
+        self.a.process_abstracts( identifier='arxiv' )
+
+        # Compare to the inefficient way
+        # We don't want to use the abstracts contained in the citation
+        for key, item in a_copy.data.items():
+            # Exception for publication missing an arxiv ID
+            if key == 'VandeVoort2018a': continue
+            if 'abstract' in item.citation:
+                del a_copy[key].citation['abstract']
+        a_copy.data.process_abstract( return_empty_upon_failure=False )
+
+        # Compare abstracts
+        for key, item in a_copy.data.items():
+
+            # Exception for publication missing an arxiv ID
+            if key == 'VandeVoort2018a': continue
+
+            abstract = item.abstract['nltk']
+            for ikey, iitem in abstract.items():
+                for i, v_i in enumerate( iitem ):
+                    for j, v_j in enumerate( v_i ):
+                        for k, v_k in enumerate( v_j ):
+                            assert (
+                                v_k ==
+                                self.a[key].abstract['nltk'][ikey][i][j][k]
+                            )
+
+        # Save function
         self.a.save_data()
 
         # Load saved data

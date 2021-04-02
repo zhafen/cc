@@ -264,7 +264,7 @@ class Publication( object ):
             abstract_str (str):
                 Raw abstract. If none, download from ADS.
 
-         self.ads_data[key]    return_empty_upon_failure (bool):
+             return_empty_upon_failure (bool):
                 If True, treat the abstract as an empty string when failing to
                 download the abstract from ADS.
 
@@ -283,26 +283,28 @@ class Publication( object ):
             if 'abstract' in self.citation:
                 abstract_str = self.citation['abstract']
 
-            elif not hasattr( self, 'ads_data' ):
+            else:
 
-                # Search ADS using provided unique identifying keys
-                identifying_keys = [ 'arxivid', ]
-                for key in identifying_keys:
+                # Auto-retrieve ADS data
+                if not hasattr( self, 'ads_data' ):
 
-                    # Try to get the data
-                    if key in self.citation:
-                        try:
-                            self.get_ads_data( arxiv=self.citation[key] )
-                        except ValueError:
-                            continue
+                    # Search ADS using provided unique identifying keys
+                    identifying_keys = [ 'arxivid', ]
+                    for key in identifying_keys:
 
-                    # Exit upon success
-                    if hasattr( self, 'ads_data' ):
-                        break
+                        # Try to get the data
+                        if key in self.citation:
+                            try:
+                                self.get_ads_data( arxiv=self.citation[key] )
+                            except ValueError:
+                                continue
+
+                        # Exit upon success
+                        if hasattr( self, 'ads_data' ):
+                            break
 
                 # Behavior upon failure
-                ads_not_loaded = not hasattr( self, 'ads_data' )
-                if ads_not_loaded:
+                if not hasattr( self, 'ads_data' ):
                     failure_msg = (
                         '''Unable to find arxiv ID or DOI for publication {}.\n
                         Not processing abstract.'''.format( self.citation_key )
@@ -313,8 +315,8 @@ class Publication( object ):
                         abstract_str = ''
                     else:
                         raise Exception( failure_msg )
-                else:
-                    abstract_str = self.ads_data['abstract']
+
+                abstract_str = self.ads_data['abstract']
 
         self.abstract = {
             'str': abstract_str,
@@ -704,3 +706,15 @@ class Publication( object ):
 
         return inner_product
 
+########################################################################
+
+class UnofficialPublication( Publication ):
+
+    @property
+    def publication_date( self ):
+
+        raise Exception(
+            '{} is unofficial and has no publication date.'.format(
+                self.citation_key,
+            )
+        )

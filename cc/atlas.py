@@ -42,7 +42,13 @@ class Atlas( object ):
     '''
 
     @augment.store_parameters
-    def __init__( self, atlas_dir, bibtex_fp=None, data_fp=None ):
+    def __init__(
+        self,
+        atlas_dir,
+        bibtex_fp = None,
+        data_fp = None,
+        load_bibtex = True,
+    ):
 
         # Make sure the atlas directory exists
         os.makedirs( atlas_dir, exist_ok=True )
@@ -50,22 +56,23 @@ class Atlas( object ):
         self.data = verdict.Dict( {} )
 
         # Load bibtex data
-        if bibtex_fp is None:
-            bibtex_fp = os.path.join( atlas_dir, '*.bib' )
-            bibtex_fps = glob.glob( bibtex_fp )
-            if len( bibtex_fps ) > 1:
-                # Ignore the auxiliary downloaded biliography
-                cc_ads_fp = os.path.join( atlas_dir, 'cc_ads.bib' )
-                if cc_ads_fp in bibtex_fps:
-                    bibtex_fps.remove( cc_ads_fp )
-                else:
-                    raise IOError(
-                        'Multiple possible BibTex files. Please specify.'
-                    )
-            if len( bibtex_fps ) == 0:
-                raise IOError( 'No *.bib file found in {}'.format( atlas_dir ) )
-            bibtex_fp = bibtex_fps[0]
-        self.import_bibtex( bibtex_fp )
+        if load_bibtex:
+            if bibtex_fp is None:
+                bibtex_fp = os.path.join( atlas_dir, '*.bib' )
+                bibtex_fps = glob.glob( bibtex_fp )
+                if len( bibtex_fps ) > 1:
+                    # Ignore the auxiliary downloaded biliography
+                    cc_ads_fp = os.path.join( atlas_dir, 'cc_ads.bib' )
+                    if cc_ads_fp in bibtex_fps:
+                        bibtex_fps.remove( cc_ads_fp )
+                    else:
+                        raise IOError(
+                            'Multiple possible BibTex files. Please specify.'
+                        )
+                if len( bibtex_fps ) == 0:
+                    raise IOError( 'No *.bib file found in {}'.format( atlas_dir ) )
+                bibtex_fp = bibtex_fps[0]
+            self.import_bibtex( bibtex_fp )
 
         # Load general atlas data
         self.load_data( fp=data_fp )
@@ -387,7 +394,7 @@ class Atlas( object ):
 
             characters_per_request (int):
                 Maximum number of characters per call to ADS. This is set a bit
-                below the character limit ADS seems to haave.
+                below the character limit ADS seems to have.
 
             identifier (str):
                 What identifier to use to download papers. Options are...
@@ -396,7 +403,7 @@ class Atlas( object ):
                     and we can just use them.
                 'arxiv':
                     Use the arxiv ID contained in each publication's citation.
-                    Requires some extra wonk to identify relevant papers.
+                    Requires some extra work to identify relevant papers.
         '''
 
         if identifier == 'key_as_bibcode' or identifier == 'bibcode':
@@ -600,6 +607,7 @@ class Atlas( object ):
         existing = None,
         verbose = True,
         return_data = True,
+        retrieve_abstracts = True,
     ):
         '''Project the abstract of each publication into concept space.
         In simplest form this finds all shared, stemmed nouns, verbs, and
@@ -694,6 +702,10 @@ class Atlas( object ):
             projected_publications = []
             pub_date = []
             entry_date = []
+
+        # Retrieve abstracts efficiently beforehand
+        if retrieve_abstracts:
+            self.process_abstracts()
 
         # Loop through and calculate components
         for key, item in tqdm( self.data.items() ):
