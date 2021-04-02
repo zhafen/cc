@@ -315,8 +315,8 @@ class Publication( object ):
                         abstract_str = ''
                     else:
                         raise Exception( failure_msg )
-
-                abstract_str = self.ads_data['abstract']
+                else:
+                    abstract_str = self.ads_data['abstract']
 
         self.abstract = {
             'str': abstract_str,
