@@ -165,10 +165,8 @@ class Cartographer( object ):
         except ValueError:
             result = np.dot( b, a )
         except TypeError:
-
             #DEBUG
             import pdb; pdb.set_trace()
-
 
         # Finish dot product
         if key_a == 'atlas' or key_b == 'atlas':
