@@ -607,7 +607,6 @@ class Atlas( object ):
         existing = None,
         verbose = True,
         return_data = True,
-        retrieve_abstracts = True,
     ):
         '''Project the abstract of each publication into concept space.
         In simplest form this finds all shared, stemmed nouns, verbs, and
@@ -702,10 +701,6 @@ class Atlas( object ):
             projected_publications = []
             pub_date = []
             entry_date = []
-
-        # Retrieve abstracts efficiently beforehand
-        if retrieve_abstracts:
-            self.process_abstracts()
 
         # Loop through and calculate components
         for key, item in tqdm( self.data.items() ):

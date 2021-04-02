@@ -410,6 +410,7 @@ class TestConceptProjection( unittest.TestCase ):
             os.remove( fp )
 
         # Test
+        self.a.process_abstracts( identifier='arxiv' )
         cp = self.a.concept_projection()
 
         # The dimensions of the concept projection
