@@ -313,10 +313,13 @@ class Atlas( object ):
         conditions = None,
     ):
 
-        # Create the publication
-        pub = publication.Publication(
-            citation_key
-        )
+        # Create or load the publication
+        if citation_key in self.data.keys():
+            pub = self.data[citation_key]
+        else:
+            pub = publication.UnofficialPublication(
+                citation_key
+            )
 
         # Add the point(s)
         if not pd.api.types.is_list_like( point ):

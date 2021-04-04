@@ -160,7 +160,7 @@ class TestUnofficialPublication( unittest.TestCase ):
             point = point_a,
             conditions = { 'tcool/tff': np.array([ -np.inf, 10. ]) }
         )
-        assert self.a.data['Prateek Sharma'].points == [ point_a, ]
+        assert self.a.data['Prateek Sharma'].points() == [ point_a, ]
 
         def tcool_tff_constraint( tcool, tff ):
             return tcool/tff < 10.
@@ -175,7 +175,7 @@ class TestUnofficialPublication( unittest.TestCase ):
             point = point_b,
             conditions = { ('tcool', 'tff'): tcool_tff_constraint }
         )
-        assert self.a.data['Prateek Sharma'].points == [ point_a, point_b ]
+        assert self.a.data['Prateek Sharma'].points() == [ point_a, point_b ]
 
         # Should fail if a publication date is attempted to retrieve
         try:

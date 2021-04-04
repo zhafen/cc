@@ -341,47 +341,53 @@ class Publication( object ):
                 String containing the abstract.
         '''
 
+        def upon_failure():
+            failure_msg = (
+                '''Unable to find arxiv ID or DOI for publication {}.\n
+                Not processing abstract.'''.format( self.citation_key )
+            )
+            if return_empty_upon_failure:
+                if verbose:
+                    warnings.warn( failure_msg )
+                return ''
+            else:
+                raise Exception( failure_msg )
+
         # Try to obtain from a processed abstract
         if hasattr( self, 'abstract' ):
             return self.abstract['str']
 
         # Or try using the abstract in the citation
-        elif 'abstract' in self.citation:
-            abstract_str = self.citation['abstract']
+        elif hasattr( self, 'citation' ):
+            if 'abstract' in self.citation:
+                abstract_str = self.citation['abstract']
 
-        # If neither of those work, auto-retrieve ADS data
-        else:
-            if not hasattr( self, 'ads_data' ):
-
-                # Search ADS using provided unique identifying keys
-                identifying_keys = [ 'arxivid', ]
-                for key in identifying_keys:
-
-                    # Try to get the data
-                    if key in self.citation:
-                        try:
-                            self.get_ads_data( arxiv=self.citation[key] )
-                        except ValueError:
-                            continue
-
-                    # Exit upon success
-                    if hasattr( self, 'ads_data' ):
-                        break
-
-            # Behavior upon failure
-            if not hasattr( self, 'ads_data' ):
-                failure_msg = (
-                    '''Unable to find arxiv ID or DOI for publication {}.\n
-                    Not processing abstract.'''.format( self.citation_key )
-                )
-                if return_empty_upon_failure:
-                    if verbose:
-                        warnings.warn( failure_msg )
-                    abstract_str = ''
-                else:
-                    raise Exception( failure_msg )
+            # If neither of those work, auto-retrieve ADS data
             else:
-                abstract_str = self.ads_data['abstract']
+                if not hasattr( self, 'ads_data' ):
+
+                    # Search ADS using provided unique identifying keys
+                    identifying_keys = [ 'arxivid', ]
+                    for key in identifying_keys:
+
+                        # Try to get the data
+                        if key in self.citation:
+                            try:
+                                self.get_ads_data( arxiv=self.citation[key] )
+                            except ValueError:
+                                continue
+
+                        # Exit upon success
+                        if hasattr( self, 'ads_data' ):
+                            break
+
+                # Behavior upon failure
+                if not hasattr( self, 'ads_data' ):
+                    return upon_failure()
+                else:
+                    abstract_str = self.ads_data['abstract']
+        else:
+            return upon_failure()
 
         return abstract_str
 
