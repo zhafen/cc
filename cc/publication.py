@@ -279,44 +279,10 @@ class Publication( object ):
 
         # Load abstract if not given
         if abstract_str is None:
-
-            if 'abstract' in self.citation:
-                abstract_str = self.citation['abstract']
-
-            else:
-
-                # Auto-retrieve ADS data
-                if not hasattr( self, 'ads_data' ):
-
-                    # Search ADS using provided unique identifying keys
-                    identifying_keys = [ 'arxivid', ]
-                    for key in identifying_keys:
-
-                        # Try to get the data
-                        if key in self.citation:
-                            try:
-                                self.get_ads_data( arxiv=self.citation[key] )
-                            except ValueError:
-                                continue
-
-                        # Exit upon success
-                        if hasattr( self, 'ads_data' ):
-                            break
-
-                # Behavior upon failure
-                if not hasattr( self, 'ads_data' ):
-                    failure_msg = (
-                        '''Unable to find arxiv ID or DOI for publication {}.\n
-                        Not processing abstract.'''.format( self.citation_key )
-                    )
-                    if return_empty_upon_failure:
-                        if verbose:
-                            warnings.warn( failure_msg )
-                        abstract_str = ''
-                    else:
-                        raise Exception( failure_msg )
-                else:
-                    abstract_str = self.ads_data['abstract']
+            abstract_str = self.abstract_str(
+                return_empty_upon_failure,
+                verbose,
+            )
 
         self.abstract = {
             'str': abstract_str,
@@ -356,6 +322,68 @@ class Publication( object ):
                 utils.stem( nltk1 )
             )
         self.abstract['nltk']['uncategorized'] = set( uncategorized )
+
+    ########################################################################
+
+    def abstract_str( self, return_empty_upon_failure=True, verbose=False ):
+        '''Retrieve the abstract text, either from the citation or from ADS
+
+        Args:
+             return_empty_upon_failure (bool):
+                If True, treat the abstract as an empty string when failing to
+                download the abstract from ADS.
+
+            verbose (bool):
+                If True, say more about what's going down.
+
+        Returns:
+            abstract_str (str):
+                String containing the abstract.
+        '''
+
+        # Try to obtain from a processed abstract
+        if hasattr( self, 'abstract' ):
+            return self.abstract['str']
+
+        # Or try using the abstract in the citation
+        elif 'abstract' in self.citation:
+            abstract_str = self.citation['abstract']
+
+        # If neither of those work, auto-retrieve ADS data
+        else:
+            if not hasattr( self, 'ads_data' ):
+
+                # Search ADS using provided unique identifying keys
+                identifying_keys = [ 'arxivid', ]
+                for key in identifying_keys:
+
+                    # Try to get the data
+                    if key in self.citation:
+                        try:
+                            self.get_ads_data( arxiv=self.citation[key] )
+                        except ValueError:
+                            continue
+
+                    # Exit upon success
+                    if hasattr( self, 'ads_data' ):
+                        break
+
+            # Behavior upon failure
+            if not hasattr( self, 'ads_data' ):
+                failure_msg = (
+                    '''Unable to find arxiv ID or DOI for publication {}.\n
+                    Not processing abstract.'''.format( self.citation_key )
+                )
+                if return_empty_upon_failure:
+                    if verbose:
+                        warnings.warn( failure_msg )
+                    abstract_str = ''
+                else:
+                    raise Exception( failure_msg )
+            else:
+                abstract_str = self.ads_data['abstract']
+
+        return abstract_str
 
     ########################################################################
 
@@ -497,6 +525,33 @@ class Publication( object ):
             utils.uniquify_words( _, **kwargs )
             for _ in self.notes['key_concepts']
         ]
+
+    ########################################################################
+
+    def points( self, verbose=False ):
+        '''Return all currently-processed points.
+
+        Args:
+            verbose (bool):
+                Be talkative or not?
+        '''
+
+        points = []
+
+        # Points in the notes
+        if hasattr( self, 'notes' ):
+            points += self.notes['key_points']
+            points += self.notes['uncategorized']
+
+        # Points in the abstract
+        points += nltk.sent_tokenize(
+            self.abstract_str(
+                return_empty_upon_failure=True,
+                verbose = verbose,
+            )
+        )
+
+        return points
 
     ########################################################################
 

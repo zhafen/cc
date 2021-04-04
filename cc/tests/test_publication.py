@@ -1,4 +1,5 @@
 from mock import patch
+import nltk
 import numpy as np
 import numpy.testing as npt
 import os
@@ -172,6 +173,23 @@ class TestPublicationAnalysis( unittest.TestCase ):
         assert p.notes['uncategorized'] == [
             r"Test junk I'm leaving here....",
         ]
+
+        # Check we got the points right, which is an amalgation of the
+        # abstract, the key points, and the uncategorized notes
+        expected_points = [
+            r'Uses a [particle-tracking] analysis applied to the [FIRE-2 simulations] to study the [origins of the [CGM]], including [IGM accretion], [galactic wind], and [satellite wind].',
+            r'Strong [stellar feedback] means only [L* halos] retain {\textgreater}{\~{}}50{\%} of their [baryon budget].',
+            r'{\textgreater}{\~{}}60{\%} of the [metal budget] is retained by halos.',
+            r'{\textgreater}{\~{}}60{\%} of the [CGM] originates as [IGM accretion].',
+            r'{\~{}}20-40{\%} of the [CGM] originates as [galactic wind].',
+            r'In [L* halos] {\~{}}1/4 of the [CGM] originates as [satellite wind].',
+            r'The [lifetime] for gas in the [CGM] is billions of years, during which time it forms a well-mixed [hot halo].',
+            r'For [low-redshift] [L* halos] [cool CGM gas] (T {\textless} 1e4.7 K) is distributed on average preferentially along the [galaxy plane], but with strong [halo-to-halo variability].',
+            r'The [metallicity] of [IGM accretion] is systematically lower than the [metallicity] of [winds] (typically by {\textgreater}{\~{}}1 dex), but metallicities depend significantly on the treatment of [subgrid metal diffusion].',
+            r"Test junk I'm leaving here....",
+        ]
+        expected_points += nltk.sent_tokenize( p.citation['abstract'] )
+        assert expected_points == p.points()
 
     ########################################################################
 

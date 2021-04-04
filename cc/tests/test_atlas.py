@@ -177,6 +177,13 @@ class TestUnofficialPublication( unittest.TestCase ):
         )
         assert self.a.data['Prateek Sharma'].points == [ point_a, point_b ]
 
+        # Should fail if a publication date is attempted to retrieve
+        try:
+            self.a.data['Prateek Sharma'].publication_date
+            assert False
+        except Exception:
+            pass
+
 ########################################################################
 
 class TestAtlasData( unittest.TestCase ):
