@@ -8,6 +8,7 @@ import nltk
 from nltk.metrics import edit_distance
 import numpy as np
 import os
+import pandas as pd
 import warnings
 
 import matplotlib
@@ -304,6 +305,30 @@ class Atlas( object ):
             return data_to_save
 
     ########################################################################
+
+    def add_unpub(
+        self,
+        citation_key,
+        point,
+        conditions = None,
+    ):
+
+        # Create the publication
+        pub = publication.Publication(
+            citation_key
+        )
+
+        # Add the point(s)
+        if not pd.api.types.is_list_like( point ):
+            points = [ point, ]
+        else:
+            points = point
+        for p in points:
+            pub.process_annotation_line( p, word_per_concept=True )
+
+        self.data[citation_key] = pub
+
+    ########################################################################
     # Data Processing
     ########################################################################
 
@@ -534,6 +559,7 @@ class Atlas( object ):
         concept,
         max_edit_distance = 2,
         return_paragraph = True,
+        *args, **kwargs
     ):
         '''Search all publications for those that are noted as discussing
         a given concept.
@@ -545,6 +571,12 @@ class Atlas( object ):
             max_edit_distance (int):
                 Maximum Levenshtein edit-distance between two concepts for them
                 to count as the same concept.
+
+            return_paragraph (bool):
+                If True return a paragraph summarizing the search results.
+
+            *args, **kwargs:
+                Passed to self.data.process_bibtex_annotations
 
         Returns:
             tuple containing...
@@ -563,7 +595,7 @@ class Atlas( object ):
         concept = ' '.join( stemmed_words )
 
         # Retrieve data
-        self.data.process_bibtex_annotations()
+        self.data.process_bibtex_annotations( *args, **kwargs )
 
         # Search through all
         result = {}

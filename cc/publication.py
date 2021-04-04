@@ -363,7 +363,7 @@ class Publication( object ):
         self,
         bibtex_fp = None,
         reload = False,
-        word_per_concept = False,
+        word_per_concept = True,
     ):
         '''Process notes residing in a .bib file.
 
@@ -419,7 +419,8 @@ class Publication( object ):
         self,
         line,
         notes = None,
-        word_per_concept = False
+        word_per_concept = True,
+        conditions = None,
     ):
         '''Process a line of annotation to extract more information.
 
@@ -469,6 +470,14 @@ class Publication( object ):
         # Otherwise
         else:
             notes['uncategorized'].append( line )
+
+        # Include any conditions
+        # Many conditions are on a per-point basis, so this is not ideal,
+        # but it works until we actually plan on using them.
+        if conditions is not None:
+            if 'conditions' not in notes:
+                notes['conditions'] = {}
+            notes['conditions'].update( conditions )
 
         return notes
 

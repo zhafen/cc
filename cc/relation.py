@@ -50,7 +50,7 @@ def inner_product( a, b, word_per_concept=True, **kwargs ):
 
 ########################################################################
 
-def parse_relation_for_key_concepts( a, word_per_concept=False ):
+def parse_relation_for_key_concepts( a, word_per_concept=True ):
     '''Parse a formatted relation for key_concepts, including nested brackets.
 
     Args:

@@ -97,7 +97,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
         # Run the function
         p = cc.publication.Publication( 'Hafen2019' )
         bibtex_fp = './tests/data/example_atlas/example.bib'
-        p.process_bibtex_annotations( bibtex_fp )
+        p.process_bibtex_annotations( bibtex_fp, word_per_concept=False )
 
         # Check that we got the key points right
         expected_key_points = [
@@ -198,7 +198,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
         point = r'Uses a [particle-tracking] analysis applied to the [FIRE-2 simulations] to study the [origins of the [CGM]], including [IGM accretion], [galactic wind], and [satellite wind] ([extra [brackets [here] for testing]]).'
 
         # Run
-        actual = p.process_annotation_line( point )
+        actual = p.process_annotation_line( point, word_per_concept=False )
         expected = {
             'key_points': [ point, ],
             'key_concepts': [ [
