@@ -9,6 +9,7 @@ from nltk.metrics import edit_distance
 import numpy as np
 import os
 import pandas as pd
+import re
 import warnings
 
 import matplotlib
@@ -311,25 +312,59 @@ class Atlas( object ):
         citation_key,
         point,
         conditions = None,
+        references = None,
     ):
 
-        # Create or load the publication
-        if citation_key in self.data.keys():
-            pub = self.data[citation_key]
-        else:
-            pub = publication.UnofficialPublication(
-                citation_key
-            )
-
-        # Add the point(s)
+        # Parse if point or points
         if not pd.api.types.is_list_like( point ):
             points = [ point, ]
         else:
             points = point
-        for p in points:
-            pub.process_annotation_line( p, word_per_concept=True )
 
-        self.data[citation_key] = pub
+        # Make citation key list (for when the publication isn't the source
+        # of the point, but is referring to it)
+        if references is None:
+            citation_keys = [ citation_key, ]
+        else:
+
+            # Parse the references
+            if isinstance( references, str ):
+                split_refs = re.split( '; |, ', references )
+                parsed_refs = []
+                for i, ref in enumerate( split_refs ):
+
+                    # For references that are continuations of previous ones
+                    if ref.isdigit():
+                        prev_ref = split_refs[i-1]
+                        num_index = re.search( r'\d', prev_ref ).start()
+                        ref = prev_ref[:num_index] + ref
+
+                    # Remove the extraneous bits
+                    ref = ref.replace( '+', '' )
+                    ref = ref.replace( ' et al. ', '' )
+
+                    parsed_refs.append( ref )
+            else:
+                parsed_refs = references
+
+            citation_keys = [
+                '{}:{}'.format( _, citation_key ) for _ in parsed_refs
+            ]
+
+        for citation_key in citation_keys:
+            # Create or load the publication
+            if citation_key in self.data.keys():
+                pub = self.data[citation_key]
+            else:
+                pub = publication.UnofficialPublication(
+                    citation_key
+                )
+
+            # Add the points
+            for p in points:
+                pub.process_annotation_line( p, word_per_concept=True )
+
+            self.data[citation_key] = pub
 
     ########################################################################
     # Data Processing

@@ -184,6 +184,62 @@ class TestUnofficialPublication( unittest.TestCase ):
         except Exception:
             pass
 
+    ########################################################################
+
+    def test_add_unpub_references( self ):
+
+        point = 'Galaxy major axis sightlines often have absorption with ' \
+        'the Doppler shift sharing the same sign as the galactic disk.'
+
+        self.a.add_unpub(
+            citation_key = 'Ho2019',
+            point = point,
+            references = [ 'Steidel2002', 'Kacprzak2010', 'Kacprzak2011' ],
+        )
+        assert self.a.data['Steidel2002:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kacprzak2010:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kacprzak2011:Ho2019'].points() == [ point, ]
+
+    ########################################################################
+
+    def test_add_unpub_references_parse( self ):
+
+        point = 'Galaxy major axis sightlines often have absorption with ' \
+        'the Doppler shift sharing the same sign as the galactic disk.'
+
+        self.a.add_unpub(
+            citation_key = 'Ho2019',
+            point = point,
+            references = 'Steidel+2002; Kacprzak et al. 2010, 2011; ' \
+                'Bouche+2013, 2016; Diamond-Stanic et al. 2016; Ho+2017; ' \
+                'Martin+2019, Ho+2019',
+        )
+        assert self.a.data['Steidel2002:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kacprzak2010:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kacprzak2011:Ho2019'].points() == [ point, ]
+        assert self.a.data['Bouche2013:Ho2019'].points() == [ point, ]
+        assert self.a.data['Diamond-Stanic2016:Ho2019'].points() == [ point, ]
+        assert self.a.data['Martin2019:Ho2019'].points() == [ point, ]
+
+    ########################################################################
+
+    def test_add_unpub_references_fullparse( self ):
+
+        point = 'Galaxy major axis sightlines often have absorption with ' \
+        'the Doppler shift sharing the same sign as the galactic disk.'
+
+        self.a.add_unpub(
+            citation_key = 'Ho2019',
+            point = point + ' (Steidel+2002; Kacprzak et al. 2010, 2011; ' \
+                'Bouche+2013, 2016; Diamond-Stanic et al. 2016; Ho+2017; ' \
+                'Martin+2019)',
+        )
+        assert self.a.data['Steidel2002:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kacprzak2010:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kacprzak2011:Ho2019'].points() == [ point, ]
+        assert self.a.data['Bouche2013:Ho2019'].points() == [ point, ]
+        assert self.a.data['Diamond-Stanic2016:Ho2019'].points() == [ point, ]
+
 ########################################################################
 
 class TestAtlasData( unittest.TestCase ):
