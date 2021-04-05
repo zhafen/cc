@@ -374,7 +374,7 @@ class Atlas( object ):
                         stack.append( j )
                     elif c == ')':
                         start = stack.pop()
-                        ref_str = point[start+1:i-1]
+                        ref_str = point[start+1:j]
                         # Append references, but only if criteria are met
                         if (
                             len( stack ) == 0 and
