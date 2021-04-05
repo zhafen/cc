@@ -254,10 +254,35 @@ class TestUnofficialPublication( unittest.TestCase ):
 
         self.a.add_unpub(
             citation_key = 'Ho2019',
-            point = point + point_second_half
+            point = point + point_second_half,
+            clean_text = False,
         )
         point += '.' # Remainder after the citation is cut out...
         assert self.a.data['Stei- del2002:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kacprzak2010:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kacprzak2011:Ho2019'].points() == [ point, ]
+        assert self.a.data['Bouch´e2013:Ho2019'].points() == [ point, ]
+        assert self.a.data['Diamond-Stanic2016:Ho2019'].points() == [ point, ]
+
+    ########################################################################
+
+    def test_add_unpub_references_cleanfullparse( self ):
+
+        point = 'Sightlines along galaxy major axes often detect ' \
+            'cir- cumgalactic absorption with the Doppler shift sharing the ' \
+            'same sign as the galactic disk. This implies the CGM corotates ' \
+            'with the galaxy disks out to large radii '
+        point_second_half = '(Stei- del et al. 2002; Kacprzak et al. 2010, ' \
+            '2011; Bouch´e et al. 2013, 2016; Diamond-Stanic et al. 2016; ' \
+            'Ho et al. 2017; Martin et al. 2019).'
+
+        self.a.add_unpub(
+            citation_key = 'Ho2019',
+            point = point + point_second_half,
+        )
+        point += '.' # Remainder after the citation is cut out...
+        point = point.replace( '- ', '' )
+        assert self.a.data['Steidel2002:Ho2019'].points() == [ point, ]
         assert self.a.data['Kacprzak2010:Ho2019'].points() == [ point, ]
         assert self.a.data['Kacprzak2011:Ho2019'].points() == [ point, ]
         assert self.a.data['Bouch´e2013:Ho2019'].points() == [ point, ]

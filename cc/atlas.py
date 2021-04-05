@@ -313,6 +313,7 @@ class Atlas( object ):
         point,
         references = None,
         parse_references = True,
+        clean_text = True,
         conditions = None,
     ):
         '''Add an unofficial publication to the Atlas. If the publication
@@ -338,6 +339,10 @@ class Atlas( object ):
                 "Author+XXXX" and "Author et al. XXXX" formats and store
                 appropriately.
 
+            clean_text (bool):
+                If True, do some easy and common cleaning.
+                TODO: integrate this with a better text cleaning tool.
+
             conditions (dict):
                 Conditions that must be valid for the point to be true.
                 Currently not used for anything and conditions aren't
@@ -359,6 +364,11 @@ class Atlas( object ):
             references = []
         elif isinstance( references, str ):
             references = [ references, ]
+
+        if clean_text:
+            points = [ _.replace( '- ', '' ) for _ in points ]
+            references = [ _.replace( '- ', '' ) for _ in references ]
+
         if parse_references:
             new_points = []
             for i, point in enumerate( points ):
