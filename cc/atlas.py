@@ -50,6 +50,7 @@ class Atlas( object ):
         bibtex_fp = None,
         data_fp = None,
         load_bibtex = True,
+        load_atlas_data = True,
     ):
 
         # Make sure the atlas directory exists
@@ -77,7 +78,8 @@ class Atlas( object ):
             self.import_bibtex( bibtex_fp )
 
         # Load general atlas data
-        self.load_data( fp=data_fp )
+        if load_atlas_data:
+            self.load_data( fp=data_fp )
 
     ########################################################################
 
@@ -100,6 +102,7 @@ class Atlas( object ):
         bibcodes,
         bibtex_fp = None,
         data_fp = None,
+        load_atlas_data = False,
         **kwargs
     ):
         '''Generate an Atlas from bibcodes by downloading and saving the
@@ -120,6 +123,9 @@ class Atlas( object ):
                 Location to save other atlas data at. Defaults to 
                 $atlas_dir/atlas_data.h5
 
+            load_atlas_data (bool):
+                If False don't load the atlas data from data_fp.
+
         Returns:
             Atlas:
                 An atlas object, designed for exploring a collection of papers.
@@ -137,6 +143,7 @@ class Atlas( object ):
             atlas_dir = atlas_dir,
             bibtex_fp = bibtex_fp,
             data_fp = data_fp,
+            load_atlas_data = load_atlas_data,
             **kwargs
         )
 
@@ -263,9 +270,16 @@ class Atlas( object ):
             if key in self.data:
                 continue
 
-            # We'll assume any data we have loaded that doesn't have an entry
-            # from a more "official" source is an unofficial publication
-            pub = publication.UnofficialPublication( key )
+            # Choose unofficial or standard publication
+            unofficial_flag = False
+            if 'unofficial_flag' in data_to_load:
+                unofficial_flag = data_to_load[unofficial_flag]
+            if unofficial_flag:
+                pub = publication.UnofficialPublication( key )
+            else:
+                pub = publication.Publication( key )
+
+            # Store
             for ikey, iitem in data_to_load[key].items():
                 
                 # For the notes that are loaded we want lists, not arrays
@@ -288,6 +302,7 @@ class Atlas( object ):
             'bibcode',
             'entry_date',
             'notes',
+            'unofficial_flag',
         ],
         handle_jagged_arrs = 'row datasets',
         return_data = False,

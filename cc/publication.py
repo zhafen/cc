@@ -780,6 +780,19 @@ class Publication( object ):
 
 class UnofficialPublication( Publication ):
 
+    def __init__(self, *args, **kwargs ):
+
+        super().__init__( *args, **kwargs )
+        self.unofficial_flag = True
+
+    def __repr__( self ):
+
+        return 'cc.publication.UnofficialPublication:{}'.format(
+            self.citation_key
+        )
+
+    ########################################################################
+
     @property
     def publication_date( self ):
 
