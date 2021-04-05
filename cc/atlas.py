@@ -246,7 +246,7 @@ class Atlas( object ):
         # Load
         data_to_load = verdict.Dict.from_hdf5( fp )
 
-        # Store data
+        # Update data with loaded data
         for key, item in tqdm( self.data.items() ):
 
             # When the paper doesn't have any data stored for it
@@ -255,6 +255,26 @@ class Atlas( object ):
 
             for ikey, iitem in data_to_load[key].items():
                 setattr( item, ikey, iitem )
+
+        # Store new data
+        for key, item in tqdm( data_to_load.items() ):
+
+            # When the atlas contains the entry skip
+            if key in self.data:
+                continue
+
+            # We'll assume any data we have loaded that doesn't have an entry
+            # from a more "official" source is an unofficial publication
+            pub = publication.UnofficialPublication( key )
+            for ikey, iitem in data_to_load[key].items():
+                
+                # For the notes that are loaded we want lists, not arrays
+                if ikey == 'notes':
+                    for iikey, iiitem in iitem.items():
+                        iitem[iikey] = list( iiitem )
+    
+                setattr( pub, ikey, iitem )
+            self.data[key] = pub
 
     ########################################################################
 
@@ -266,7 +286,8 @@ class Atlas( object ):
             'citations',
             'references',
             'bibcode',
-            'entry_date'
+            'entry_date',
+            'notes',
         ],
         handle_jagged_arrs = 'row datasets',
         return_data = False,

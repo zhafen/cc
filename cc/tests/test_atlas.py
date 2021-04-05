@@ -288,6 +288,25 @@ class TestUnofficialPublication( unittest.TestCase ):
         assert self.a.data['Bouch´e2013:Ho2019'].points() == [ point, ]
         assert self.a.data['Diamond-Stanic2016:Ho2019'].points() == [ point, ]
 
+    ########################################################################
+
+    def test_save_and_load( self ):
+
+        point = 'Galaxy major axis sightlines often have absorption with ' \
+        'the Doppler shift sharing the same sign as the galactic disk.'
+
+        self.a.add_unpub(
+            citation_key = 'Ho2019',
+            point = point,
+            references = [ 'Steidel2002', 'Kacprzak2010', 'Kacprzak2011' ],
+        )
+
+        # Save and load
+        self.a.save_data()
+        new_a = atlas.Atlas( self.empty_dir )
+
+        assert new_a.data['Steidel2002:Ho2019'].points() == [ point, ]
+
 ########################################################################
 
 class TestAtlasData( unittest.TestCase ):
