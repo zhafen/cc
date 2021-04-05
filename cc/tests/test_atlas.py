@@ -230,7 +230,7 @@ class TestUnofficialPublication( unittest.TestCase ):
 
         self.a.add_unpub(
             citation_key = 'Ho2019',
-            point = point + ' (Steidel+2002; Kacprzak et al. 2010, 2011; ' \
+            point = point + '(Steidel+2002; Kacprzak et al. 2010, 2011; ' \
                 'Bouche+2013, 2016; Diamond-Stanic et al. 2016; Ho+2017; ' \
                 'Martin+2019)',
         )

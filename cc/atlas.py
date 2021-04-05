@@ -311,9 +311,42 @@ class Atlas( object ):
         self,
         citation_key,
         point,
-        conditions = None,
         references = None,
+        parse_references = True,
+        conditions = None,
     ):
+        '''Add an unofficial publication to the Atlas. If the publication
+        already exists then add to it.
+
+        Args:
+            citation_key (str):
+                Key to use for the unofficial publication.
+
+            point (str):
+                The information to store. Usually some fact.
+
+            references (str or list of strs):
+                In some cases the unofficial publication isn't making the
+                statement itself, but is referring to another publication.
+                In such cases we will want to create different publications
+                with the point. These publications will be referred to by the
+                citation key "reference:citation_key".
+
+            parse_references (bool):
+                If True, parse both the point and references to identify
+                references that are in a less-clear format. Can identify
+                "Author+XXXX" and "Author et al. XXXX" formats and store
+                appropriately.
+
+            conditions (dict):
+                Conditions that must be valid for the point to be true.
+                Currently not used for anything and conditions aren't
+                reliably paired with points.
+
+        Modifies:
+            self.data (verdict.Dict):
+                Adds new publications.
+        '''
 
         # Parse if point or points
         if not pd.api.types.is_list_like( point ):
@@ -321,37 +354,43 @@ class Atlas( object ):
         else:
             points = point
 
-        # Make citation key list (for when the publication isn't the source
-        # of the point, but is referring to it)
+        # Parse points for references
         if references is None:
-            citation_keys = [ citation_key, ]
-        else:
+            references = []
+        elif isinstance( references, str ):
+            references = [ references, ]
+        if parse_references:
+            new_points = []
+            for i, point in enumerate( points ):
 
-            # Parse the references
-            if isinstance( references, str ):
-                split_refs = re.split( '; |, ', references )
-                parsed_refs = []
-                for i, ref in enumerate( split_refs ):
+                # We'll be cleaning up some points, so let's make a copy
+                new_point = point
 
-                    # For references that are continuations of previous ones
-                    if ref.isdigit():
-                        prev_ref = split_refs[i-1]
-                        num_index = re.search( r'\d', prev_ref ).start()
-                        ref = prev_ref[:num_index] + ref
+                # Find references in parenthesis
+                stack = []
+                for j, c in enumerate( point ):
 
-                    # Remove the extraneous bits
-                    ref = ref.replace( '+', '' )
-                    ref = ref.replace( ' et al. ', '' )
+                    if c == '(':
+                        stack.append( j )
+                    elif c == ')':
+                        start = stack.pop()
+                        ref_str = point[start+1:i-1]
+                        # Append references, but only if criteria are met
+                        if (
+                            len( stack ) == 0 and
+                            '+' in ref_str or 'et al.' in ref_str
+                        ):
+                            references.append( ref_str )
 
-                    parsed_refs.append( ref )
-            else:
-                parsed_refs = references
+                            new_point = point.replace( '(' + ref_str + ')', '' )
 
-            citation_keys = [
-                '{}:{}'.format( _, citation_key ) for _ in parsed_refs
-            ]
+                new_points.append( new_point )
+            points = new_points
 
-        for citation_key in citation_keys:
+        def store_to_data( citation_key ):
+            '''Store the point to the atlas data.
+            '''
+
             # Create or load the publication
             if citation_key in self.data.keys():
                 pub = self.data[citation_key]
@@ -365,6 +404,45 @@ class Atlas( object ):
                 pub.process_annotation_line( p, word_per_concept=True )
 
             self.data[citation_key] = pub
+
+        # Default case without references
+        if len( references ) == 0:
+            store_to_data( citation_key )
+
+        # Make citation key list (for when the publication isn't the source
+        # of the point, but is making the statement using references)
+        else:
+
+            # Default case
+            if not parse_references:
+                parsed_refs = references
+            # Parse the references
+            else:
+                parsed_refs = []
+                for refs_i in references:
+                    split_refs = re.split( '; |, ', refs_i )
+                    for i, ref in enumerate( split_refs ):
+
+                        # For references that are continuations of previous ones
+                        if ref.isdigit():
+                            prev_ref = split_refs[i-1]
+                            num_index = re.search( r'\d', prev_ref ).start()
+                            ref = prev_ref[:num_index] + ref
+
+                        # Remove the extraneous bits
+                        ref = ref.replace( '+', '' )
+                        ref = ref.replace( ' et al. ', '' )
+
+                        parsed_refs.append( ref )
+
+            # Make the list
+            citation_keys = [
+                '{}:{}'.format( _, citation_key ) for _ in parsed_refs
+            ]
+
+            # And store
+            for citation_key in citation_keys:
+                store_to_data( citation_key )
 
     ########################################################################
     # Data Processing
