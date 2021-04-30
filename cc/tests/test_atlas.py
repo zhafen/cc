@@ -30,6 +30,14 @@ class TestBibTexData( unittest.TestCase ):
 
     ########################################################################
 
+    def test_bibtex_zotero( self ):
+
+        self.a.import_bibtex( './tests/data/example_atlas_zotero/example.bib' )
+
+        assert self.a.data['Hafen2019'].citation['eprint'] == '1811.11753'
+
+    ########################################################################
+
     def test_process_bibtex_anotations( self ):
 
         self.a.data.process_bibtex_annotations()
