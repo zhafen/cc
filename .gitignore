@@ -130,6 +130,7 @@ dmypy.json
 
 # Other
 *.swp
+.DS_Store
 
 # VSCode settings
 settings.json
