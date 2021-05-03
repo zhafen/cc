@@ -130,3 +130,7 @@ dmypy.json
 
 # Other
 *.swp
+
+# VSCode settings
+settings.json
+*.code-workspace
