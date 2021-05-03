@@ -355,10 +355,11 @@ class Publication( object ):
 
         # Try to obtain from a processed abstract
         if hasattr( self, 'abstract' ):
-            return self.abstract['str']
+            if self.abstract is not None:
+                return self.abstract['str']
 
         # Or try using the abstract in the citation
-        elif hasattr( self, 'citation' ):
+        if hasattr( self, 'citation' ):
             if 'abstract' in self.citation:
                 abstract_str = self.citation['abstract']
 
