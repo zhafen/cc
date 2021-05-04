@@ -631,6 +631,7 @@ class TestConceptProjection( unittest.TestCase ):
 
         # Test
         self.a.process_abstracts( identifier='arxiv' )
+        self.a.data.process_bibtex_annotations()
         cp = self.a.concept_projection()
 
         # The dimensions of the concept projection

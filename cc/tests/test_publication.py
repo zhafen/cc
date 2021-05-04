@@ -341,6 +341,7 @@ class ComponentProjection( unittest.TestCase ):
         # Two spot checks
         assert 'wind' in comp_concepts
         assert 'cohes' in comp_concepts
+        assert 'garglflinx' in comp_concepts
 
     ########################################################################
 
@@ -365,6 +366,20 @@ class ComponentProjection( unittest.TestCase ):
         assert 'cohes' in comp_concepts
         assert 'accret' in comp_concepts
         assert 'dog' in comp_concepts
+
+    ########################################################################
+
+    def test_concept_projection_notes_not_included( self ):
+
+        values, comp_concepts = self.p.concept_projection( include_notes=False )
+
+        # Should be no 0s
+        assert values.min() > 0
+
+        # Two spot checks
+        assert 'wind' in comp_concepts
+        assert 'cohes' in comp_concepts
+        assert 'garglflinx' not in comp_concepts
 
 ########################################################################
 

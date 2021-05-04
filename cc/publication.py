@@ -291,37 +291,7 @@ class Publication( object ):
         if abstract_str is None:
             return
 
-        # Parse using NLTK
-        sentences = nltk.sent_tokenize( abstract_str )
-        sentences = [nltk.word_tokenize(sent) for sent in sentences] 
-        self.abstract['nltk'] = {}
-        self.abstract['nltk']['all'] = [
-            nltk.pos_tag(sent) for sent in sentences
-        ] 
-
-        # Classify into primary and secondary tiers, i.e. effectively
-        # nouns, verbs, and adjectives vs everything else.
-        self.abstract['nltk']['primary'] = []
-        self.abstract['nltk']['secondary'] = []
-        self.abstract['nltk']['primary_stemmed'] = []
-        uncategorized = []
-        tag_tier = config.nltk['tag_tier']
-        for sent in self.abstract['nltk']['all']:
-            nltk1 = []
-            nltk2 = []
-            for word, tag in sent:
-                if tag in tag_tier[1]:
-                    nltk1.append( word )
-                elif tag in tag_tier[2]:
-                    nltk2.append( word )
-                else:
-                    uncategorized.append( tag )
-            self.abstract['nltk']['primary'].append( nltk1 )
-            self.abstract['nltk']['secondary'].append( nltk2 )
-            self.abstract['nltk']['primary_stemmed'].append(
-                utils.stem( nltk1 )
-            )
-        self.abstract['nltk']['uncategorized'] = set( uncategorized )
+        self.abstract['nltk'] = utils.tokenize_and_sort_text( abstract_str )
 
     ########################################################################
 
@@ -562,7 +532,7 @@ class Publication( object ):
 
     ########################################################################
 
-    def concept_projection( self, component_concepts=None, ):
+    def concept_projection( self, component_concepts=None, include_notes=True ):
         '''Project the abstract into concept space.
         In simplest form this can just be counting up the number of
         times each unique, stemmed noun, verb, or adjective shows up in the
@@ -572,6 +542,9 @@ class Publication( object ):
             component_concepts (array-like of strs):
                 Basis concepts to project onto. Defaults to all concepts in
                 the abstract.
+
+            include_notes (bool):
+                If True include key_points and uncategorized in the concept projection.
 
         Returns:
             components (np.ndarray of ints):
@@ -585,6 +558,14 @@ class Publication( object ):
                 the component_concepts arg.
         '''
 
+        sents = []
+
+        # Points in the notes
+        if hasattr( self, 'notes' ) and include_notes:
+            notes_str = ' '.join( self.notes['key_points'] )
+            notes_str += ' '.join( self.notes['uncategorized'] )
+            sents += utils.tokenize_and_sort_text( notes_str )['primary_stemmed']
+
         # Get the processed abstracts
         self.process_abstract()
 
@@ -595,10 +576,11 @@ class Publication( object ):
             else:
                 values = np.zeros( len( component_concepts ) )
                 return values, component_concepts
+
         if 'nltk' not in self.abstract: return upon_failure()
 
         # Project for non-zero concepts
-        sents = self.abstract['nltk']['primary_stemmed']
+        sents += self.abstract['nltk']['primary_stemmed']
         if len( sents ) == 0: return upon_failure()
         flattened = np.hstack( sents )
         nonzero_concepts, values = np.unique( flattened, return_counts=True )

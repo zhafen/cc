@@ -9,6 +9,8 @@ import matplotlib.transforms as transforms
 
 import verdict
 
+from . import config
+
 ########################################################################
 
 def uniquify_words( a, **kwargs ):
@@ -149,6 +151,58 @@ def stem( l ):
         sl.append( ' '.join( stemmed_words ) )
     sl = np.array( list( set( sl ) ) )
     return sl
+
+########################################################################
+
+def tokenize_and_sort_text( text, tag_mapping=None ):
+    '''Tokenize text into words, position tag them, and then sort
+    according to tag tier.
+
+    Args:
+        text (str): Text to tokenize and sort.
+
+        tag_mapping (dict):
+            How to sort the tags.
+            If None uses the tag_tier in the config.
+
+    Returns:
+        result (dict)
+    '''
+
+    result = {}
+
+    # Parse using NLTK
+    sentences = nltk.sent_tokenize( text )
+    sentences = [nltk.word_tokenize(sent) for sent in sentences] 
+    result['all'] = [
+        nltk.pos_tag(sent) for sent in sentences
+    ] 
+
+    if tag_mapping is None:
+        tag_mapping = config.nltk['tag_tier']
+
+    # Classify into primary and secondary tiers, i.e. effectively
+    # nouns, verbs, and adjectives vs everything else.
+    result['primary'] = []
+    result['secondary'] = []
+    result['primary_stemmed'] = []
+    uncategorized = []
+    for sent in result['all']:
+        nltk1 = []
+        nltk2 = []
+        for word, tag in sent:
+            if tag in tag_mapping[1]:
+                nltk1.append( word )
+            elif tag in tag_mapping[2]:
+                nltk2.append( word )
+            else:
+                uncategorized.append( tag )
+        result['primary'].append( nltk1 )
+        result['secondary'].append( nltk2 )
+        result['primary_stemmed'].append( stem( nltk1 ) )
+    result['uncategorized'] = set( uncategorized )
+
+    return result
 
 ########################################################################
 
