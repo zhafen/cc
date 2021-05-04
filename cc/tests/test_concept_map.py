@@ -15,6 +15,12 @@ class TestConceptMap( unittest.TestCase ):
         concepts = [ 'red', 'blue', 'dog' ]
         self.cm = cc.concept_map.ConceptMap( concepts )
 
+    def tearDown( self ):
+
+        fp = './tests/data/example_concept_map.hdf5' 
+        if os.path.exists( fp ):
+            os.remove( fp )
+
     ########################################################################
     
     def test_start_evaluation( self ):
