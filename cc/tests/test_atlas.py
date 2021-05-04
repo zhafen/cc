@@ -154,6 +154,13 @@ class TestUnofficialPublication( unittest.TestCase ):
 
         self.a = atlas.Atlas( self.empty_dir )
 
+    def tearDown( self ):
+
+        try:
+            shutil.rmtree( self.empty_dir )
+        except FileNotFoundError:
+            pass
+
     ########################################################################
 
     def test_add_unpub( self ):
