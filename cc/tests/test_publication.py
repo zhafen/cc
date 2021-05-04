@@ -171,6 +171,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
         assert p.notes['read'] == 'author'
 
         assert p.notes['uncategorized'] == [
+            r"This word should show up in the concept projection: garglflinx.",
             r"Test junk I'm leaving here....",
         ]
 
@@ -186,6 +187,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
             r'The [lifetime] for gas in the [CGM] is billions of years, during which time it forms a well-mixed [hot halo].',
             r'For [low-redshift] [L* halos] [cool CGM gas] (T {\textless} 1e4.7 K) is distributed on average preferentially along the [galaxy plane], but with strong [halo-to-halo variability].',
             r'The [metallicity] of [IGM accretion] is systematically lower than the [metallicity] of [winds] (typically by {\textgreater}{\~{}}1 dex), but metallicities depend significantly on the treatment of [subgrid metal diffusion].',
+            r"This word should show up in the concept projection: garglflinx.",
             r"Test junk I'm leaving here....",
         ]
         expected_points += nltk.sent_tokenize( p.citation['abstract'] )
@@ -204,6 +206,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
         assert len( p.notes['key_points'] ) == 9
 
         assert p.notes['uncategorized'] == [
+            r"This word should show up in the concept projection: garglflinx.",
             r"Test junk I'm leaving here....",
         ]
 
