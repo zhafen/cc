@@ -568,6 +568,7 @@ class Atlas( object ):
         publications_per_request = 300,
         characters_per_request = 3000,
         identifier = 'key_as_bibcode',
+        skip_unofficial = True,
     ):
         '''Get the ADS data for all publications.
 
@@ -591,26 +592,43 @@ class Atlas( object ):
                 'arxiv':
                     Use the arxiv ID contained in each publication's citation.
                     Requires some extra work to identify relevant papers.
+
+            skip_unofficial (bool):
+                If True don't try to retrieve ADS data for unofficial publications.
         '''
 
+        # key_as_bibcode is an alias for bibcode
         if identifier == 'key_as_bibcode' or identifier == 'bibcode':
-            ids = list( self.data.keys() )
             identifier = 'bibcode'
+            # For later downloading
             if identifier not in fl:
                 fl.append( identifier )
         elif identifier == 'arxiv':
-            # Create IDs
-            ids = []
-            for p in list( self.data.values() ):
+            if 'identifier' not in fl:
+                fl.append( 'identifier' )
+
+        # Create the ID list
+        ids = []
+        data_keys = []
+        for key, item in self.data.items():
+
+            # Skip unofficial publications
+            if isinstance( item, publication.UnofficialPublication ) and skip_unofficial:
+                continue
+
+            # For later matching up retrieved data
+            data_keys.append( key )
+
+            if identifier == 'bibcode':
+                ids.append( key )
+
+            elif identifier == 'arxiv':
                 try:
-                    ids.append( p.citation['arxivid'] )
+                    ids.append( item.citation['arxivid'] )
                 except KeyError:
                     ids.append( 'NULL' )
-            # Make sure we can identify what's retrieved
-            if 'identifier' not in fl:
-                fl.append( 'identifier' ) 
-        else:
-            raise KeyError( 'Unrecognized identifier, {}'.format( identifier ))
+            else:
+                raise KeyError( 'Unrecognized identifier, {}'.format( identifier ))
 
         # Build query strings
         ids_str = ''
@@ -668,8 +686,8 @@ class Atlas( object ):
             result_dict[key_fn(result)] = result
 
         # Assign properties
-        for i, item in enumerate( self.data.values() ):
-            id = ids[i]
+        for i, id in enumerate( ids ):
+            item = self.data[data_keys[i]]
 
             # Handle missing publications
             if id == 'NULL':
@@ -695,6 +713,11 @@ class Atlas( object ):
     def process_abstracts( self, *args, **kwargs ):
         '''Download and process the abstracts of all publications.
         Faster and with fewer API calls than for each paper individually.
+
+        Args:
+            skip_unofficial (bool):
+                If True don't try to process abstracts
+                of UnofficialPublications
 
         *Args, **Kwargs:
             Passed to self.get_ads_data

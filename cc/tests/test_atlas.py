@@ -53,6 +53,32 @@ class TestBibTexData( unittest.TestCase ):
 
 ########################################################################
 
+class TestAPIUsage( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.a = atlas.Atlas( './tests/data/example_atlas' )
+
+########################################################################
+    
+    def test_get_ads_data( self ):
+
+        self.a.get_ads_data( identifier='arxiv', skip_unofficial=False )
+
+########################################################################
+    
+    def test_get_ads_data_unofficial_publication( self ):
+
+        self.a.add_unpub(
+            citation_key = r'Craaaazy citation key~: asf^*&',
+            point = 'Some sort of point here.',
+            conditions = { 'tcool/tff': np.array([ -np.inf, 10. ]) }
+        )
+
+        self.a.get_ads_data( identifier='arxiv' )
+
+########################################################################
+
 class TestFromBibcodes( unittest.TestCase ):
 
     def setUp( self ):
