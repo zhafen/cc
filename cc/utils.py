@@ -231,7 +231,7 @@ def random_publications( n_sample, start_time, end_time, seed=None, max_loops=No
             Defaults to not being used.
 
         max_loops (int):
-            Number of iterations before breaking. Defaults to 3 * n_sample.
+            Number of iterations before breaking. Defaults to 10 * n_sample.
 
     Returns:
         pubs (list of ads queries):
@@ -247,7 +247,7 @@ def random_publications( n_sample, start_time, end_time, seed=None, max_loops=No
         np.random.seed( seed )
 
     if max_loops is None:
-        max_loops = 3 * n_sample
+        max_loops = 10 * n_sample
 
     pubs = []
     n_loops = 0

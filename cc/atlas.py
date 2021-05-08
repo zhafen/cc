@@ -96,6 +96,43 @@ class Atlas( object ):
     ########################################################################
 
     @classmethod
+    def random_atlas(
+        cls,
+        atlas_dir,
+        n_sample,
+        start_time = '1990',
+        end_time = '2015',
+        seed = None,
+        max_loops = None,
+        *args, **kwargs
+    ):
+
+        pubs = utils.random_publications(
+            n_sample = n_sample,
+            start_time = start_time,
+            end_time = end_time,
+            seed = seed,
+            max_loops = max_loops
+        )
+
+        # Create an atlas
+        bibcodes = [ _.bibcode for _ in pubs ]
+        result = Atlas.from_bibcodes( atlas_dir, bibcodes )
+        
+        # Store publication data
+        for p in pubs:
+            
+            if p.bibcode not in result.data:
+                continue
+
+            # Store and process abstracts
+            result[p.bibcode].process_abstract( abstract_str=p.abstract )
+
+        return result
+
+    ########################################################################
+
+    @classmethod
     def from_bibcodes(
         cls,
         atlas_dir,

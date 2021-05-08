@@ -163,6 +163,41 @@ class TestFromBibcodes( unittest.TestCase ):
 
 ########################################################################
 
+class TestRandomAtlas( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.atlas_dir = './tests/data/random_atlas'
+
+    def tearDown( self ):
+        if os.path.exists( self.atlas_dir ):
+            shutil.rmtree( self.atlas_dir )
+
+    ########################################################################
+
+    def test_standard( self ):
+
+        a = atlas.Atlas.random_atlas( self.atlas_dir, 5, seed=123 )
+        a.save_data()
+
+        assert len( a.data ) == 5
+        assert os.path.exists( self.atlas_dir )
+
+    ########################################################################
+
+    def test_astro_only( self ):
+
+        a = atlas.Atlas.random_atlas( self.atlas_dir, 5, seed=123 )
+        a.save_data()
+
+        assert len( a.data ) == 5
+        assert os.path.exists( self.atlas_dir )
+
+        for key, item in a.items():
+            assert a.citation['primaryClass'] == 'astro-ph'
+
+########################################################################
+
 class TestUnofficialPublication( unittest.TestCase ):
 
     def setUp( self ):
