@@ -314,6 +314,8 @@ def random_publications(
         pbar.update( 1 )
     pbar.close()
 
+    print( 'Finished retrieving random publications. Took {} tries'.format( n_loops ) )
+
     return pubs
 
 ########################################################################
