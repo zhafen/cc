@@ -268,6 +268,32 @@ class Cartographer( object ):
             return d
 
     ########################################################################
+
+    def pairwise( self, metric ):
+        '''Calculate the pairwise metric between all publications in the concept projection.
+
+        Args:
+            metric (str):
+                Name of the metric to calculate. Options include inner_product, psi
+
+        Returns:
+            pairwise_values (np.ndarray, ( n_pubs*(n_pubs-1)/2, ) ):
+                Pairwise values between publications.
+        '''
+
+        # Calculate metric for all
+        mat = []
+        for key in self.publications:
+            mat.append( getattr( self, metric )( key, 'all' ) )
+        mat = np.array( mat )
+
+        # Identify pairs
+        mat_flat = np.triu( mat, k=1 ).flatten()
+        pairwise_values = mat_flat[mat_flat>0.]
+
+        return pairwise_values
+
+    ########################################################################
     # Exploration
     ########################################################################
 

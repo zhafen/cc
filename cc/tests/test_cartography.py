@@ -126,6 +126,14 @@ class TestInnerProduct( unittest.TestCase ):
         )
         npt.assert_allclose( actual[ind_v], expected, rtol=0.05 )
 
+    ########################################################################
+
+    def test_pairwise_inner_product( self ):
+
+        result = self.c.pairwise( 'inner_product' )
+        n_pubs = self.c.publications.size
+        assert result.size == n_pubs * ( n_pubs - 1 ) / 2
+
 ########################################################################
 
 class TestDistance( unittest.TestCase ):
