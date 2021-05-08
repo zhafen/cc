@@ -187,14 +187,14 @@ class TestRandomAtlas( unittest.TestCase ):
 
     def test_astro_only( self ):
 
-        a = atlas.Atlas.random_atlas( self.atlas_dir, 5, seed=123 )
+        a = atlas.Atlas.random_atlas( self.atlas_dir, 3, seed=123, arxiv_class='astro-ph.GA' )
         a.save_data()
 
-        assert len( a.data ) == 5
+        assert len( a.data ) == 3
         assert os.path.exists( self.atlas_dir )
 
-        for key, item in a.items():
-            assert a.citation['primaryClass'] == 'astro-ph'
+        for key, item in a.data.items():
+            assert item.citation['primaryclass'].split( '.' )[0] == 'astro-ph'
 
 ########################################################################
 

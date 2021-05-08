@@ -209,7 +209,15 @@ def tokenize_and_sort_text( text, tag_mapping=None ):
 
 ########################################################################
 
-def random_publications( n_sample, start_time, end_time, seed=None, max_loops=None ):
+
+def random_publications(
+    n_sample,
+    start_time,
+    end_time,
+    arxiv_class = None,
+    seed = None,
+    max_loops = None,
+):
     '''Choose random publications by choosing a random date and then choosing
     a random publication announced on that date.
     Note that while this means that publications announced on the same date
@@ -249,6 +257,18 @@ def random_publications( n_sample, start_time, end_time, seed=None, max_loops=No
     if max_loops is None:
         max_loops = 10 * n_sample
 
+    search_str = ''
+
+    if arxiv_class is not None:
+        search_str += 'arxiv_class:"{}"'.format( arxiv_class )
+
+    # Build query
+    query_dict = dict(
+        fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode' ],
+    )
+    if len( search_str ) > 0:
+        query_dict['q'] = search_str
+
     pubs = []
     n_loops = 0
     pbar = tqdm.tqdm( total=n_sample )
@@ -256,11 +276,13 @@ def random_publications( n_sample, start_time, end_time, seed=None, max_loops=No
         
         random_datetime = pd.to_datetime( np.random.randint( start_time.value, end_time.value, 1, dtype=np.int64 )[0], )
         random_date = '{}-{}-{}'.format( random_datetime.year, random_datetime.month, random_datetime.day )
-        
-        ads_query = ads.SearchQuery(
-            fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode' ],
-            entdate = random_date,
-        )
+        query_dict['entdate'] = random_date
+
+        # Query
+        if 'q' not in query_dict:
+            ads_query = ads.SearchQuery( **query_dict )
+        else:
+            ads_query = ads.SearchQuery( query_dict = query_dict )
         query_list = list( ads_query )
 
         n_loops += 1

@@ -104,6 +104,7 @@ class Atlas( object ):
         end_time = '2015',
         seed = None,
         max_loops = None,
+        arxiv_class = None,
         *args, **kwargs
     ):
 
@@ -112,7 +113,8 @@ class Atlas( object ):
             start_time = start_time,
             end_time = end_time,
             seed = seed,
-            max_loops = max_loops
+            max_loops = max_loops,
+            arxiv_class = arxiv_class,
         )
 
         # Create an atlas
