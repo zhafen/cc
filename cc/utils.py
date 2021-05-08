@@ -1,7 +1,10 @@
+import ads
 from collections import Counter 
 import nltk
 from nltk.metrics import edit_distance
 import numpy as np
+import pandas as pd
+import tqdm
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -203,6 +206,88 @@ def tokenize_and_sort_text( text, tag_mapping=None ):
     result['uncategorized'] = set( uncategorized )
 
     return result
+
+########################################################################
+
+def random_publications( n_sample, start_time, end_time, seed=None, max_loops=None ):
+    '''Choose random publications by choosing a random date and then choosing
+    a random publication announced on that date.
+    Note that while this means that publications announced on the same date
+    as many other publications are less likely to be selected, this is not
+    expected to typically be an important effect.
+
+    Args:
+        n_sample (int):
+            Number of publications to sample.
+
+        start_time (pd.Timestamp or pd-compatible string):
+            Beginning time to use for the range of selectable publications.
+
+        end_time (pd.Timestamp or pd-compatible string):
+            End time to use for the range of selectable publications.
+
+        seed (int):
+            Integer to use for setting the random number selection.
+            Defaults to not being used.
+
+        max_loops (int):
+            Number of iterations before breaking. Defaults to 3 * n_sample.
+
+    Returns:
+        pubs (list of ads queries):
+            Publications selected.
+    '''
+
+    if not isinstance( start_time, pd.Timestamp ):
+        start_time = pd.to_datetime( start_time )
+    if not isinstance( end_time, pd.Timestamp ):
+        end_time = pd.to_datetime( end_time )
+
+    if seed is not None:
+        np.random.seed( seed )
+
+    if max_loops is None:
+        max_loops = 3 * n_sample
+
+    pubs = []
+    n_loops = 0
+    pbar = tqdm.tqdm( total=n_sample )
+    while len( pubs ) < n_sample:
+        
+        random_datetime = pd.to_datetime( np.random.randint( start_time.value, end_time.value, 1, dtype=np.int64 )[0], )
+        random_date = '{}-{}-{}'.format( random_datetime.year, random_datetime.month, random_datetime.day )
+        
+        ads_query = ads.SearchQuery(
+            fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode' ],
+            entdate = random_date,
+        )
+        query_list = list( ads_query )
+
+        n_loops += 1
+        if n_loops > max_loops:
+            tqdm.tqdm.write( 'Reached max number of loops, {}. Breaking.'.format( max_loops ) )
+            break
+        
+        # In the event there are no papers on that day (e.g. a weekend or holiday.)
+        if len( query_list ) == 0:
+            continue
+
+        p = np.random.choice( query_list )
+        
+        # Cannot do this for publications missing abstract data.
+        if p.abstract is None:
+            tqdm.tqdm.write( 'Publication {} has no abstract. Continuing.'.format( p.bibcode ) )
+            continue
+        
+        if p.citation is None and p.reference is None:
+            tqdm.tqdm.write( 'Publication {} has no references or citations. Continuing.'.format( p.bibcode ) )
+            continue
+        
+        pubs.append( p )
+        pbar.update( 1 )
+    pbar.close()
+
+    return pubs
 
 ########################################################################
 
