@@ -261,6 +261,11 @@ def random_publications(
 
     if arxiv_class is not None:
         search_str += 'arxiv_class:"{}"'.format( arxiv_class )
+    if arxiv_class == 'astro-ph':
+        search_str = 'arxiv_class:"astro-ph"'
+        subcats = [ 'GA', 'CO', 'EP', 'HE', 'IM', 'SR' ]
+        for subcat in subcats:
+            search_str += 'OR arxiv_class:"astro-ph.{}"'.format( subcat )
 
     # Build query
     query_dict = dict(
