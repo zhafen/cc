@@ -7,6 +7,7 @@ import shutil
 import unittest
 
 import cc.atlas as atlas
+import cc.publication as publication
 
 import verdict
 
@@ -347,6 +348,11 @@ class TestUnofficialPublication( unittest.TestCase ):
         new_a = atlas.Atlas( self.empty_dir )
 
         assert new_a.data['Steidel2002:Ho2019'].points() == [ point, ]
+
+        assert isinstance(
+            new_a.data['Steidel2002:Ho2019'],
+            publication.UnofficialPublication
+        )
 
 ########################################################################
 
