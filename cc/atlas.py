@@ -102,11 +102,44 @@ class Atlas( object ):
         n_sample,
         start_time = '1990',
         end_time = '2015',
+        arxiv_class = None,
         seed = None,
         max_loops = None,
-        arxiv_class = None,
-        *args, **kwargs
     ):
+        '''Make an atlas of random publications by choosing random dates and then choosing
+        a random publication announced on that date.
+        Note that while this means that publications announced on the same date
+        as many other publications are less likely to be selected, this is not
+        expected to typically be an important effect.
+
+        Args:
+            atlas_dir (str):
+                Directory to store the atlas data in.
+
+            n_sample (int):
+                Number of publications to make the atlas of.
+
+            start_time (pd.Timestamp or pd-compatible string):
+                Beginning time to use for the range of selectable publications.
+
+            end_time (pd.Timestamp or pd-compatible string):
+                End time to use for the range of selectable publications.
+
+            arxiv_class (str):
+                What arxiv class the publications should belong to, if any.
+                If set to 'astro-ph' it will include all subcategories of 'astro-ph'.
+
+            seed (int):
+                Integer to use for setting the random number selection.
+                Defaults to not being used.
+
+            max_loops (int):
+                Number of iterations before breaking. Defaults to 10 * n_sample.
+
+        Returns:
+            atlas (Atlas):
+                Atlas of publications selected.
+        '''
 
         pubs = utils.random_publications(
             n_sample = n_sample,

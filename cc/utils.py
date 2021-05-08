@@ -234,6 +234,10 @@ def random_publications(
         end_time (pd.Timestamp or pd-compatible string):
             End time to use for the range of selectable publications.
 
+        arxiv_class (str):
+            What arxiv class the publications should belong to, if any.
+            If set to 'astro-ph' it will include all subcategories of 'astro-ph'.
+
         seed (int):
             Integer to use for setting the random number selection.
             Defaults to not being used.
