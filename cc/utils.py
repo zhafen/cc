@@ -271,7 +271,7 @@ def random_publications(
             search_str = 'arxiv_class:"astro-ph"'
             subcats = [ 'GA', 'CO', 'EP', 'HE', 'IM', 'SR' ]
             for subcat in subcats:
-                search_str += 'OR arxiv_class:"astro-ph.{}"'.format( subcat )
+                search_str += ' OR arxiv_class:"astro-ph.{}"'.format( subcat )
 
     # Build query
     query_dict = dict(
@@ -282,6 +282,9 @@ def random_publications(
     n_loops = 0
     pbar = tqdm.tqdm( total=n_sample )
     bad_dates = []
+    empty_dates = []
+    empty_abstracts = []
+    no_refs_or_cits = []
     while len( pubs ) < n_sample:
 
 
@@ -326,16 +329,19 @@ def random_publications(
             continue
         # In the event there are no papers on that day (e.g. a weekend or holiday.)
         if len( query_list ) == 0:
+            empty_dates.append( random_datetime )
             continue
 
         p = np.random.choice( query_list )
         
         # Cannot do this for publications missing abstract data.
         if p.abstract is None:
+            empty_abstracts.append( p )
             tqdm.tqdm.write( 'Publication {} has no abstract. Continuing.'.format( p.bibcode ) )
             continue
         
         if p.citation is None and p.reference is None:
+            no_refs_or_cits.append( p )
             tqdm.tqdm.write( 'Publication {} has no references or citations. Continuing.'.format( p.bibcode ) )
             continue
         
@@ -343,7 +349,7 @@ def random_publications(
         pbar.update( 1 )
     pbar.close()
 
-    print( 'Finished retrieving random publications. Took {} tries'.format( n_loops ) )
+    print( 'Retrieved {} random publications. Took {} tries'.format( len( pubs ), n_loops ) )
 
     return pubs
 
