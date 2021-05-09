@@ -80,6 +80,18 @@ class TestAPIUsage( unittest.TestCase ):
 
 ########################################################################
 
+    @patch( 'ads.SearchQuery' )
+    def test_get_ads_data_skip_done( self, mock_search ):
+
+        for key, item in self.a.data.items():
+            item.ads_data = { 'fake_dict': True }
+
+        self.a.get_ads_data( identifier='arxiv', )
+
+        mock_search.assert_not_called()
+
+########################################################################
+
 class TestFromBibcodes( unittest.TestCase ):
 
     def setUp( self ):

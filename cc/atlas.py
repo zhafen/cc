@@ -698,6 +698,9 @@ class Atlas( object ):
             if isinstance( item, publication.UnofficialPublication ) and skip_unofficial:
                 continue
 
+            if hasattr( item, 'ads_data' ):
+                continue
+
             # For later matching up retrieved data
             data_keys.append( key )
 
@@ -711,6 +714,11 @@ class Atlas( object ):
                     ids.append( 'NULL' )
             else:
                 raise KeyError( 'Unrecognized identifier, {}'.format( identifier ))
+
+        # Exit early if no ids to call
+        if len( ids ) == 0:
+            print( 'No ids able to/need to retrieve ads data.' )
+            return
 
         # Build query strings
         ids_str = ''
