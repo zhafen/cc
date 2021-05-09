@@ -152,6 +152,13 @@ class Atlas( object ):
             arxiv_class = arxiv_class,
         )
 
+        if len( pubs ) != n_sample:
+            raise Exception( 'Retrieved only {} publications out of {}'.format(
+                    len( pubs ),
+                    n_sample
+                )
+            )
+
         # Create an atlas
         bibcodes = [ _.bibcode for _ in pubs ]
         result = Atlas.from_bibcodes( atlas_dir, bibcodes )

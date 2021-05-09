@@ -3,6 +3,7 @@ from mock import patch
 import numpy as np
 import numpy.testing as npt
 import os
+import pandas as pd
 import shutil
 import unittest
 
@@ -224,6 +225,37 @@ class TestRandomAtlas( unittest.TestCase ):
 
         for key, item in a.data.items():
             assert item.citation['primaryclass'].split( '.' )[0] == 'astro-ph'
+
+    ########################################################################
+    
+    def test_date_range( self ):
+
+        a = atlas.Atlas.random_atlas(
+            self.atlas_dir,
+            5,
+            '2014',
+            '2015',
+            seed=123,
+        )
+
+        for key, item in a.data.items():
+            assert pd.to_datetime( item.entry_date ).year == 2014
+
+    ########################################################################
+    
+    def test_date_range_astro( self ):
+
+        a = atlas.Atlas.random_atlas(
+            self.atlas_dir,
+            5,
+            start_time='2014',
+            end_time = '2015',
+            seed=123,
+            arxiv_class='astro-ph'
+        )
+
+        for key, item in a.data.items():
+            assert pd.to_datetime( item.entry_date ).year == 2014
 
 ########################################################################
 

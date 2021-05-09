@@ -218,6 +218,7 @@ def random_publications(
     arxiv_class = None,
     seed = None,
     max_loops = None,
+    bad_days_of_week = [ 'Saturday', 'Sunday' ],
 ):
     '''Choose random publications by choosing a random date and then choosing
     a random publication announced on that date.
@@ -266,40 +267,66 @@ def random_publications(
 
     if arxiv_class is not None:
         search_str += 'arxiv_class:"{}"'.format( arxiv_class )
-    if arxiv_class == 'astro-ph':
-        search_str = 'arxiv_class:"astro-ph"'
-        subcats = [ 'GA', 'CO', 'EP', 'HE', 'IM', 'SR' ]
-        for subcat in subcats:
-            search_str += 'OR arxiv_class:"astro-ph.{}"'.format( subcat )
+        if arxiv_class == 'astro-ph':
+            search_str = 'arxiv_class:"astro-ph"'
+            subcats = [ 'GA', 'CO', 'EP', 'HE', 'IM', 'SR' ]
+            for subcat in subcats:
+                search_str += 'OR arxiv_class:"astro-ph.{}"'.format( subcat )
 
     # Build query
     query_dict = dict(
         fl = fl,
     )
-    if len( search_str ) > 0:
-        query_dict['q'] = search_str
 
     pubs = []
     n_loops = 0
     pbar = tqdm.tqdm( total=n_sample )
+    bad_dates = []
     while len( pubs ) < n_sample:
-        
-        random_datetime = pd.to_datetime( np.random.randint( start_time.value, end_time.value, 1, dtype=np.int64 )[0], )
-        random_date = '{}-{}-{}'.format( random_datetime.year, random_datetime.month, random_datetime.day )
-        query_dict['entdate'] = random_date
 
-        # Query
-        if 'q' not in query_dict:
-            ads_query = ads.SearchQuery( **query_dict )
-        else:
-            ads_query = ads.SearchQuery( query_dict = query_dict )
-        query_list = list( ads_query )
 
-        n_loops += 1
         if n_loops > max_loops:
             tqdm.tqdm.write( 'Reached max number of loops, {}. Breaking.'.format( max_loops ) )
             break
+        n_loops += 1
         
+        # Generate a random datetime, skipping bad days of the week
+        while True:
+            random_datetime = pd.to_datetime( np.random.randint(
+                    start_time.value,
+                    end_time.value,
+                    1,
+                    dtype=np.int64
+                )[0],
+            )
+            if random_datetime.day_name() not in bad_days_of_week:
+                break
+        random_date = '{}-{}-{}'.format( random_datetime.year, random_datetime.month, random_datetime.day )
+
+        if search_str == '':
+            query_dict['entdate'] = random_date
+            ads_query = ads.SearchQuery( **query_dict )
+        else:
+            random_datetime_end = random_datetime + pd.DateOffset( days=1 )
+            random_date_end = '{}-{}-{}'.format(
+                random_datetime_end.year,
+                random_datetime_end.month,
+                random_datetime_end.day
+            )
+            query_dict['q'] = search_str + ' AND entdate:"[{} TO {}]"'.format( random_date, random_date_end )
+            # query_dict['q'] = search_str
+            # query_dict['entdate'] = '[{} TO {}]'.format( random_date, random_date_end )
+            # query_dict['entdate'] = random_date
+            ads_query = ads.SearchQuery( query_dict = query_dict )
+
+        # Sometimes the query_list breaks
+        try:
+            query_list = list( ads_query )
+        except IndexError:
+            bad_dates.append( random_datetime )
+            # Should only break in this scenario
+            assert ads_query._articles == []
+            continue
         # In the event there are no papers on that day (e.g. a weekend or holiday.)
         if len( query_list ) == 0:
             continue
