@@ -717,7 +717,7 @@ class Atlas( object ):
 
         # Exit early if no ids to call
         if len( ids ) == 0:
-            print( 'No ids able to/need to retrieve ads data.' )
+            print( 'No publications need to/are able to retrieve ads data.' )
             return
 
         # Build query strings
