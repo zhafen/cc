@@ -214,6 +214,7 @@ def random_publications(
     n_sample,
     start_time,
     end_time,
+    fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode', 'entry_date' ],
     arxiv_class = None,
     seed = None,
     max_loops = None,
@@ -273,7 +274,7 @@ def random_publications(
 
     # Build query
     query_dict = dict(
-        fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode' ],
+        fl = fl,
     )
     if len( search_str ) > 0:
         query_dict['q'] = search_str

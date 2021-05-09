@@ -102,6 +102,7 @@ class Atlas( object ):
         n_sample,
         start_time = '1990',
         end_time = '2015',
+        fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode', 'entry_date' ],
         arxiv_class = None,
         seed = None,
         max_loops = None,
@@ -143,6 +144,7 @@ class Atlas( object ):
 
         pubs = utils.random_publications(
             n_sample = n_sample,
+            fl = fl,
             start_time = start_time,
             end_time = end_time,
             seed = seed,
@@ -155,13 +157,21 @@ class Atlas( object ):
         result = Atlas.from_bibcodes( atlas_dir, bibcodes )
         
         # Store publication data
-        for p in pubs:
+        for p_ads in pubs:
             
-            if p.bibcode not in result.data:
+            if p_ads.bibcode not in result.data:
                 continue
 
-            # Store and process abstracts
-            result[p.bibcode].process_abstract( abstract_str=p.abstract )
+            p = result.data[p_ads.bibcode]
+
+            p.ads_data = {}
+            for f in fl:
+                value = getattr( p_ads, f )
+                p.ads_data[f] = value
+                attr_f = copy.copy( f )
+                if attr_f == 'citation' or attr_f == 'reference':
+                    attr_f += 's'
+                setattr( p, attr_f, value )
 
         return result
 

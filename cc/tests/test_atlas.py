@@ -183,6 +183,10 @@ class TestRandomAtlas( unittest.TestCase ):
         assert len( a.data ) == 5
         assert os.path.exists( self.atlas_dir )
 
+        for key, item in a.data.items():
+            for f in [ 'references', 'citations', 'entry_date' ]:
+                assert hasattr( item, f )
+
     ########################################################################
 
     def test_astro_ga_only( self ):
