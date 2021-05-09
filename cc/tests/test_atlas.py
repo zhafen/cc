@@ -250,7 +250,7 @@ class TestRandomAtlas( unittest.TestCase ):
             5,
             start_time='2014',
             end_time = '2015',
-            seed=123,
+            seed=1234,
             arxiv_class='astro-ph'
         )
 

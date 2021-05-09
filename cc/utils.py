@@ -313,10 +313,7 @@ def random_publications(
                 random_datetime_end.month,
                 random_datetime_end.day
             )
-            query_dict['q'] = search_str + ' AND entdate:"[{} TO {}]"'.format( random_date, random_date_end )
-            # query_dict['q'] = search_str
-            # query_dict['entdate'] = '[{} TO {}]'.format( random_date, random_date_end )
-            # query_dict['entdate'] = random_date
+            query_dict['q'] = search_str + ' entdate:[{} TO {}]'.format( random_date, random_date_end )
             ads_query = ads.SearchQuery( query_dict = query_dict )
 
         # Sometimes the query_list breaks
