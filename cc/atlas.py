@@ -344,8 +344,8 @@ class Atlas( object ):
 
             # Choose unofficial or standard publication
             unofficial_flag = False
-            if 'unofficial_flag' in data_to_load:
-                unofficial_flag = data_to_load[unofficial_flag]
+            if 'unofficial_flag' in item:
+                unofficial_flag = item['unofficial_flag']
             if unofficial_flag:
                 pub = publication.UnofficialPublication( key )
             else:
