@@ -763,9 +763,21 @@ class Publication( object ):
 
 class UnofficialPublication( Publication ):
 
-    def __init__(self, *args, **kwargs ):
+    @augment.store_parameters
+    def __init__(self, citation_key, strictness='warn', **kwargs ):
+        '''
+        Args:
+            strictness (str):
+                How strict to be with operations that don't make sense for
+                an unofficial publication. Options are permit, warn, or raise.
 
-        super().__init__( *args, **kwargs )
+        *args, **kwargs:
+            Passed to parent class.
+        '''
+        super().__init__( citation_key=citation_key, **kwargs )
+
+        assert strictness in [ 'permit', 'warn', 'raise' ]
+
         self.unofficial_flag = True
 
     def __repr__( self ):
@@ -779,8 +791,22 @@ class UnofficialPublication( Publication ):
     @property
     def publication_date( self ):
 
-        raise Exception(
-            '{} is unofficial and has no publication date.'.format(
-                self.citation_key,
-            )
+        warning_msg = '{} is unofficial and has no publication date.'.format(
+            self.citation_key,
         )
+        if self.strictness == 'warn':
+            warnings.warn( warning_msg )
+        elif self.strictness == 'raise':
+            raise UnofficialPublicationException( warning_msg )
+        else:
+            pass
+
+        return 'NaT'
+
+
+class UnofficialPublicationException( Exception ):
+
+    def __init__( self, message="Unofficial Publication is not compatible with this action." ):
+
+        self.message = message
+        super().__init__( self.message )

@@ -798,6 +798,52 @@ class TestConceptProjection( unittest.TestCase ):
         assert 'author' not in cp['component_concepts']
         assert 'read' not in cp['component_concepts']
 
+    ########################################################################
+
+    def test_concept_projection_unofficial( self ):
+
+        # Make sure we don't count cached files
+        fp = './tests/data/example_atlas/projection_unofficial.h5' 
+        if os.path.isfile( fp ):
+            os.remove( fp )
+
+        # Test
+        self.a.process_abstracts( identifier='arxiv' )
+        point_a = (
+            'A robust outcome of thermal instability/precipitation ' \
+            'models is that the gaseous halos (and coronae) in general ' \
+            'cannot spend a lot of time with min(tcool/tff)<10.'
+        )
+        self.a.add_unpub(
+            citation_key = 'Prateek Sharma',
+            point = point_a,
+            conditions = { 'tcool/tff': np.array([ -np.inf, 10. ]) }
+        )
+        assert self.a.data['Prateek Sharma'].points() == [ point_a, ]
+        cp = self.a.concept_projection( projection_fp=fp )
+
+        # The dimensions of the concept projection
+        expected_dim = (
+            len( self.a.data ),
+            len( cp['component_concepts'] )
+        )
+        assert cp['components'].shape == expected_dim
+
+        # Projected publications check
+        for i, v in enumerate( list( self.a.data.keys() ) ):
+            assert v == cp['publications'][i]
+
+        assert cp['publication_dates'][0] == self.a[cp['publications'][0]].publication_date
+
+        # There should be no component with entirely zeros
+        unnormed_a = cp['components'].sum( axis=0 )
+        assert np.nanmin( unnormed_a  ) > 0.
+
+        # Make sure we clean up
+        fp = './tests/data/example_atlas/projection_unofficial.h5' 
+        if os.path.isfile( fp ):
+            os.remove( fp )
+
 ########################################################################
 
 class TestComparison( unittest.TestCase ):
