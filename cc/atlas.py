@@ -51,6 +51,7 @@ class Atlas( object ):
         data_fp = None,
         load_bibtex = True,
         load_atlas_data = True,
+        bibtex_entries_to_load = 'all',
     ):
 
         # Make sure the atlas directory exists
@@ -75,7 +76,7 @@ class Atlas( object ):
                 if len( bibtex_fps ) == 0:
                     raise IOError( 'No *.bib file found in {}'.format( atlas_dir ) )
                 bibtex_fp = bibtex_fps[0]
-            self.import_bibtex( bibtex_fp )
+            self.import_bibtex( bibtex_fp, entries=bibtex_entries_to_load )
 
         # Load general atlas data
         if load_atlas_data:
@@ -287,12 +288,18 @@ class Atlas( object ):
 
     ########################################################################
 
-    def import_bibtex( self, bibtex_fp, verbose=True ):
+    def import_bibtex( self, bibtex_fp, entries='all', verbose=True, ):
         '''Import publications from a BibTex file.
         
         Args:
             bibtex_fp (str):
                 Filepath to the BibTex file.
+
+            entries (list-like):
+                Which entries from the bibtex to load. If None, load all.
+
+            verbose (bool):
+                Verbosity.
         '''
 
         if verbose:
@@ -307,6 +314,9 @@ class Atlas( object ):
             print( 'Storing bibliography entries.' )
         for citation in tqdm( bib_database.entries ):
             citation_key = citation['ID']
+
+            if entries != 'all' and citation_key not in entries:
+                continue
 
             # Avoid overwriting existing loaded data
             if citation_key in self.data:
@@ -715,10 +725,17 @@ class Atlas( object ):
                 ids.append( key )
 
             elif identifier == 'arxiv':
-                try:
+
+                if 'arxivid' in item.citation:
                     ids.append( item.citation['arxivid'] )
-                except KeyError:
-                    ids.append( 'NULL' )
+                    continue
+
+                if 'eprint' in item.citation and 'eprinttype' in item.citation:                        
+                    if item.citation['eprinttype'] == 'arxiv':
+                        ids.append( item.citation['eprint'] )
+                        continue
+
+                ids.append( 'NULL' )
             else:
                 raise KeyError( 'Unrecognized identifier, {}'.format( identifier ))
 
@@ -736,7 +753,7 @@ class Atlas( object ):
             if id == 'NULL':
                 continue
 
-            ids_str += '{}:{}'.format( identifier, id )
+            ids_str += '{}:"{}"'.format( identifier, id )
             n_pubs += 1
 
             # Break conditions

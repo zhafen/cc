@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import shutil
 import unittest
+import warnings
 
 import cc.atlas as atlas
 import cc.publication as publication
@@ -173,6 +174,62 @@ class TestFromBibcodes( unittest.TestCase ):
 
         # This should already exist, so yeah, make sure it doesn't
         assert '2019MNRAS.488.1248H' not in self.a.data.keys()
+
+########################################################################
+
+class TestRealisticAtlas( unittest.TestCase ):
+    '''Test functionality for a realistic, messy atlas.'''
+
+    def setUp( self ):
+
+        self.atlas_dir = './tests/data/realistic_atlas'
+
+    def tearDown( self ):
+        for f in [ 'atlas.h5', 'projection.h5', ]:
+            fp = os.path.join( self.atlas_dir, f )
+            if os.path.exists( fp ):
+                os.remove( fp )
+
+    ########################################################################
+
+    def test_basic_pipeline( self ):
+
+        # Load
+        a = atlas.Atlas( self.atlas_dir, )
+
+        # Process abstracts
+        a.process_abstracts( identifier='arxiv' )
+
+        # Check completeness
+        successes = []
+        failures = []
+        for key, item in a.data.items():
+            if hasattr( item, 'abstract' ):
+                abs_str = item.abstract['str']
+                if abs_str is not None and abs_str != '':
+                    successes.append( key )
+                    continue
+            failures.append( key )
+
+        # Cases I've set up individual checks for
+        assert 'VandeVoort2012a' in successes
+
+        assert n_abstracts == len( a.data )
+
+    ########################################################################
+
+    def test_vandevoort2012a( self ):
+        '''Individual case prone to breaking.'''
+
+        cite_key = 'VandeVoort2012a'
+
+        # Load and make into a mini atlas
+        a = atlas.Atlas( self.atlas_dir, bibtex_entries_to_load=[ cite_key, ] )
+        assert list( a.data.keys() ) == [ cite_key, ]
+
+        a.process_abstracts()
+
+        assert a[cite_key].abstract_str() != ''
 
 ########################################################################
 
