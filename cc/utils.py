@@ -209,6 +209,48 @@ def tokenize_and_sort_text( text, tag_mapping=None ):
 
 ########################################################################
 
+def citation_to_ads_call( citation ):
+    '''Given a dictionary containing a citation return a string that,
+    when sent to ADS, will give a unique result.
+    '''
+
+    if 'doi' in citation:
+        q = 'doi:"{}"'.format( citation['doi'] )
+
+    return q
+
+########################################################################
+
+def ads_query(
+    q,
+    fl = ['abstract', 'citation', 'reference', 'entry_date', 'identifier' ],
+    rows = 50
+):
+    '''Convenience wrapper for searching ADS.
+
+    Args:
+        q (str):
+            Call to ADS.
+
+        fl (list of strs):
+            Fields to return for publications.
+
+        rows (int):
+            Number of publications to return per page.
+    '''
+
+    ads_query = ads.SearchQuery(
+        query_dict={
+            'q': q,
+            'fl': fl,
+            'rows': rows,
+        },
+    )
+    query_list = list( ads_query )
+
+    return query_list
+
+########################################################################
 
 def random_publications(
     n_sample,
