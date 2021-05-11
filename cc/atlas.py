@@ -688,9 +688,10 @@ class Atlas( object ):
                 'key_as_bibcode':
                     This assumes self.data.keys() are ADS bibcodes
                     and we can just use them.
-                'arxiv':
-                    Use the arxiv ID contained in each publication's citation.
-                    Requires some extra work to identify relevant papers.
+                'from_citation':
+                    Use the information contained in each publication's citation
+                    for an identifier.
+                    Requires some extra work to parse the output.
 
             skip_unofficial (bool):
                 If True don't try to retrieve ADS data for unofficial publications.
@@ -700,15 +701,17 @@ class Atlas( object ):
         if identifier == 'key_as_bibcode' or identifier == 'bibcode':
             identifier = 'bibcode'
             # For later downloading
-            if identifier not in fl:
-                fl.append( identifier )
-        elif identifier == 'arxiv':
+            if 'bibcode' not in fl:
+                fl.append( 'bibcode' )
+        else:
             if 'identifier' not in fl:
                 fl.append( 'identifier' )
 
         # Create the ID list
-        ids = []
+        qs = []
         data_keys = []
+        ids = []
+        identifiers = []
         for key, item in self.data.items():
 
             # Skip unofficial publications
@@ -722,105 +725,120 @@ class Atlas( object ):
             data_keys.append( key )
 
             if identifier == 'bibcode':
+                qs.append( 'bibcode:"{}"'.format( key ) ) 
                 ids.append( key )
+                identifiers.append( 'bibcode' )
 
-            elif identifier == 'arxiv':
+            elif identifier == 'from_citation':
+                q, ident, id = utils.citation_to_ads_call( item.citation )
+                qs.append( q )
+                ids.append( id )
+                identifiers.append( ident )
 
-                if 'arxivid' in item.citation:
-                    ids.append( item.citation['arxivid'] )
-                    continue
-
-                if 'eprint' in item.citation and 'eprinttype' in item.citation:                        
-                    if item.citation['eprinttype'] == 'arxiv':
-                        ids.append( item.citation['eprint'] )
-                        continue
-
-                ids.append( 'NULL' )
             else:
                 raise KeyError( 'Unrecognized identifier, {}'.format( identifier ))
 
         # Exit early if no ids to call
-        if len( ids ) == 0:
+        if len( qs ) == 0:
             print( 'No publications need to/are able to retrieve ads data.' )
             return
 
         # Build query strings
-        ids_str = ''
         n_pubs = 0
-        ids_strs = []
-        for i, id in enumerate( ids ):
+        queries = []
+        queries_i = {
+            'search_str': '',
+            'data_keys': [],
+            'ids': [],
+            'identifiers': [],
+        }
+        for i, q_i in enumerate( qs ):
 
             if id == 'NULL':
                 continue
 
-            ids_str += '{}:"{}"'.format( identifier, id )
+            # Pair up
+            queries_i['search_str'] += q_i
+            queries_i['data_keys'].append( data_keys[i] )
+            queries_i['ids'].append( ids[i] )
+            queries_i['identifiers'].append( identifiers[i] )
             n_pubs += 1
 
             # Break conditions
-            end = i + 1 >= len( ids )
+            end = i + 1 >= len( qs )
             max_pubs = n_pubs >= publications_per_request
-            max_chars = len( ids_str ) >= characters_per_request
+            max_chars = len( queries_i['search_str'] ) >= characters_per_request
             if end:
-                ids_strs.append( ids_str )
+                queries.append( queries_i )
                 break
             if max_pubs or max_chars:
-                ids_strs.append( ids_str )
+                queries.append( queries_i )
                 n_pubs = 0
-                ids_str = ''
+                queries_i = {
+                    'search_str': '',
+                    'data_keys': [],
+                    'ids': [],
+                    'identifiers': [],
+                }
                 continue
 
-            ids_str += ' OR '
+            queries_i['search_str'] += ' OR '
+
+        def set_ads_data( p, atlas_pub  ):
+            '''Store the atlas data.
+            '''
+
+            atlas_pub.ads_data = {}
+            for f in fl:
+                value = getattr( p, f )
+                atlas_pub.ads_data[f] = value
+                attr_f = copy.copy( f )
+                if attr_f == 'citation' or attr_f == 'reference':
+                    attr_f += 's'
+                setattr( atlas_pub, attr_f, value )
 
         # Query
-        print( '    Making {} ADS calls...'.format( len( ids_strs ) ) )
-        results = []
-        for ids_str in tqdm( ids_strs ):
-            q = ads.SearchQuery(
+        print( '    Making {} ADS calls...'.format( len( queries ) ) )
+        for queries_i in tqdm( queries ):
+            ads_query = ads.SearchQuery(
                 query_dict={
-                    'q': ids_str,
+                    'q': queries_i['search_str'],
                     'fl': fl,
                     'rows': publications_per_request,
                 },
             )
-            results += list( q )
+            pubs = list( ads_query )
 
-        # Collate results
-        if identifier == 'arxiv':
-            def key_fn( result ):
-                '''Need a special key fn for arxiv ID because it's not
-                easily accessible in the returned ADS results. Need to hunt
-                it down in a list of possible identifiers.'''
-                for _ in result.identifier:
-                    if _[:6] == 'arXiv:':
-                        return _[6:]
-        else:
-            key_fn = lambda x: getattr( x, identifier )
-        result_dict = {}
-        for result in results:
-            result_dict[key_fn(result)] = result
+            # Identify and update
+            for i, key in enumerate( queries_i['data_keys'] ):
+                id = queries_i['ids'][i]
+                atlas_pub = self.data[key]
 
-        # Assign properties
-        for i, id in enumerate( ids ):
-            item = self.data[data_keys[i]]
+                # Match the publication
+                found = False
+                for p in pubs:
+                    if identifier == 'bibcode':
+                        if key == p.bibcode:
+                            found = True
+                    elif identifier == 'from_citation':
+                        for id_p in p.identifier:
+                            if id in id_p:
+                                found = True
+                    if found: break
 
-            # Handle missing publications
-            if id == 'NULL':
-                continue
+                # Don't try to update if no matching publication was found
+                if not found:
+                    continue
 
-            item.ads_data = {}
-            for f in fl:
-                try:
-                    value = getattr( result_dict[id], f )
-                # Some IDs may fail
-                except KeyError:
-                    ids[i] = 'NULL'
-                    del item.ads_data
-                    break
-                item.ads_data[f] = value
-                attr_f = copy.copy( f )
-                if attr_f == 'citation' or attr_f == 'reference':
-                    attr_f += 's'
-                setattr( item, attr_f, value )
+                # Store
+                atlas_pub.ads_data = {}
+                for f in fl:
+                    value = getattr( p, f )
+                    atlas_pub.ads_data[f] = value
+                    attr_f = copy.copy( f )
+                    if attr_f == 'citation' or attr_f == 'reference':
+                        attr_f += 's'
+                    setattr( atlas_pub, attr_f, value )
 
     ########################################################################
 

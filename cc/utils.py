@@ -220,25 +220,32 @@ def citation_to_ads_call( citation ):
     Returns:
         q (str):
             String to be used as a query for ADS.
+
+        ident (str):
+            Type of identifier used.
+
+        id (str):
+            ID used.
     '''
 
     if 'doi' in citation:
-        q = 'doi:"{}"'.format( citation['doi'] )
+        ident = 'doi'
+        id = citation['doi']
     elif 'eprint' in citation:
-
         # When we can, check that the eprint is of the correct type
         if 'eprinttype' in citation:
             assert citation['eprinttype'] == 'arxiv'
 
-        eprint_id = citation['eprint']
+        ident = 'arxiv'
+        id = citation['eprint']
 
         # If an updated version of the publication
-        if 'v' in eprint_id:
-            eprint_id = eprint_id.split( 'v' )[0]
+        if 'v' in id:
+            id = id.split( 'v' )[0]
 
-        q = 'arxiv:"{}"'.format( eprint_id )
+    q = '{}:"{}"'.format( ident, id )
 
-    return q
+    return q, ident, id
 
 ########################################################################
 

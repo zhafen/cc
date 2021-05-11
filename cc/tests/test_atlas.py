@@ -198,7 +198,7 @@ class TestRealisticAtlas( unittest.TestCase ):
         a = atlas.Atlas( self.atlas_dir, )
 
         # Process abstracts
-        a.process_abstracts( identifier='arxiv' )
+        a.process_abstracts( identifier='from_citation' )
 
         # Check completeness
         successes = []
@@ -229,7 +229,7 @@ class TestRealisticAtlas( unittest.TestCase ):
         a = atlas.Atlas( self.atlas_dir, bibtex_entries_to_load=[ cite_key, ] )
         assert list( a.data.keys() ) == [ cite_key, ]
 
-        a.process_abstracts( identifier='arxiv' )
+        a.process_abstracts( identifier='from_citation' )
 
         assert a[cite_key].abstract_str() != ''
 
