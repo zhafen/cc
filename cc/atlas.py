@@ -754,9 +754,6 @@ class Atlas( object ):
         }
         for i, q_i in enumerate( qs ):
 
-            if id == 'NULL':
-                continue
-
             # Pair up
             queries_i['search_str'] += q_i
             queries_i['data_keys'].append( data_keys[i] )

@@ -66,7 +66,7 @@ class TestAPIUsage( unittest.TestCase ):
     
     def test_get_ads_data( self ):
 
-        self.a.get_ads_data( identifier='arxiv', skip_unofficial=False )
+        self.a.get_ads_data( identifier='from_citation', skip_unofficial=False )
 
 ########################################################################
     
@@ -78,7 +78,7 @@ class TestAPIUsage( unittest.TestCase ):
             conditions = { 'tcool/tff': np.array([ -np.inf, 10. ]) }
         )
 
-        self.a.get_ads_data( identifier='arxiv' )
+        self.a.get_ads_data( identifier='from_citation' )
 
 ########################################################################
 
@@ -588,7 +588,7 @@ class TestAtlasData( unittest.TestCase ):
         a_copy = copy.deepcopy( self.a )
 
         # Get the data
-        self.a.process_abstracts( identifier='arxiv' )
+        self.a.process_abstracts( identifier='from_citation' )
 
         # Compare to the inefficient way
         # We don't want to use the abstracts contained in the citation
@@ -750,7 +750,7 @@ class TestConceptProjection( unittest.TestCase ):
             os.remove( fp )
 
         # Test
-        self.a.process_abstracts( identifier='arxiv' )
+        self.a.process_abstracts( identifier='from_citation' )
         cp = self.a.concept_projection()
 
         # The dimensions of the concept projection
@@ -831,7 +831,7 @@ class TestConceptProjection( unittest.TestCase ):
             os.remove( fp )
 
         # Test
-        self.a.process_abstracts( identifier='arxiv' )
+        self.a.process_abstracts( identifier='from_citation' )
         self.a.data.process_bibtex_annotations()
         cp = self.a.concept_projection()
 
@@ -867,7 +867,7 @@ class TestConceptProjection( unittest.TestCase ):
             os.remove( fp )
 
         # Test
-        self.a.process_abstracts( identifier='arxiv' )
+        self.a.process_abstracts( identifier='from_citation' )
         point_a = (
             'A robust outcome of thermal instability/precipitation ' \
             'models is that the gaseous halos (and coronae) in general ' \

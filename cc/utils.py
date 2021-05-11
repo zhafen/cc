@@ -242,6 +242,8 @@ def citation_to_ads_call( citation ):
         # If an updated version of the publication
         if 'v' in id:
             id = id.split( 'v' )[0]
+    else:
+        raise Exception( 'No valid identifier found.' )
 
     q = '{}:"{}"'.format( ident, id )
 
