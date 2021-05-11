@@ -216,6 +216,13 @@ def citation_to_ads_call( citation ):
 
     if 'doi' in citation:
         q = 'doi:"{}"'.format( citation['doi'] )
+    elif 'eprint' in citation:
+
+        # When we can, check that the eprint is of the correct type
+        if 'eprinttype' in citation:
+            assert citation['eprinttype'] == 'arxiv'
+
+        q = 'arxiv:"{}"'.format( citation['eprint'] )
 
     return q
 
