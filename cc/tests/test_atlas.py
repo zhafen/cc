@@ -214,7 +214,9 @@ class TestRealisticAtlas( unittest.TestCase ):
         # Cases I've set up individual checks for
         assert 'VandeVoort2012a' in successes
 
-        assert n_abstracts == len( a.data )
+        assert len( successes ) == len( a.data )
+
+        assert False, "Need to check full bibliography is loaded."
 
     ########################################################################
 
@@ -227,7 +229,7 @@ class TestRealisticAtlas( unittest.TestCase ):
         a = atlas.Atlas( self.atlas_dir, bibtex_entries_to_load=[ cite_key, ] )
         assert list( a.data.keys() ) == [ cite_key, ]
 
-        a.process_abstracts()
+        a.process_abstracts( identifier='arxiv' )
 
         assert a[cite_key].abstract_str() != ''
 
