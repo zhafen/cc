@@ -212,6 +212,14 @@ def tokenize_and_sort_text( text, tag_mapping=None ):
 def citation_to_ads_call( citation ):
     '''Given a dictionary containing a citation return a string that,
     when sent to ADS, will give a unique result.
+
+    Args:
+        citation (dict):
+            Dictionary containing the citation information for a publication.
+
+    Returns:
+        q (str):
+            String to be used as a query for ADS.
     '''
 
     if 'doi' in citation:
@@ -222,7 +230,13 @@ def citation_to_ads_call( citation ):
         if 'eprinttype' in citation:
             assert citation['eprinttype'] == 'arxiv'
 
-        q = 'arxiv:"{}"'.format( citation['eprint'] )
+        eprint_id = citation['eprint']
+
+        # If an updated version of the publication
+        if 'v' in eprint_id:
+            eprint_id = eprint_id.split( 'v' )[0]
+
+        q = 'arxiv:"{}"'.format( eprint_id )
 
     return q
 

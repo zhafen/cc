@@ -55,3 +55,17 @@ class TestCitationToADS( unittest.TestCase ):
         p = pubs[0]
 
         assert '10.1111/j.1365-2966.2012.20949.x' in p.identifier
+
+    ########################################################################
+
+    def test_arxiv_vnonzero( self ):
+
+        del self.citation['doi']
+
+        q = utils.citation_to_ads_call( self.citation )
+
+        pubs = utils.ads_query( q )
+        assert len( pubs ) == 1
+        p = pubs[0]
+
+        assert '10.1111/j.1365-2966.2012.20949.x' in p.identifier
