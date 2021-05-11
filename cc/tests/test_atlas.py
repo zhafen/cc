@@ -195,7 +195,8 @@ class TestRealisticAtlas( unittest.TestCase ):
     def test_basic_pipeline( self ):
 
         # Load
-        a = atlas.Atlas( self.atlas_dir, )
+        bibtex_fp = os.path.join( self.atlas_dir, 'zotero.bib' )
+        a = atlas.Atlas( self.atlas_dir, bibtex_fp=bibtex_fp)
 
         # Process abstracts
         a.process_abstracts( identifier='from_citation' )
@@ -227,7 +228,12 @@ class TestRealisticAtlas( unittest.TestCase ):
         cite_key = 'VandeVoort2012a'
 
         # Load and make into a mini atlas
-        a = atlas.Atlas( self.atlas_dir, bibtex_entries_to_load=[ cite_key, ] )
+        bibtex_fp = os.path.join( self.atlas_dir, 'vandevoort2012.bib' )
+        a = atlas.Atlas(
+            self.atlas_dir,
+            bibtex_fp = bibtex_fp,
+            bibtex_entries_to_load = [cite_key, ]
+        )
         assert list( a.data.keys() ) == [ cite_key, ]
 
         a.process_abstracts( identifier='from_citation' )
@@ -242,7 +248,12 @@ class TestRealisticAtlas( unittest.TestCase ):
         cite_key = 'Chen2005'
 
         # Load and make into a mini atlas
-        a = atlas.Atlas( self.atlas_dir, bibtex_entries_to_load=[ cite_key, ] )
+        bibtex_fp = os.path.join( self.atlas_dir, 'chen2005.bib' )
+        a = atlas.Atlas(
+            self.atlas_dir,
+            bibtex_fp = bibtex_fp,
+            bibtex_entries_to_load = [cite_key, ]
+        )
         assert list( a.data.keys() ) == [ cite_key, ]
 
         a.process_abstracts( identifier='from_citation' )
