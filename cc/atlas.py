@@ -85,7 +85,7 @@ class Atlas( object ):
     ########################################################################
 
     def __repr__( self ):
-        return 'cc.atlas.Atlas:{}'.format( atlas_dir )
+        return 'cc.atlas.Atlas:{}'.format( self.atlas_dir )
 
     def __repr__( self ):
         return 'Atlas'
