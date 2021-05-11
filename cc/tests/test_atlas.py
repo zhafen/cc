@@ -213,6 +213,7 @@ class TestRealisticAtlas( unittest.TestCase ):
 
         # Cases I've set up individual checks for
         assert 'VandeVoort2012a' in successes
+        assert 'Chen2005' in successes
 
         assert len( successes ) == len( a.data )
 
@@ -224,6 +225,21 @@ class TestRealisticAtlas( unittest.TestCase ):
         '''Individual case prone to breaking.'''
 
         cite_key = 'VandeVoort2012a'
+
+        # Load and make into a mini atlas
+        a = atlas.Atlas( self.atlas_dir, bibtex_entries_to_load=[ cite_key, ] )
+        assert list( a.data.keys() ) == [ cite_key, ]
+
+        a.process_abstracts( identifier='from_citation' )
+
+        assert a[cite_key].abstract_str() != ''
+
+    ########################################################################
+
+    def test_chen2005( self ):
+        '''Individual case prone to breaking.'''
+
+        cite_key = 'Chen2005'
 
         # Load and make into a mini atlas
         a = atlas.Atlas( self.atlas_dir, bibtex_entries_to_load=[ cite_key, ] )

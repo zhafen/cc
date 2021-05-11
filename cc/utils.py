@@ -228,9 +228,11 @@ def citation_to_ads_call( citation ):
             ID used.
     '''
 
+    q = ''
     if 'doi' in citation:
         ident = 'doi'
         id = citation['doi']
+        q = '{}:"{}"'.format( ident, id )
     elif 'eprint' in citation:
         # When we can, check that the eprint is of the correct type
         if 'eprinttype' in citation:
@@ -242,10 +244,40 @@ def citation_to_ads_call( citation ):
         # If an updated version of the publication
         if 'v' in id:
             id = id.split( 'v' )[0]
-    else:
-        raise Exception( 'No valid identifier found.' )
 
-    q = '{}:"{}"'.format( ident, id )
+        q = '{}:"{}"'.format( ident, id )
+    # Search using multiple other identifiers
+    else:
+        ident = []
+        id = []
+        if 'author' in citation:
+            authors = citation['author'].split( ' and ' )
+            for author in authors:
+                # Space padding
+                if q!= '': q += ' '
+                ident.append( 'author' )
+                id.append( author )
+                q += 'author:"{}"'.format( author )
+        if 'volume' in citation:
+            # Space padding
+            if q!= '': q += ' '
+            ident.append( 'volume' )
+            id.append( citation['volume'] )
+            q += 'volume:"{}"'.format( citation['volume'] )
+        if 'pages' in citation:
+            # ADS only recognizes the first page.
+            ind_nondigit = np.argmin(
+                [ _.isdigit() for _ in citation['pages'] ]
+            )
+            starting_page = citation['pages'][:ind_nondigit]
+            # Space padding
+            if q!= '': q += ' '
+            ident.append( 'pages' )
+            id.append( starting_page )
+            q += 'page:"{}"'.format( starting_page )
+
+    if q == '':
+        raise Exception( 'No valid identifiers found.' )
 
     return q, ident, id
 
