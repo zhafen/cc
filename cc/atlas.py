@@ -663,11 +663,13 @@ class Atlas( object ):
 
     def get_ads_data(
         self,
-        fl = [ 'abstract', 'citation', 'reference', 'entry_date', ],
+        fl = [ 'abstract', 'citation', 'reference', 'entry_date',
+            'author', 'volume', 'page' ],
         publications_per_request = 300,
         characters_per_request = 3000,
         identifier = 'key_as_bibcode',
         skip_unofficial = True,
+        perform_noid_queries = True,
     ):
         '''Get the ADS data for all publications.
 
@@ -695,6 +697,9 @@ class Atlas( object ):
 
             skip_unofficial (bool):
                 If True don't try to retrieve ADS data for unofficial publications.
+
+            perform_noid_queries (bool):
+                Do individual queries for the publications missing a unique ID.
         '''
 
         # key_as_bibcode is an alias for bibcode
@@ -707,12 +712,17 @@ class Atlas( object ):
             if 'identifier' not in fl:
                 fl.append( 'identifier' )
 
-        # Create the ID list
-        qs = []
-        data_keys = []
-        ids = []
-        identifiers = []
-        for key, item in self.data.items():
+        # Build query strings
+        n_pubs = 0
+        queries = []
+        queries_noid = []
+        query_i = {
+            'search_str': '',
+            'data_keys': [],
+            'ids': [],
+            'identifiers': [],
+        }
+        for i, (key, item) in enumerate( self.data.items() ):
 
             # Skip unofficial publications
             if isinstance( item, publication.UnofficialPublication ) and skip_unofficial:
@@ -721,57 +731,45 @@ class Atlas( object ):
             if hasattr( item, 'ads_data' ):
                 continue
 
-            # For later matching up retrieved data
-            data_keys.append( key )
-
             if identifier == 'bibcode':
-                qs.append( 'bibcode:"{}"'.format( key ) ) 
-                ids.append( key )
-                identifiers.append( 'bibcode' )
+                q_i = 'bibcode:"{}"'.format( key )
+                id = key
+                ident = 'bibcode'
 
             elif identifier == 'from_citation':
-                q, ident, id = utils.citation_to_ads_call( item.citation )
-                qs.append( q )
-                ids.append( id )
-                identifiers.append( ident )
+                q_i, ident, id = utils.citation_to_ads_call( item.citation )
 
             else:
                 raise KeyError( 'Unrecognized identifier, {}'.format( identifier ))
 
-        # Exit early if no ids to call
-        if len( qs ) == 0:
-            print( 'No publications need to/are able to retrieve ads data.' )
-            return
+            # When we don't have a nice unique identifier
+            # we store separately to handle later.
+            if pd.api.types.is_list_like( ident ):
+                query_noid = {
+                    'search_str': q_i,
+                    'data_key': key,
+                }
+                queries_noid.append( query_noid )
+                continue
 
-        # Build query strings
-        n_pubs = 0
-        queries = []
-        queries_i = {
-            'search_str': '',
-            'data_keys': [],
-            'ids': [],
-            'identifiers': [],
-        }
-        for i, q_i in enumerate( qs ):
-
-            # Pair up
-            queries_i['search_str'] += q_i
-            queries_i['data_keys'].append( data_keys[i] )
-            queries_i['ids'].append( ids[i] )
-            queries_i['identifiers'].append( identifiers[i] )
+            # Store info about this particular query
+            query_i['search_str'] += q_i
+            query_i['data_keys'].append( key )
+            query_i['ids'].append( id )
+            query_i['identifiers'].append( ident )
             n_pubs += 1
 
             # Break conditions
-            end = i + 1 >= len( qs )
+            end = i + 1 == len( self.data )
             max_pubs = n_pubs >= publications_per_request
-            max_chars = len( queries_i['search_str'] ) >= characters_per_request
+            max_chars = len( query_i['search_str'] ) >= characters_per_request
             if end:
-                queries.append( queries_i )
+                queries.append( query_i )
                 break
             if max_pubs or max_chars:
-                queries.append( queries_i )
+                queries.append( query_i )
                 n_pubs = 0
-                queries_i = {
+                query_i = {
                     'search_str': '',
                     'data_keys': [],
                     'ids': [],
@@ -779,27 +777,20 @@ class Atlas( object ):
                 }
                 continue
 
-            queries_i['search_str'] += ' OR '
+            query_i['search_str'] += ' OR '
 
-        def set_ads_data( p, atlas_pub  ):
-            '''Store the atlas data.
-            '''
-
-            atlas_pub.ads_data = {}
-            for f in fl:
-                value = getattr( p, f )
-                atlas_pub.ads_data[f] = value
-                attr_f = copy.copy( f )
-                if attr_f == 'citation' or attr_f == 'reference':
-                    attr_f += 's'
-                setattr( atlas_pub, attr_f, value )
+        # Exit early if no ids to call
+        if len( queries ) == 0:
+            if  len( queries_noid ) == 0 and perform_noid_queries:
+                print( 'No publications need to/are able to retrieve ads data.' )
+                return
 
         # Query
         print( '    Making {} ADS calls...'.format( len( queries ) ) )
-        for queries_i in tqdm( queries ):
+        for query_i in tqdm( queries ):
             ads_query = ads.SearchQuery(
                 query_dict={
-                    'q': queries_i['search_str'],
+                    'q': query_i['search_str'],
                     'fl': fl,
                     'rows': publications_per_request,
                 },
@@ -807,8 +798,8 @@ class Atlas( object ):
             pubs = list( ads_query )
 
             # Identify and update
-            for i, key in enumerate( queries_i['data_keys'] ):
-                id = queries_i['ids'][i]
+            for i, key in enumerate( query_i['data_keys'] ):
+                id = query_i['ids'][i]
                 atlas_pub = self.data[key]
 
                 # Match the publication
@@ -818,16 +809,59 @@ class Atlas( object ):
                         if key == p.bibcode:
                             found = True
                     elif identifier == 'from_citation':
-                        for id_p in p.identifier:
-                            if id in id_p:
-                                found = True
+                        # Simple case
+                        if not pd.api.types.is_list_like( id ):
+                            for id_p in p.identifier:
+                                if id in id_p:
+                                    found = True
+                        # When there's not a single identifier
+                        else:
+                            pass
                     if found: break
 
                 # Don't try to update if no matching publication was found
                 if not found:
+                    warnings.warn(
+                        'No publications found for ' + \
+                        '{}. Skipping.'.format( key )
+                    )
                     continue
 
                 # Store
+                atlas_pub.ads_data = {}
+                for f in fl:
+                    value = getattr( p, f )
+                    atlas_pub.ads_data[f] = value
+                    attr_f = copy.copy( f )
+                    if attr_f == 'citation' or attr_f == 'reference':
+                        attr_f += 's'
+                    setattr( atlas_pub, attr_f, value )
+
+        # Query for publications without a single ID (so far)
+        if perform_noid_queries:
+            for query_noid in queries_noid:
+
+                key = query_noid['data_key']
+
+                ads_query = ads.SearchQuery(
+                    query_dict={
+                        'q': query_noid['search_str'],
+                        'fl': fl,
+                        'rows': publications_per_request,
+                    },
+                )
+                pubs = list( ads_query )
+
+                if len( pubs ) != 1:
+                    warnings.warn(
+                        'Multiple publications possible ' + \
+                        'for {}. Skipping.'.format( key )
+                    )
+                    continue
+                p = pubs[0]
+
+                # Store
+                atlas_pub = self.data[key]
                 atlas_pub.ads_data = {}
                 for f in fl:
                     value = getattr( p, f )

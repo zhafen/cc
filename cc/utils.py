@@ -266,10 +266,7 @@ def citation_to_ads_call( citation ):
             q += 'volume:"{}"'.format( citation['volume'] )
         if 'pages' in citation:
             # ADS only recognizes the first page.
-            ind_nondigit = np.argmin(
-                [ _.isdigit() for _ in citation['pages'] ]
-            )
-            starting_page = citation['pages'][:ind_nondigit]
+            starting_page = citation['pages'].split( '-' )[0]
             # Space padding
             if q!= '': q += ' '
             ident.append( 'pages' )
