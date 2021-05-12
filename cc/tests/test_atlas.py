@@ -217,20 +217,60 @@ class TestRealisticAtlas( unittest.TestCase ):
             'Riedl2006',
             'Hartigan1982',
             'Chan2017',
-            'Scheufel1999',
+            'Scheufele1999',
             'Anderson2016',
             'Turnbull1976',
             'Whittaker2000',
             'Runeson2006',
             'Coelho2017',
             'Varotsis2018',
+            'Kaplan1958',
+            'Pirker2015',
+            'Deterding2011',
+            'Reiners2015',
+            'Yarkoni2019',
+            'Hanes1940',
+            'Schilling2005',
+            'Price1976',
+            'Merton1968',
+            'Kluyver2016',
+            'Perez2007',
+            'DeSollaPrice1989',
+            'Vinkers2015',
+            'Fortunato2018',
+            'Sinatra2016',
+            'Strevens2003',
+            'Kitcher1990',
+            'steegenIncreasingTransparencyMultiverse2016',
+            'Shockley1957',
+            'Azoulay2011',
+            'Small1973',
+            'Stringer2010',
+            'Liu2013',
+            'Uzzi2005',
+            'Stringer2008',
+            'Falk-Krzesinski2011',
+            'Stokols2008',
+            'Fiore2008',
+            'CommitteeonFacilitatingInterdisciplinaryResearch2004',
+            'Fleming2001',
+            'Schilling2011',
+            'Cluley2012',
+            'JONES2009',
+            'Weitzman1998',
+            'westMisinformationScience2021',
         ]
         no_abstract_exists = [
             'Fox2017',
             'Smagorinsky1963',
+            'Whiteside1970',
         ]
-        expected_failures = sorted( not_in_ads + no_abstract_exists )
-        assert sorted( failures ) == expected_failures
+        expected_failures = not_in_ads + no_abstract_exists
+        unhandled = []
+        for i, key in enumerate( failures ):
+            if key not in expected_failures:
+                unhandled.append( key )
+        assert len( unhandled ) == 0
 
         assert False, "Need to check full bibliography is loaded."
 
