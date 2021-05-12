@@ -779,6 +779,27 @@ class Atlas( object ):
 
             query_i['search_str'] += ' OR '
 
+        def store_ads_data( atlas_pub, p ):
+
+            # Store
+            atlas_pub.ads_data = {}
+            for f in fl:
+                value = getattr( p, f )
+
+                # Formatting choice, abstract = None replaced
+                # with abstract = ''
+                if f == 'abstract' and value is None:
+                    value = ''
+
+                atlas_pub.ads_data[f] = value
+
+                attr_f = copy.copy( f )
+                if attr_f == 'citation' or attr_f == 'reference':
+                    attr_f += 's'
+                setattr( atlas_pub, attr_f, value )
+
+            return atlas_pub
+
         # Exit early if no ids to call
         if len( queries ) == 0:
             if  len( queries_noid ) == 0 and perform_noid_queries:
@@ -815,7 +836,7 @@ class Atlas( object ):
                         # Simple case
                         if not pd.api.types.is_list_like( id ):
                             for id_p in p.identifier:
-                                if id in id_p:
+                                if id.lower() in id_p.lower():
                                     found = True
                         # When there's not a single identifier
                         else:
@@ -829,16 +850,9 @@ class Atlas( object ):
                         '{}. Skipping.'.format( key )
                     )
                     continue
-
-                # Store
-                atlas_pub.ads_data = {}
-                for f in fl:
-                    value = getattr( p, f )
-                    atlas_pub.ads_data[f] = value
-                    attr_f = copy.copy( f )
-                    if attr_f == 'citation' or attr_f == 'reference':
-                        attr_f += 's'
-                    setattr( atlas_pub, attr_f, value )
+            
+                # Store the data
+                self.data[key] = store_ads_data( atlas_pub, p )
 
         # Query for publications without a single ID (so far)
         if perform_noid_queries:
@@ -863,16 +877,8 @@ class Atlas( object ):
                     continue
                 p = pubs[0]
 
-                # Store
-                atlas_pub = self.data[key]
-                atlas_pub.ads_data = {}
-                for f in fl:
-                    value = getattr( p, f )
-                    atlas_pub.ads_data[f] = value
-                    attr_f = copy.copy( f )
-                    if attr_f == 'citation' or attr_f == 'reference':
-                        attr_f += 's'
-                    setattr( atlas_pub, attr_f, value )
+                # Store the data
+                self.data[key] = store_ads_data( atlas_pub, p )
 
     ########################################################################
 

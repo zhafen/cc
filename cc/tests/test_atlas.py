@@ -212,14 +212,25 @@ class TestRealisticAtlas( unittest.TestCase ):
                     continue
             failures.append( key )
 
-        # Cases I've set up individual checks for
-        assert 'VandeVoort2012a' in successes
-        assert 'Chen2005' in successes
-        assert 'Petitjean1993' in successes
-
         # Ones not cataloged by ADS
-        expected_failures = [ 'Riedl2006', ]
-        assert failures == expected_failures
+        not_in_ads = [
+            'Riedl2006',
+            'Hartigan1982',
+            'Chan2017',
+            'Scheufel1999',
+            'Anderson2016',
+            'Turnbull1976',
+            'Whittaker2000',
+            'Runeson2006',
+            'Coelho2017',
+            'Varotsis2018',
+        ]
+        no_abstract_exists = [
+            'Fox2017',
+            'Smagorinsky1963',
+        ]
+        expected_failures = sorted( not_in_ads + no_abstract_exists )
+        assert sorted( failures ) == expected_failures
 
         assert False, "Need to check full bibliography is loaded."
 
@@ -343,6 +354,48 @@ class TestRealisticAtlas( unittest.TestCase ):
 
         assert a[cite_key].abstract_str() != ''
 
+    ########################################################################
+
+    def test_fox2017( self ):
+        '''Individual case prone to breaking.
+        This actually has no abstract.
+        '''
+
+        cite_key = 'Fox2017'
+
+        # Load and make into a mini atlas
+        bibtex_fp = os.path.join( self.atlas_dir, 'fox2017.bib' )
+        a = atlas.Atlas(
+            self.atlas_dir,
+            bibtex_fp = bibtex_fp,
+            bibtex_entries_to_load = [cite_key, ]
+        )
+        assert list( a.data.keys() ) == [ cite_key, ]
+
+        a.process_abstracts( identifier='from_citation' )
+
+        assert a[cite_key].abstract_str() == ''
+
+    ########################################################################
+
+    def test_ellison2018( self ):
+        '''Individual case prone to breaking.'''
+
+        cite_key = 'Ellison2018'
+
+        # Load and make into a mini atlas
+        bibtex_fp = os.path.join( self.atlas_dir, 'fox2017.bib' )
+        a = atlas.Atlas(
+            self.atlas_dir,
+            bibtex_fp = bibtex_fp,
+            bibtex_entries_to_load = [cite_key, ]
+        )
+        assert list( a.data.keys() ) == [ cite_key, ]
+
+        a.process_abstracts( identifier='from_citation' )
+
+        assert a[cite_key].abstract_str() != ''
+        
 ########################################################################
 
 class TestRandomAtlas( unittest.TestCase ):
