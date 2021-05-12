@@ -666,7 +666,7 @@ class Atlas( object ):
         fl = [ 'abstract', 'citation', 'reference', 'entry_date',
             'author', 'volume', 'page' ],
         publications_per_request = 300,
-        characters_per_request = 3000,
+        characters_per_request = 2900,
         identifier = 'key_as_bibcode',
         skip_unofficial = True,
         perform_noid_queries = True,
@@ -795,7 +795,10 @@ class Atlas( object ):
                     'rows': publications_per_request,
                 },
             )
-            pubs = list( ads_query )
+            try:
+                pubs = list( ads_query )
+            except:
+                pass
 
             # Identify and update
             for i, key in enumerate( query_i['data_keys'] ):
