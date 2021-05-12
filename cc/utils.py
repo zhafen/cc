@@ -253,22 +253,34 @@ def citation_to_ads_call( citation ):
         if 'author' in citation:
             authors = citation['author'].split( ' and ' )
             for author in authors:
+                # Handle when brackets are included
+                if '{' in author and '}' in author:
+                    author = author.replace( '{', '' )
+                    author = author.replace( '}', '' )
+                    author = author.split( ' ' )[0]
+
                 # Space padding
                 if q!= '': q += ' '
+
                 ident.append( 'author' )
                 id.append( author )
                 q += 'author:"{}"'.format( author )
+
         if 'volume' in citation:
             # Space padding
             if q!= '': q += ' '
+
             ident.append( 'volume' )
             id.append( citation['volume'] )
             q += 'volume:"{}"'.format( citation['volume'] )
+
         if 'pages' in citation:
             # ADS only recognizes the first page.
             starting_page = citation['pages'].split( '-' )[0]
+
             # Space padding
             if q!= '': q += ' '
+
             ident.append( 'pages' )
             id.append( starting_page )
             q += 'page:"{}"'.format( starting_page )

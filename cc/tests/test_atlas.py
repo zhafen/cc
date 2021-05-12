@@ -215,6 +215,7 @@ class TestRealisticAtlas( unittest.TestCase ):
         # Cases I've set up individual checks for
         assert 'VandeVoort2012a' in successes
         assert 'Chen2005' in successes
+        assert 'Petitjean1993' in successes
 
         assert len( successes ) == len( a.data )
 
