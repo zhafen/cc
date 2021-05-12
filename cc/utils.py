@@ -229,13 +229,7 @@ def citation_to_ads_call( citation ):
     '''
 
     q = ''
-    if 'doi' in citation:
-        # Weird edgecase where there are extra semicolons
-        id = citation['doi'].replace( ';', '' )
-
-        ident = 'doi'
-        q = '{}:"{}"'.format( ident, id )
-    elif 'eprint' in citation:
+    if 'eprint' in citation:
         # When we can, check that the eprint is of the correct type
         if 'eprinttype' in citation:
             assert citation['eprinttype'] == 'arxiv'
@@ -247,7 +241,17 @@ def citation_to_ads_call( citation ):
         if 'v' in id:
             id = id.split( 'v' )[0]
 
+        # If the id has the category in it
+        id = id.split( '/' )[-1]
+
         q = '{}:"{}"'.format( ident, id )
+
+    elif 'doi' in citation:
+        # Weird edgecase where there are extra semicolons
+        id = citation['doi'].replace( ';', '' )
+        ident = 'doi'
+        q = '{}:"{}"'.format( ident, id )
+
     # Search using multiple other identifiers
     else:
         ident = []
