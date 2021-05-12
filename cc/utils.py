@@ -241,8 +241,11 @@ def citation_to_ads_call( citation ):
         if 'v' in id:
             id = id.split( 'v' )[0]
 
-        # If the id has the category in it
-        id = id.split( '/' )[-1]
+        # If the id has the category in it we only want the part after the /
+        # but that's only if it's not the old type of arxiv ID
+        id_tail = id.split( '/' )[-1]
+        if '.' in id_tail:
+            id = id_tail
 
         q = '{}:"{}"'.format( ident, id )
 
