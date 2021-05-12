@@ -230,8 +230,10 @@ def citation_to_ads_call( citation ):
 
     q = ''
     if 'doi' in citation:
+        # Weird edgecase where there are extra semicolons
+        id = citation['doi'].replace( ';', '' )
+
         ident = 'doi'
-        id = citation['doi']
         q = '{}:"{}"'.format( ident, id )
     elif 'eprint' in citation:
         # When we can, check that the eprint is of the correct type

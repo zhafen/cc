@@ -281,6 +281,26 @@ class TestRealisticAtlas( unittest.TestCase ):
 
         assert a[cite_key].abstract_str() != ''
 
+    ########################################################################
+
+    def test_noterdaeme2012( self ):
+        '''Individual case prone to breaking.'''
+
+        cite_key = 'Noterdaeme2012'
+
+        # Load and make into a mini atlas
+        bibtex_fp = os.path.join( self.atlas_dir, 'noterdaeme2012.bib' )
+        a = atlas.Atlas(
+            self.atlas_dir,
+            bibtex_fp = bibtex_fp,
+            bibtex_entries_to_load = [cite_key, ]
+        )
+        assert list( a.data.keys() ) == [ cite_key, ]
+
+        a.process_abstracts( identifier='from_citation' )
+
+        assert a[cite_key].abstract_str() != ''
+
 ########################################################################
 
 class TestRandomAtlas( unittest.TestCase ):
