@@ -4,6 +4,7 @@ from collections import Counter
 import copy
 from tqdm import tqdm
 import glob
+import io
 import nltk
 from nltk.metrics import edit_distance
 import numpy as np
@@ -306,8 +307,13 @@ class Atlas( object ):
             print( 'Loading bibliography entries.' )
 
         # Load the database
-        with open( bibtex_fp ) as bibtex_file:
-            bib_database = bibtexparser.load(bibtex_file)
+        with open( bibtex_fp, 'r' ) as bibtex_file:
+            # Preprocess to get rid of characters that give the parser trouble
+            bibtex_file_str = bibtex_file.read()
+            bibtex_file_str = bibtex_file_str.replace( '\\}', '' ).replace( '\\{', '' )
+            used_file = io.StringIO( bibtex_file_str )
+
+            bib_database = bibtexparser.load( used_file )
 
         # Store into class
         if verbose:

@@ -198,6 +198,21 @@ class TestRealisticAtlas( unittest.TestCase ):
         bibtex_fp = os.path.join( self.atlas_dir, 'zotero.bib' )
         a = atlas.Atlas( self.atlas_dir, bibtex_fp=bibtex_fp)
 
+        # Open the bibliography to ensure nothing was skipped
+        with open( bibtex_fp, 'r' ) as bibfile:
+            bibfile_str = bibfile.read()
+        # Do our own basic parsing...
+        not_loaded = []
+        skipped_types = [ 'online', 'thesis' ]
+        for entry in bibfile_str.split( '\n@' )[1:]:
+            head = entry.split( ',' )[0]
+            entry_type, key = head.split( '{' )
+            if entry_type in skipped_types:
+                continue
+            if key not in a.data.keys():
+                not_loaded.append( key )
+        assert len( not_loaded ) == 0
+
         # Process abstracts
         a.process_abstracts( identifier='from_citation' )
 
@@ -212,7 +227,7 @@ class TestRealisticAtlas( unittest.TestCase ):
                     continue
             failures.append( key )
 
-        # Ones not cataloged by ADS
+        # There are some failures that are expected
         not_in_ads = [
             'Riedl2006',
             'Hartigan1982',
@@ -272,7 +287,28 @@ class TestRealisticAtlas( unittest.TestCase ):
                 unhandled.append( key )
         assert len( unhandled ) == 0
 
-        assert False, "Need to check full bibliography is loaded."
+    ########################################################################
+
+    def test_sanchez2018( self ):
+        '''Individual case prone to breaking.
+        In this case, the "\}" in the abstract of the paper is what's causing
+        the crash for some reason...
+        '''
+
+        cite_key = 'Sanchez2018'
+
+        # Load and make into a mini atlas
+        bibtex_fp = os.path.join( self.atlas_dir, 'hummels2016.bib' )
+        a = atlas.Atlas(
+            self.atlas_dir,
+            bibtex_fp = bibtex_fp,
+            bibtex_entries_to_load = [cite_key, ]
+        )
+        assert list( a.data.keys() ) == [ cite_key, ]
+
+        a.process_abstracts( identifier='from_citation' )
+
+        assert a[cite_key].abstract_str() != ''
 
     ########################################################################
 
