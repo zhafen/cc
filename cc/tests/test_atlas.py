@@ -217,7 +217,9 @@ class TestRealisticAtlas( unittest.TestCase ):
         assert 'Chen2005' in successes
         assert 'Petitjean1993' in successes
 
-        assert len( successes ) == len( a.data )
+        # Ones not cataloged by ADS
+        expected_failures = [ 'Riedl2006', ]
+        assert failures == expected_failures
 
         assert False, "Need to check full bibliography is loaded."
 
