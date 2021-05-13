@@ -232,7 +232,11 @@ def citation_to_ads_call( citation ):
     if 'eprint' in citation:
         # When we can, check that the eprint is of the correct type
         if 'eprinttype' in citation:
-            assert citation['eprinttype'] == 'arxiv'
+            assert citation['eprinttype'] == 'arxiv', \
+                'eprinttype={} eprint={}'.format(
+                citation['eprinttype'],
+                citation['eprint']
+            )
 
         ident = 'arxiv'
         id = citation['eprint']
