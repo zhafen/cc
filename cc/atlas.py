@@ -311,9 +311,9 @@ class Atlas( object ):
             # Preprocess to get rid of characters that give the parser trouble
             bibtex_file_str = bibtex_file.read()
             bibtex_file_str = bibtex_file_str.replace( '\\}', '' ).replace( '\\{', '' )
-            used_file = io.StringIO( bibtex_file_str )
+            bibtex_file = io.StringIO( bibtex_file_str )
 
-            bib_database = bibtexparser.load( used_file )
+            bib_database = bibtexparser.load( bibtex_file )
 
         # Store into class
         if verbose:
@@ -723,7 +723,7 @@ class Atlas( object ):
         queries = []
         queries_noid = []
         query_i = {
-            'search_str': '',
+            'search_strs': [],
             'data_keys': [],
             'ids': [],
             'identifiers': [],
@@ -732,43 +732,46 @@ class Atlas( object ):
 
             # Skip unofficial publications
             if isinstance( item, publication.UnofficialPublication ) and skip_unofficial:
-                continue
+                pass
 
-            if hasattr( item, 'ads_data' ):
-                continue
-
-            if identifier == 'bibcode':
-                q_i = 'bibcode:"{}"'.format( key )
-                id = key
-                ident = 'bibcode'
-
-            elif identifier == 'from_citation':
-                q_i, ident, id = utils.citation_to_ads_call( item.citation )
+            # Skip publications we have data for
+            elif hasattr( item, 'ads_data' ):
+                pass
 
             else:
-                raise KeyError( 'Unrecognized identifier, {}'.format( identifier ))
+                if identifier == 'bibcode':
+                    q_i = 'bibcode:"{}"'.format( key )
+                    id = key
+                    ident = 'bibcode'
 
-            # When we don't have a nice unique identifier
-            # we store separately to handle later.
-            if pd.api.types.is_list_like( ident ):
-                query_noid = {
-                    'search_str': q_i,
-                    'data_key': key,
-                }
-                queries_noid.append( query_noid )
-                continue
+                elif identifier == 'from_citation':
+                    q_i, ident, id = utils.citation_to_ads_call( item.citation )
 
-            # Store info about this particular query
-            query_i['search_str'] += q_i
-            query_i['data_keys'].append( key )
-            query_i['ids'].append( id )
-            query_i['identifiers'].append( ident )
-            n_pubs += 1
+                else:
+                    raise KeyError( 'Unrecognized identifier, {}'.format( identifier ))
+
+                # When we don't have a nice unique identifier
+                # we store separately to handle later.
+                if pd.api.types.is_list_like( ident ):
+                    query_noid = {
+                        'search_str': q_i,
+                        'data_key': key,
+                    }
+                    queries_noid.append( query_noid )
+                    continue
+
+                # Store info about this particular query
+                query_i['search_strs'].append( q_i )
+                query_i['data_keys'].append( key )
+                query_i['ids'].append( id )
+                query_i['identifiers'].append( ident )
+                n_pubs += 1
 
             # Break conditions
             end = i + 1 == len( self.data )
             max_pubs = n_pubs >= publications_per_request
-            max_chars = len( query_i['search_str'] ) >= characters_per_request
+            num_chars = len( ' OR '.join( query_i['search_strs'] ) )
+            max_chars = num_chars >= characters_per_request
             if end:
                 queries.append( query_i )
                 break
@@ -776,14 +779,12 @@ class Atlas( object ):
                 queries.append( query_i )
                 n_pubs = 0
                 query_i = {
-                    'search_str': '',
+                    'search_strs': [],
                     'data_keys': [],
                     'ids': [],
                     'identifiers': [],
                 }
                 continue
-
-            query_i['search_str'] += ' OR '
 
         def store_ads_data( atlas_pub, p ):
 
@@ -815,17 +816,15 @@ class Atlas( object ):
         # Query
         print( '    Making {} ADS calls...'.format( len( queries ) ) )
         for query_i in tqdm( queries ):
+            search_str = ' OR '.join( query_i['search_strs'] )
             ads_query = ads.SearchQuery(
                 query_dict={
-                    'q': query_i['search_str'],
+                    'q': search_str,
                     'fl': fl,
                     'rows': publications_per_request,
                 },
             )
-            try:
-                pubs = list( ads_query )
-            except:
-                pass
+            pubs = list( ads_query )
 
             # Identify and update
             for i, key in enumerate( query_i['data_keys'] ):
@@ -862,7 +861,12 @@ class Atlas( object ):
 
         # Query for publications without a single ID (so far)
         if perform_noid_queries:
-            for query_noid in queries_noid:
+            print(
+                '    Making {} ADS calls for publications without IDs...'.format(
+                    len( queries_noid ),
+                )
+            )
+            for query_noid in tqdm( queries_noid ):
 
                 key = query_noid['data_key']
 

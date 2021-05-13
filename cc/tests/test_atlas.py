@@ -9,6 +9,7 @@ import unittest
 import warnings
 
 import cc.atlas as atlas
+import cc.cartography as cartography
 import cc.publication as publication
 
 import verdict
@@ -213,6 +214,22 @@ class TestRealisticAtlas( unittest.TestCase ):
                 not_loaded.append( key )
         assert len( not_loaded ) == 0
 
+        # Add in an unofficial publication or two
+        a.add_unpub(
+            'Unofficial2021',
+            'Cats are truly amazing, and better than galaxies often.',
+            [ 'Hafen', 'Saavedra', 'maybe-Alex' ],
+        )
+        a.add_unpub(
+            'Unofficial2021',
+            'Dogs are also not bad.',
+        )
+        a.add_unpub(
+            'Unofficial+in prep',
+            'Lizards, sure?',
+            [ 'But what about Lizards+in prep', ]
+        )
+
         # Process abstracts
         a.process_abstracts( identifier='from_citation' )
 
@@ -286,6 +303,12 @@ class TestRealisticAtlas( unittest.TestCase ):
             if key not in expected_failures:
                 unhandled.append( key )
         assert len( unhandled ) == 0
+
+        # Save
+        a.save_data()
+
+        # Calculate concept projection
+        cp_dict = a.concept_projection()
 
     ########################################################################
 
@@ -467,6 +490,42 @@ class TestRealisticAtlas( unittest.TestCase ):
             bibtex_entries_to_load = [cite_key, ]
         )
         assert list( a.data.keys() ) == [ cite_key, ]
+
+        a.process_abstracts( identifier='from_citation' )
+
+        assert a[cite_key].abstract_str() != ''
+
+    ########################################################################
+
+    def test_danovich2012( self ):
+        '''Individual case prone to breaking.'''
+
+        cite_key = 'danovich2012'
+
+        # Load and make into a mini atlas
+        bibtex_fp = os.path.join( self.atlas_dir, 'danovich2012.bib' )
+        a = atlas.Atlas(
+            self.atlas_dir,
+            bibtex_fp = bibtex_fp,
+            bibtex_entries_to_load = [cite_key, ]
+        )
+        assert list( a.data.keys() ) == [ cite_key, ]
+
+        # Add in an unofficial publication or two
+        a.add_unpub(
+            'Unofficial2021',
+            'Cats are truly amazing, and better than galaxies often.',
+            [ 'Hafen', 'Saavedra', 'maybe-Alex' ],
+        )
+        a.add_unpub(
+            'Unofficial2021',
+            'Dogs are also not bad.',
+        )
+        a.add_unpub(
+            'Unofficial+in prep',
+            'Lizards, sure?',
+            [ 'But what about Lizards+in prep', ]
+        )
 
         a.process_abstracts( identifier='from_citation' )
 
