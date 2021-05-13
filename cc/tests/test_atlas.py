@@ -4,6 +4,7 @@ import numpy as np
 import numpy.testing as npt
 import os
 import pandas as pd
+import pytest
 import shutil
 import unittest
 import warnings
@@ -186,13 +187,14 @@ class TestRealisticAtlas( unittest.TestCase ):
         self.atlas_dir = './tests/data/realistic_atlas'
 
     def tearDown( self ):
-        for f in [ 'atlas.h5', 'projection.h5', ]:
+        for f in [ 'atlas_data.h5', 'projection.h5', ]:
             fp = os.path.join( self.atlas_dir, f )
             if os.path.exists( fp ):
                 os.remove( fp )
 
     ########################################################################
 
+    @pytest.mark.slow
     def test_basic_pipeline( self ):
 
         # Load
@@ -297,7 +299,14 @@ class TestRealisticAtlas( unittest.TestCase ):
             'Smagorinsky1963',
             'Whiteside1970',
         ]
-        expected_failures = not_in_ads + no_abstract_exists
+        unofficial = [
+            'Hafen:Unofficial2021',
+            'Saavedra:Unofficial2021',
+            'maybe-Alex:Unofficial2021',
+            'Unofficial2021',
+            'But what about Lizardsin prep:Unofficial+in prep',
+        ]
+        expected_failures = not_in_ads + no_abstract_exists + unofficial
         unhandled = []
         for i, key in enumerate( failures ):
             if key not in expected_failures:
@@ -305,10 +314,18 @@ class TestRealisticAtlas( unittest.TestCase ):
         assert len( unhandled ) == 0
 
         # Save
-        a.save_data()
+        # a.save_data()
 
         # Calculate concept projection
         cp_dict = a.concept_projection()
+
+        unhandled = []
+        expected_failures = not_in_ads + no_abstract_exists
+        for key in a.data.keys():
+            if key not in cp_dict['publications']:
+                if key not in expected_failures:
+                    unhandled.append( key )
+        assert len( unhandled ) == 0
 
     ########################################################################
 
