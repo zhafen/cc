@@ -879,9 +879,15 @@ class Atlas( object ):
                 )
                 pubs = list( ads_query )
 
-                if len( pubs ) != 1:
+                if len( pubs ) > 1:
                     warnings.warn(
                         'Multiple publications possible ' + \
+                        'for {}. Skipping.'.format( key )
+                    )
+                    continue
+                elif len( pubs ) == 0:
+                    warnings.warn(
+                        'No publications found ' + \
                         'for {}. Skipping.'.format( key )
                     )
                     continue
