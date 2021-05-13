@@ -884,7 +884,7 @@ class Atlas( object ):
                 p = pubs[0]
 
                 # Store the data
-                self.data[key] = store_ads_data( atlas_pub, p )
+                self.data[key] = store_ads_data( self.data[key], p )
 
     ########################################################################
 
