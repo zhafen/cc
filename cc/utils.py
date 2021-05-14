@@ -135,12 +135,15 @@ def match_words( a, b, max_edit_distance=2, min_len_ed=5, stemmed=False ):
 
 ########################################################################
 
-def stem( l ):
+def stem( l, unique=True ):
     '''Stem the words in a list of words.
     
     Args:
         l (list of strs):
             The words to stem.
+
+        unique (bool):
+            If True return the unique, sorted stemmed words.
 
     Returns:
         sl (list of strs):
@@ -152,7 +155,8 @@ def stem( l ):
         words = nltk.word_tokenize( c )
         stemmed_words = [ s.stem( w ) for w in words ]
         sl.append( ' '.join( stemmed_words ) )
-    sl = np.array( list( set( sl ) ) )
+    if unique:
+        sl = np.array( list( set( sl ) ) )
     return sl
 
 ########################################################################
