@@ -8,6 +8,23 @@ import cc.relation as relation
 
 ########################################################################
 
+class TestConceptProjection( unittest.TestCase ):
+
+    def test_concept_projection( self ):
+
+        words = [ 'dog', 'cat', 'wolf', 'parrot', 'bird' ]
+        values, comp_concepts = relation.concept_projection(
+            words,
+        )
+
+        # Should be no 0s
+        assert values.min() > 0
+
+        for w in words:
+            assert w in comp_concepts
+
+########################################################################
+
 class TestInnerProduct( unittest.TestCase ):
 
     def test_inner_product( self ):

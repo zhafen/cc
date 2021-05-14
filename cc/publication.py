@@ -1,16 +1,12 @@
 import ads
 import bibtexparser
-import copy
 import nltk
-import numba
-from numba.typed import List
 import numpy as np
 import pandas as pd
 import warnings
 
 import augment
 
-from . import config
 from . import relation
 from . import tex
 from . import utils
@@ -566,9 +562,6 @@ class Publication( object ):
             notes_str += ' '.join( self.notes['uncategorized'] )
             sents += utils.tokenize_and_sort_text( notes_str )['primary_stemmed']
 
-        # Get the processed abstracts
-        self.process_abstract()
-
         # When the abstract failed to retrieve
         def upon_failure():
             if component_concepts is None:
@@ -577,59 +570,16 @@ class Publication( object ):
                 values = np.zeros( len( component_concepts ) )
                 return values, component_concepts
 
+        # Get the processed abstracts
+        self.process_abstract()
+
         if 'nltk' not in self.abstract: return upon_failure()
 
-        # Project for non-zero concepts
         sents += self.abstract['nltk']['primary_stemmed']
+
         if len( sents ) == 0: return upon_failure()
-        flattened = np.hstack( sents )
-        nonzero_concepts, values = np.unique( flattened, return_counts=True )
 
-        # Combine with existing component concepts
-        if component_concepts is not None:
-            @numba.njit
-            def combine(
-                original_concepts,
-                added_components,
-                added_concepts,
-            ):
-                # Store the concepts shared with other publications
-                dup_inds = List()
-                components = List()
-                component_concepts = List( original_concepts )
-                for i, ci in enumerate( original_concepts ):
-                    no_match = True
-                    for j, cj in enumerate( added_concepts ):
-                        # If a match is found
-                        if ci == cj:
-                            components.append( added_components[j] )
-                            dup_inds.append( j )
-                            no_match = False
-                            break
-                    # If made to the end of the loop with no match
-                    if no_match:
-                        components.append( 0 )
-
-                # Finish combining
-                for i in range( len( added_concepts ) ):
-                    if i in dup_inds:
-                        continue
-                    components.append( added_components[i] )
-                    component_concepts.append( added_concepts[i] )
-
-                return components, component_concepts
-
-            components, component_concepts = combine(
-                original_concepts = List( component_concepts ),
-                added_components = List( values ),
-                added_concepts = List( nonzero_concepts ),
-            )
-                
-        else:
-            components = values
-            component_concepts = nonzero_concepts
-
-        return components, component_concepts
+        return relation.concept_projection( sents, component_concepts )
 
     ########################################################################
     # Comparing to other publications
