@@ -513,8 +513,8 @@ class Publication( object ):
 
         # Points in the notes
         if hasattr( self, 'notes' ):
-            points += self.notes['key_points']
-            points += self.notes['uncategorized']
+            points += list( self.notes['key_points'] )
+            points += list( self.notes['uncategorized'] )
 
         # Points in the abstract
         points += nltk.sent_tokenize(

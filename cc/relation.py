@@ -103,11 +103,13 @@ def project_onto_existing(
 
         return components, component_concepts
 
-    return numba_fn(
+    components, component_concepts = numba_fn(
         List( original_concepts ),
         List( added_components ),
         List( added_concepts ),
     )
+
+    return np.array( components ), np.array( component_concepts )
 
 ########################################################################
 
