@@ -1,6 +1,5 @@
 import ads
 import bibtexparser
-from collections import Counter
 import copy
 from tqdm import tqdm
 import glob
@@ -13,7 +12,6 @@ import pandas as pd
 import re
 import warnings
 
-import matplotlib
 import matplotlib.pyplot as plt
 
 import augment

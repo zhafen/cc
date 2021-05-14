@@ -7,10 +7,8 @@ import pandas as pd
 import pytest
 import shutil
 import unittest
-import warnings
 
 import cc.atlas as atlas
-import cc.cartography as cartography
 import cc.publication as publication
 
 import verdict

@@ -1,7 +1,6 @@
 from mock import patch
 import numpy as np
 import numpy.testing as npt
-import os
 import unittest
 
 import cc.relation as relation

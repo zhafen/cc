@@ -2,7 +2,6 @@ from mock import patch
 import nltk
 import numpy as np
 import numpy.testing as npt
-import os
 import pytest
 import unittest
 
