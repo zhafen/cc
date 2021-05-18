@@ -583,7 +583,8 @@ class TestRandomAtlas( unittest.TestCase ):
         assert os.path.exists( self.atlas_dir )
 
         for key, item in a.data.items():
-            assert 'Astrophysics - Astrophysics of Galaxies' in item.citation['keywords']
+            check_a = 'Astrophysics - Astrophysics of Galaxies' in item.citation['keywords']
+            check_b = 'Astrophysics - Galaxy Astrophysics' in item.citation['keywords']
 
     ########################################################################
 

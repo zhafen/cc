@@ -403,11 +403,6 @@ def random_publications(
             for subcat in subcats:
                 search_str += ' OR arxiv_class:"astro-ph.{}"'.format( subcat )
 
-    # Build query
-    query_dict = dict(
-        fl = fl,
-    )
-
     pubs = []
     n_loops = 0
     pbar = tqdm.tqdm( total=n_sample )
@@ -436,6 +431,11 @@ def random_publications(
                 break
         random_date = '{}-{}-{}'.format( random_datetime.year, random_datetime.month, random_datetime.day )
 
+        # Build query
+        query_dict = dict(
+            fl = fl,
+        )
+
         if search_str == '':
             query_dict['entdate'] = random_date
             ads_query = ads.SearchQuery( **query_dict )
@@ -449,15 +449,7 @@ def random_publications(
             query_dict['q'] = search_str + ' entdate:[{} TO {}]'.format( random_date, random_date_end )
             ads_query = ads.SearchQuery( query_dict = query_dict )
 
-        # Sometimes the query_list breaks
-        try:
-            query_list = list( ads_query )
-        except IndexError:
-            bad_dates.append( random_datetime )
-            # Should only break in this scenario
-            assert ads_query._articles == []
-            continue
-        # In the event there are no papers on that day (e.g. a weekend or holiday.)
+        query_list = list( ads_query )
         if len( query_list ) == 0:
             empty_dates.append( random_datetime )
             continue
