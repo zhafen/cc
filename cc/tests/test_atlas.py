@@ -588,6 +588,20 @@ class TestRandomAtlas( unittest.TestCase ):
 
     ########################################################################
 
+    def test_astro_ga_only_min_loops( self ):
+
+        a = atlas.Atlas.random_atlas( self.atlas_dir, 3, seed=1234, start_time='2015', end_time='2016', arxiv_class='astro-ph.GA', max_loops=20 )
+        a.save_data()
+
+        assert len( a.data ) == 3
+        assert os.path.exists( self.atlas_dir )
+
+        for key, item in a.data.items():
+            check_a = 'Astrophysics - Astrophysics of Galaxies' in item.citation['keywords']
+            check_b = 'Astrophysics - Galaxy Astrophysics' in item.citation['keywords']
+
+    ########################################################################
+
     def test_astro_only( self ):
 
         a = atlas.Atlas.random_atlas( self.atlas_dir, 3, seed=12345, arxiv_class='astro-ph' )

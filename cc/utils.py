@@ -412,6 +412,10 @@ def random_publications(
     no_refs_or_cits = []
     while len( pubs ) < n_sample:
 
+        # Build query
+        query_dict = dict(
+            fl = fl,
+        )
 
         if n_loops > max_loops:
             tqdm.tqdm.write( 'Reached max number of loops, {}. Breaking.'.format( max_loops ) )
@@ -430,12 +434,6 @@ def random_publications(
             if random_datetime.day_name() not in bad_days_of_week:
                 break
         random_date = '{}-{}-{}'.format( random_datetime.year, random_datetime.month, random_datetime.day )
-
-        # Build query
-        query_dict = dict(
-            fl = fl,
-        )
-
         if search_str == '':
             query_dict['entdate'] = random_date
             ads_query = ads.SearchQuery( **query_dict )

@@ -144,12 +144,12 @@ class Atlas( object ):
 
         pubs = utils.random_publications(
             n_sample = n_sample,
-            fl = fl,
             start_time = start_time,
             end_time = end_time,
+            fl = fl,
+            arxiv_class = arxiv_class,
             seed = seed,
             max_loops = max_loops,
-            arxiv_class = arxiv_class,
         )
 
         if len( pubs ) != n_sample:
