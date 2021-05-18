@@ -88,7 +88,7 @@ class TestAPIUsage( unittest.TestCase ):
         for key, item in self.a.data.items():
             item.ads_data = { 'fake_dict': True }
 
-        self.a.get_ads_data( identifier='arxiv', )
+        self.a.get_ads_data( identifier='from_citation', )
 
         mock_search.assert_not_called()
 

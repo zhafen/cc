@@ -806,7 +806,7 @@ class Atlas( object ):
             return atlas_pub
 
         # Exit early if no ids to call
-        if len( queries ) == 0:
+        if len( queries ) == 1 and len( queries[0]['search_strs'] ) == 0:
             if  len( queries_noid ) == 0 and perform_noid_queries:
                 print( 'No publications need to/are able to retrieve ads data.' )
                 return
