@@ -575,7 +575,7 @@ class Publication( object ):
 
         if 'nltk' not in self.abstract: return upon_failure()
 
-        sents += self.abstract['nltk']['primary_stemmed']
+        sents += list( self.abstract['nltk']['primary_stemmed'] )
 
         if len( sents ) == 0: return upon_failure()
 

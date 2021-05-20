@@ -880,6 +880,7 @@ class TestAtlasData( unittest.TestCase ):
         for key, item in self.a.data.items():
             d[key] = {}
             d[key]['abstract'] = 'Fake abstract for {}'.format( key )
+        # Special case.
         d.to_hdf5( os.path.join( self.empty_dir, 'atlas_data.h5' ) )
 
         self.a.load_data()
@@ -887,6 +888,22 @@ class TestAtlasData( unittest.TestCase ):
         # Test
         for key, item in self.a.data.items():
             assert d[key]['abstract'] == self.a[key].abstract
+
+    ########################################################################
+
+    def test_load_data_concept_projection( self ):
+
+        # First load to alter data. Is assumed to work.
+        self.a.load_data()
+        for key, item in self.a.data.items():
+            self.a[key].process_abstract( 'Fake abstract for {}'.format( key ) )
+        self.a.save_data()
+
+        # Reload
+        self.a.load_data()
+
+        # Test that a loaded atlas can be used for a concept projection
+        self.a[key].concept_projection()
 
     ########################################################################
 
