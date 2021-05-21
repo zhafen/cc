@@ -145,6 +145,45 @@ class TestTextOverlap( unittest.TestCase ):
 
     ########################################################################
 
+    def test_publication_all( self ):
+
+        # Identify the right publications
+        ind_h = np.argmax( self.c.publications == 'Hafen2019' )
+        ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
+
+        h = self.c.components[ind_h,:]
+        v = self.c.components[ind_v,:]
+        shared = 0
+        for i, h_i in enumerate( h ):
+            if h_i > 0 and v[i] > 0:
+                shared += min( h_i, v[i] )
+
+        # Order one
+        expected = shared / h.sum()
+        actual = self.c.text_overlap(
+            'Hafen2019',
+            'all',
+        )
+        npt.assert_allclose( actual[ind_v], expected )
+
+        # Order two
+        expected = shared / v.sum()
+        actual = self.c.text_overlap(
+            'all',
+            'Hafen2019',
+        )
+        npt.assert_allclose( actual[ind_v], expected )
+
+        # Symmetric (geometric mean of lengths)
+        expected = shared / np.sqrt( v.sum() * h.sum() )
+        actual = self.c.symmetric_text_overlap(
+            'Hafen2019',
+            'all',
+        )
+        npt.assert_allclose( actual[ind_v], expected )
+
+    ########################################################################
+
     def test_publication_publication( self ):
 
         # Identify the right publications

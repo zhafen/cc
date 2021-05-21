@@ -164,9 +164,6 @@ class Cartographer( object ):
             result = np.dot( a, b )
         except ValueError:
             result = np.dot( b, a )
-        except TypeError:
-            #DEBUG
-            import pdb; pdb.set_trace()
 
         # Finish dot product
         if key_a == 'atlas' or key_b == 'atlas':
@@ -304,23 +301,47 @@ class Cartographer( object ):
             The amount of text overlap between a and b.
         '''
 
+        # Swap a and b since it doesn't matter anyways
+        if key_b != 'all' and key_a == 'all':
+            key_a, key_b = key_b, key_a
+            if norm == 'a': norm = 'b'
+            elif norm == 'b': norm = 'a'
+
+        # Find the objects the keys refer to
         def interpret_key( key ):
+            # A single publication
             if key in self.publications:
                 is_p = self.publications == key
                 return self.components[is_p][0]
-        
+            # The entire atlas
+            elif key == 'atlas' or key == 'all':
+                return self.components
         a = interpret_key( key_a )
         b = interpret_key( key_b )
-        is_shared = np.logical_and( a > 0, b > 0 )
-        
-        n_shared = np.min( np.array([ a, b ])[:,is_shared], axis=0 ).sum()
 
+        # Tile for compatibility
+        if key_b != 'all':
+            n_shared = np.min( np.array([ a, b ]), axis=0 ).sum()
+        else:
+            a_tiled = np.broadcast_to( a, b.shape )
+            min_arr = np.min( np.array([ a_tiled, b ]), axis=0 )
+            n_shared = min_arr.sum( axis=1 )
+
+        # Normalization
         if norm == 'a':
-            return n_shared / a.sum()
+            norm_value = a.sum()
         elif norm == 'b':
-            return n_shared / b.sum()
+            if key_b == 'all':
+                norm_value = b.sum( axis=1 )
+            else:
+                norm_value = b.sum()
         elif norm == 'geometric mean':
-            return n_shared / np.sqrt( a.sum() * b.sum() )
+            if key_b == 'all':
+                norm_value = np.sqrt( a.sum() * b.sum( axis=1 ) )
+            else:
+                norm_value = np.sqrt( a.sum() * b.sum() )
+
+        return n_shared / norm_value
 
     def symmetric_text_overlap( self, key_a, key_b ):
         '''Calculate the text overlap between a and b, using the
