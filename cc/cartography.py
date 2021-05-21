@@ -269,6 +269,23 @@ class Cartographer( object ):
 
     ########################################################################
 
+    def text_overlap( self, key_a, key_b ):
+
+        def interpret_key( key ):
+            if key in self.publications:
+                is_p = self.publications == key
+                return self.components[is_p][0]
+        
+        a = interpret_key( key_a )
+        b = interpret_key( key_b )
+        is_shared = np.logical_and( a > 0, b > 0 )
+        
+        n_shared = np.min( [ a[is_shared], b[is_shared] ], axis=0 ).sum()
+
+        return n_shared / a.sum()
+
+    ########################################################################
+
     def pairwise( self, metric ):
         '''Calculate the pairwise metric between all publications in the concept projection.
 
