@@ -460,4 +460,35 @@ class TestAsymmetryMetric( unittest.TestCase ):
         )
         assert np.isnan( actual[0] )
 
-    
+########################################################################
+
+class TestSimilarityMetric( unittest.TestCase ):
+
+    def setUp( self ):
+
+        fp = './tests/data/example_atlas/projection.h5'
+        self.c = cartography.Cartographer.from_hdf5( fp )
+
+        self.similarity_metrics = [
+            'inner_product',
+            'cospsi',
+            'psi',
+            'text_overlap',
+            'symmetric_text_overlap',
+            'distance'
+        ]
+
+    ########################################################################
+
+    def test_consistent_lengths( self ):
+
+        metric_values = {}
+        for metric in self.similarity_metrics:
+            print( metric )
+            metric_values[metric] = self.c.pairwise( metric, )
+
+        n_pubs = self.c.publications.size
+        expected_size = n_pubs * ( n_pubs - 1 ) / 2
+
+        for key, item in metric_values.items():
+            assert item.size == expected_size
