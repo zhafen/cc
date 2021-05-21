@@ -301,6 +301,14 @@ class Cartographer( object ):
             The amount of text overlap between a and b.
         '''
 
+        # Returning all, all is just the pairwise calculation
+        if key_a == 'all' and key_b == 'all':
+            return self.pairwise(
+                'text_overlap',
+                trim_and_reshape = False,
+                norm = norm,
+            )
+
         # Swap a and b since it doesn't matter anyways
         if key_b != 'all' and key_a == 'all':
             key_a, key_b = key_b, key_a
@@ -371,7 +379,7 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def pairwise( self, metric ):
+    def pairwise( self, metric, trim_and_reshape=True, *args, **kwargs ):
         '''Calculate the pairwise metric between all publications in the concept projection.
 
         Args:
@@ -386,10 +394,13 @@ class Cartographer( object ):
         # Calculate metric for all
         mat = []
         for key in self.publications:
-            mat.append( getattr( self, metric )( key, 'all' ) )
+            mat.append( getattr( self, metric )( key, 'all', *args, **kwargs ) )
         mat = np.array( mat )
 
-        # Identify pairs
+        if not trim_and_reshape:
+            return mat
+
+        # Identify pairs, remove others, and reshape
         mat_flat = np.triu( mat, k=1 ).flatten()
         pairwise_values = mat_flat[mat_flat>0.]
 

@@ -220,6 +220,24 @@ class TestTextOverlap( unittest.TestCase ):
             'VandeVoort2018a',
         )
         npt.assert_allclose( actual, expected )
+    
+    ########################################################################
+
+    def test_pairwise( self ):
+
+        # Pairwise call
+        result = self.c.pairwise( 'symmetric_text_overlap' )
+        n_pubs = self.c.publications.size
+        assert result.size == n_pubs * ( n_pubs - 1 ) / 2
+
+        # Pairwise, duplicates allowed
+        result = self.c.pairwise( 'symmetric_text_overlap', trim_and_reshape=False )
+        assert result.size == n_pubs**2
+
+        # Alt call
+        alt_call_result = self.c.symmetric_text_overlap( 'all', 'all' )
+        npt.assert_allclose( result, alt_call_result )
+        npt.assert_allclose( np.diag(result), np.ones(n_pubs) )
 
 ########################################################################
 
