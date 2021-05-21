@@ -115,9 +115,9 @@ class Cartographer( object ):
         Args:
             key_a (str):
                 Reference to the first object. Options are...
-                    atlas:
+                    'atlas':
                         Inner product with the full atlas.
-                    all:
+                    'all':
                         Array of inner product with each publication.
                     key from self.data:
                         Inner product for a particular publication.
@@ -183,9 +183,9 @@ class Cartographer( object ):
         Args:
             key_a (str):
                 Reference to the first object. Options are...
-                    atlas:
-                        Inner product with the full atlas.
-                    all:
+                    'atlas':
+                        Psi with the full atlas.
+                    'all':
                         Array of inner product with each publication.
                     key from self.data:
                         Inner product for a particular publication.
@@ -208,16 +208,16 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def psi( self, key_a, key_b, scaling=np.pi/2.,**kwargs ):
+    def psi( self, key_a, key_b, scaling=np.pi/180., **kwargs ):
         '''The "angle" between two publications, defined as
         arccos( <A|B> / sqrt( <A|A><B|B> ) ).
 
         Args:
             key_a (str):
                 Reference to the first object. Options are...
-                    atlas:
-                        Inner product with the full atlas.
-                    all:
+                    'atlas':
+                        Psi with the full atlas.
+                    'all':
                         Array of inner product with each publication.
                     key from self.data:
                         Inner product for a particular publication.
@@ -269,7 +269,40 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def text_overlap( self, key_a, key_b ):
+    def text_overlap( self, key_a, key_b, norm='a' ):
+        '''Calculate the text overlap between a and b, using the
+        pre-generated concept projection.
+
+        Args:
+            key_a (str):
+                Reference to the first object. Options are...
+                    'all':
+                        Array of text overlap with each publication.
+
+                    key from self.data:
+                        Text overlap for a particular publication.
+
+            key_b (str):
+                Reference to the second object, same options as key_a.
+
+            norm (str):
+                How to normalize the text overlap. Options are...
+                    'a':
+                        Normalize by the number of words in a.
+
+                    'b':
+                        Normalize by the number of words in b.
+
+                    'geometric mean':
+                        Normalize by the geometric mean of the
+                        number of words in a and b.
+
+        Keyword Args:
+            Passed to self.concept_projection
+
+        Returns:
+            The amount of text overlap between a and b.
+        '''
 
         def interpret_key( key ):
             if key in self.publications:
@@ -280,9 +313,40 @@ class Cartographer( object ):
         b = interpret_key( key_b )
         is_shared = np.logical_and( a > 0, b > 0 )
         
-        n_shared = np.min( [ a[is_shared], b[is_shared] ], axis=0 ).sum()
+        n_shared = np.min( np.array([ a, b ])[:,is_shared], axis=0 ).sum()
 
-        return n_shared / a.sum()
+        if norm == 'a':
+            return n_shared / a.sum()
+        elif norm == 'b':
+            return n_shared / b.sum()
+        elif norm == 'geometric mean':
+            return n_shared / np.sqrt( a.sum() * b.sum() )
+
+    def symmetric_text_overlap( self, key_a, key_b ):
+        '''Calculate the text overlap between a and b, using the
+        pre-generated concept projection. This option uses the
+        geometric mean as normalization.
+
+        Args:
+            key_a (str):
+                Reference to the first object. Options are...
+                    'all':
+                        Array of text overlap with each publication.
+
+                    key from self.data:
+                        Text overlap for a particular publication.
+
+            key_b (str):
+                Reference to the second object, same options as key_a.
+
+        Keyword Args:
+            Passed to self.concept_projection
+
+        Returns:
+            The amount of text overlap between a and b.
+        '''
+
+        return self.text_overlap( key_a, key_b, norm='geometric mean' )
 
     ########################################################################
 
