@@ -393,7 +393,7 @@ class Cartographer( object ):
 
         # Calculate metric for all
         mat = []
-        for key in self.publications:
+        for key in tqdm( self.publications ):
             mat.append( getattr( self, metric )( key, 'all', *args, **kwargs ) )
         mat = np.array( mat )
 
