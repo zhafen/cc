@@ -283,6 +283,13 @@ class TestExplore( unittest.TestCase ):
         self.c = cartography.Cartographer.from_hdf5( fp )
         self.a = atlas.Atlas( './tests/data/example_atlas' )
 
+    def tearDown(self):
+
+        # We want to start fresh for these tests
+        ads_bib_fp = './tests/data/example_atlas/cc_ads.bib'
+        if os.path.isfile( ads_bib_fp ):
+            os.remove( ads_bib_fp )
+
     ########################################################################
 
     @pytest.mark.slow
@@ -336,6 +343,41 @@ class TestExplore( unittest.TestCase ):
         # Check that we have the expected length
         n_duplicates = 8 # Found manually
         assert len( expected_keys ) - n_duplicates == len( actual_keys )
+
+########################################################################
+
+    @pytest.mark.slow
+    def test_expand( self ):
+
+        new_a = self.c.expand( self.a )
+
+        # Check that the new atlas has the old data
+        for key, item in self.a.data.items():
+            assert new_a.data[key].abstract_str() != ''
+
+        # Check that the new atlas consists of new references
+        expected_keys = list( self.a.data.keys() )
+        for key, item in self.a.data.items():
+            expected_keys = np.union1d(
+                expected_keys,
+                self.a[key].citations
+            )
+            expected_keys = np.union1d(
+                expected_keys,
+                self.a[key].references
+            )
+        expected_keys = sorted( list( expected_keys ) )
+        actual_keys = sorted( list( new_a.data.keys() ) )
+
+        missing_from_actual = [ _ not in actual_keys for _ in expected_keys ]
+        missing_from_actual = np.array( expected_keys )[missing_from_actual]
+        missing_from_expected = [ _ not in expected_keys for _ in actual_keys ]
+        missing_from_expected = np.array( actual_keys )[missing_from_expected]
+
+        # Any missing ones should only be because of papers that previously weren't
+        # published, but now are published
+        for key in missing_from_actual:
+            assert 'arXiv' in key or 'tmp' in key
 
 ########################################################################
 

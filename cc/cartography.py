@@ -401,8 +401,7 @@ class Cartographer( object ):
             return mat
 
         # Identify pairs, remove others, and reshape
-        mat_flat = np.triu( mat, k=1 ).flatten()
-        pairwise_values = mat_flat[mat_flat>0.]
+        pairwise_values = mat[np.triu_indices( mat.shape[0], k=1 )]
 
         return pairwise_values
 
@@ -529,6 +528,31 @@ class Cartographer( object ):
         identifier = 'key_as_bibcode',
         **kwargs
     ):
+        '''Explore publication space by choosing a random publication and
+        importing all references and citations for that publication.
+
+        Args:
+            cite_key (str):
+                The publication to center the search on.
+
+            a (atlas.Atlas):
+                The atlas for searching.
+
+            psi_max (float):
+                Maximum angle difference between the random publication and the central publication.
+
+            bibtex_fp (str):
+                Where to save the bibtex.
+
+            max_per_pub (int):
+                Number of publications maximum to import per surveyed publication.
+
+            identifier (str):
+                Identifier used for processing the abstracts.
+
+        Kwargs:
+            Passed to Psi calculation.
+        '''
 
         # Find publications in region
         psi = self.psi( cite_key, 'all', **kwargs )
@@ -579,6 +603,44 @@ class Cartographer( object ):
         self.update_data( **cp )
 
         return a
+
+    ########################################################################
+
+    def expand( self, a ):
+        '''Expand an atlas by retrieving all publications cited by the
+        the publications in the given atlas, or that reference a
+        publication in the given atlas.
+
+        Args:
+            a (atlas.Atlas):
+                Atlas to expand.
+
+        Returns:
+            a_exp (atlas.Atlas):
+                Expanded atlas. Has the same save location as a.
+        '''
+
+        # Make the bibcode list
+        bibcodes = list( a.data.keys() )
+        for key in a.data.keys():
+
+            try:
+                bibcodes += list( a[key].references )
+            except (AttributeError, TypeError) as e:
+                pass
+            try:
+                bibcodes += list( a[key].citations )
+            except (AttributeError, TypeError) as e:
+                pass
+        bibcodes = list( set( bibcodes ) )
+
+        # New atlas
+        a_exp = atlas.Atlas.from_bibcodes( a.atlas_dir, bibcodes )
+
+        # Update the new atlas
+        a_exp.data._storage.update( a.data )
+
+        return a_exp
 
     ########################################################################
     # Estimators
