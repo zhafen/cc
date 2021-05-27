@@ -606,7 +606,7 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def expand( self, a ):
+    def expand( self, a, center=None, n_pubs_max=2000 ):
         '''Expand an atlas by retrieving all publications cited by the
         the publications in the given atlas, or that reference a
         publication in the given atlas.
@@ -615,24 +615,59 @@ class Cartographer( object ):
             a (atlas.Atlas):
                 Atlas to expand.
 
+            center (str):
+                If given, center the search on this publication, preferentially
+                searching related publications.
+
+            n_pubs_max (int):
+                Maximum number of publications allowed in the expansion.
+
         Returns:
             a_exp (atlas.Atlas):
                 Expanded atlas. Has the same save location as a.
         '''
 
-        # Make the bibcode list
-        bibcodes = list( a.data.keys() )
-        for key in a.data.keys():
+        # ads_py will only return 2000 publications per export query call.
+        assert n_pubs_max <= 2000, "Functionality for handling this many publications not implemented."
 
+        # Without a center
+        if center is None:
+            expand_keys = list( a.data.keys() )
+        else:
+            cospsi = self.cospsi( center, 'all' )
+            sort_inds = np.argsort( cospsi )[::-1]
+            expand_keys = self.publications[sort_inds]
+
+        # Make the bibcode list
+        existing_keys = set( a.data.keys() )
+        bibcodes = []
+        for key in expand_keys:
+
+            bibcodes_i = []
             try:
-                bibcodes += list( a[key].references )
+                bibcodes_i += list( a[key].references )
             except (AttributeError, TypeError) as e:
                 pass
             try:
-                bibcodes += list( a[key].citations )
+                bibcodes_i += list( a[key].citations )
             except (AttributeError, TypeError) as e:
                 pass
+
+            # Prune bibcodes_i for obvious overlap
+            bibcodes_i = list( set( bibcodes_i ) - existing_keys )
+
+            # Break when the search is centered and we're maxed out
+            if len( bibcodes ) + len( bibcodes_i ) > n_pubs_max and center is not None:
+                break
+            else:
+                bibcodes += bibcodes_i
         bibcodes = list( set( bibcodes ) )
+
+        assert len( bibcodes ) > 0, "Overly-restrictive search, no bibcodes to retrieve."
+
+        # Sample to account for max number of publications we want to retrieve at once
+        if len( bibcodes ) > n_pubs_max:
+            bibcodes = np.random.choice( bibcodes, n_pubs_max, replace=False )
 
         # New atlas
         a_exp = atlas.Atlas.from_bibcodes( a.atlas_dir, bibcodes )

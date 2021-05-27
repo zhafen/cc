@@ -344,10 +344,52 @@ class TestExplore( unittest.TestCase ):
         n_duplicates = 8 # Found manually
         assert len( expected_keys ) - n_duplicates == len( actual_keys )
 
-########################################################################
+    ########################################################################
 
-    @pytest.mark.slow
     def test_expand( self ):
+
+        n_downloaded = len( self.a['Hafen2019'].references ) + len( self.a['Hafen2019a'].references )
+        new_a = self.c.expand( self.a, center='Hafen2019', n_pubs_max=n_downloaded+1 )
+
+        # Check that the new atlas has the old data
+        for key, item in self.a.data.items():
+            assert new_a.data[key].abstract_str() != ''
+
+        # This is a publication that cites Hafen2020,
+        # the most similar publication to Hafen2019
+        assert '2020MNRAS.498.1668W' in new_a.data
+        # This is a publication cited by VandeVoort2018
+        # but not by more similar publications.
+        assert '2015PhRvD..92l3526C' not in new_a.data
+
+    ########################################################################
+
+    # @pytest.mark.slow
+    @patch( 'ads.ExportQuery' )
+    def test_expand_check_call( self, mock ):
+
+        # Modify citations to control expected results
+        self.a.data['Hafen2019'].citations = []
+        self.a.data['Hafen2019a'].citations = []
+
+        # Dummy publication that should still exist, but should not be dual-retrieved
+        dummy_key = '2017MNRAS.470.4698A'
+        self.a.data[dummy_key] = self.a.data['Howk2017']
+
+        n_downloaded = len( self.a['Hafen2019'].references ) + len( self.a['Hafen2019a'].references )
+        self.c.expand( self.a, center='Hafen2019', n_pubs_max=n_downloaded+1 )
+
+        # Build the expected call, and check that it was retrieved
+        expected_call = list( self.a['Hafen2019'].references ) + list( self.a['Hafen2019a'].references )
+        expected_call = list( set( expected_call ) )
+        expected_call.remove( dummy_key )
+        actual_call = mock.call_args[0][0] 
+        assert sorted( expected_call ) == sorted( actual_call )
+
+    ########################################################################
+
+    # @pytest.mark.slow
+    def test_expand_no_center( self ):
 
         new_a = self.c.expand( self.a )
 
