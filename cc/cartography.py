@@ -669,6 +669,8 @@ class Cartographer( object ):
         if len( bibcodes ) > n_pubs_max:
             bibcodes = np.random.choice( bibcodes, n_pubs_max, replace=False )
 
+        print( 'Expansion will include {} new publications'.format( len( bibcodes ) ) )
+
         # New atlas
         a_exp = atlas.Atlas.from_bibcodes( a.atlas_dir, bibcodes )
 
