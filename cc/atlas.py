@@ -735,6 +735,8 @@ class Atlas( object ):
             # Skip publications we have data for
             elif hasattr( item, 'ads_data' ):
                 pass
+            elif hasattr( item, 'citations' ):
+                pass
 
             else:
                 if identifier == 'bibcode':
@@ -915,6 +917,14 @@ class Atlas( object ):
 
         n_err = 0
         for key, item in tqdm( self.data.items() ):
+
+            # We'll skip ones that are already processed.
+            # The indicator of a processed abstract is that
+            # a Dictionary attribute
+            if hasattr( item, 'abstract' ):
+                if isinstance( item.abstract, verdict.Dict ):
+                    continue
+
             if hasattr( item, 'ads_data' ):
                 abstract_str = item.ads_data['abstract']
             else:
@@ -1372,8 +1382,12 @@ def save_bibcodes_to_bibtex( bibcodes, bibtex_fp ):
     bibcodes = list( bibcodes )
 
     # Retrieve data from ADS
-    q = ads.ExportQuery( bibcodes )
-    bibtex_str = q.execute()
+    try:
+        q = ads.ExportQuery( bibcodes )
+        bibtex_str = q.execute()
+    except:
+        # DEBUG
+        import pdb; pdb.set_trace()
 
     # Reformat some lines to work with bibtexparser
     # This is not optimized.
