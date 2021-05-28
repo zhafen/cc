@@ -380,6 +380,28 @@ class ComponentProjection( unittest.TestCase ):
         assert 'cohes' in comp_concepts
         assert 'garglflinx' not in comp_concepts
 
+    ########################################################################
+    
+    def test_concept_projection_no_viable_words( self ):
+
+        # Modify to provide one w/o nouns
+        self.p.citation['abstract'] = '(Without )'
+
+        comp_concepts_orig = [ 'accret', 'dog' ]
+        values, comp_concepts = self.p.concept_projection(
+            comp_concepts_orig,
+            include_notes = False
+        )
+
+        # Should be all zeros
+        npt.assert_allclose( values, np.array([0., 0.]) )
+
+        # Should match with the formatting of the original vector
+        for i, comp_concept in enumerate( comp_concepts ):
+            assert comp_concept == comp_concepts_orig[i]
+
+        assert len( values ) == len( comp_concepts )
+
 ########################################################################
 
 class TestComparison( unittest.TestCase ):

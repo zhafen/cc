@@ -1,5 +1,6 @@
 import ads
 import bibtexparser
+import copy
 import nltk
 import numpy as np
 import pandas as pd
@@ -576,6 +577,13 @@ class Publication( object ):
         if 'nltk' not in self.abstract: return upon_failure()
 
         sents += list( self.abstract['nltk']['primary_stemmed'] )
+
+        # Prune empty sentences
+        pruned_sents = []
+        for sent in sents:
+            if len( sent ) > 0:
+                pruned_sents.append( sent )
+        sents = pruned_sents
 
         if len( sents ) == 0: return upon_failure()
 
