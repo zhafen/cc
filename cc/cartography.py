@@ -633,9 +633,6 @@ class Cartographer( object ):
                 Expanded atlas. Has the same save location as a.
         '''
 
-        # ads_py will only return 2000 publications per export query call.
-        assert n_pubs_max <= 2000, "Functionality for handling this many publications not implemented."
-
         # Without a center
         if center is None:
             expand_keys = list( a.data.keys() )

@@ -364,7 +364,6 @@ class TestExplore( unittest.TestCase ):
 
     ########################################################################
 
-    # @pytest.mark.slow
     @patch( 'ads.ExportQuery' )
     def test_expand_check_call( self, mock ):
 
@@ -388,10 +387,10 @@ class TestExplore( unittest.TestCase ):
 
     ########################################################################
 
-    # @pytest.mark.slow
+    @pytest.mark.slow
     def test_expand_no_center( self ):
 
-        new_a = self.c.expand( self.a )
+        new_a = self.c.expand( self.a, n_pubs_max=2000 )
 
         # Check that the new atlas has the old data
         for key, item in self.a.data.items():
