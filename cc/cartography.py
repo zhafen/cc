@@ -151,6 +151,8 @@ class Cartographer( object ):
             # The entire atlas
             elif key == 'atlas' or key == 'all':
                 return self.components
+            else:
+                raise KeyError( 'Unhandled key, {}'.format( key ) )
         a = interpret_key( key_a )
         b = interpret_key( key_b )
 
@@ -161,7 +163,11 @@ class Cartographer( object ):
 
         # Dot product
         try:
-            result = np.dot( a, b )
+            try:
+                result = np.dot( a, b )
+            except TypeError:
+                # DEBUG
+                import pdb; pdb.set_trace()
         except ValueError:
             result = np.dot( b, a )
 
@@ -606,7 +612,7 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def expand( self, a, center=None, n_pubs_max=2000 ):
+    def expand( self, a, center=None, n_pubs_max=4000 ):
         '''Expand an atlas by retrieving all publications cited by the
         the publications in the given atlas, or that reference a
         publication in the given atlas.

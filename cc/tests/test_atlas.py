@@ -1,5 +1,5 @@
 import copy
-from mock import patch
+from mock import patch, call
 import numpy as np
 import numpy.testing as npt
 import os
@@ -174,6 +174,22 @@ class TestFromBibcodes( unittest.TestCase ):
 
         # This should already exist, so yeah, make sure it doesn't
         assert '2019MNRAS.488.1248H' not in self.a.data.keys()
+
+    ########################################################################
+
+    @patch( 'ads.ExportQuery' )
+    def test_import_bibcodes_chunk( self, mock_export ):
+
+        bibcodes = np.random.randint( 0, high=1000, size=3000 ).astype( 'str' )
+
+        self.a.import_bibcodes( bibcodes )
+
+        expected_first = list( bibcodes[:2000] )
+        actual_first = mock_export.call_args_list[0][0][0]
+        assert expected_first == actual_first
+        expected_second = list( bibcodes[2000:] )
+        actual_second = mock_export.call_args_list[1][0][0]
+        assert expected_second == actual_second
 
 ########################################################################
 

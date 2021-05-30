@@ -1376,35 +1376,46 @@ class Atlas( object ):
 
 ########################################################################
 
-def save_bibcodes_to_bibtex( bibcodes, bibtex_fp ):
+def save_bibcodes_to_bibtex( bibcodes, bibtex_fp, call_size=2000 ):
+
 
     # ADS doesn't like np arrays
     bibcodes = list( bibcodes )
 
-    # Retrieve data from ADS
-    try:
-        q = ads.ExportQuery( bibcodes )
-        bibtex_str = q.execute()
-    except:
-        # DEBUG
-        import pdb; pdb.set_trace()
+    # Break into chunks
+    assert call_size <= 2000, 'Max number of calls ExportQuery can handle at a time is 2000.'
+    if len( bibcodes ) > call_size:
+        chunked_bibcodes = [ bibcodes[i:i + call_size] for i in range(0, len(bibcodes), call_size) ]
+    else:
+        chunked_bibcodes = [ bibcodes, ]
 
-    # Reformat some lines to work with bibtexparser
-    # This is not optimized.
-    l = []
-    for line in bibtex_str.split( '\n' ):
-        # ADS puts quotes instead of double brackes around the title
-        if 'title =' in line:
-            bibtex_str = bibtex_str.replace( '"{', '{{' )
-            bibtex_str = bibtex_str.replace( '}"', '}}' )
-        # ADS' bib export for months doesn't have brackets around it...
-        if 'month =' in line:
-            line = line.replace( '= ', '= {' ).replace( ',', '},' )
-        # The eprint is usually also the arxivid.
-        if 'eprint =' in line:
-            l.append( line.replace( 'eprint', 'arxivid' ) )
-        l.append( line )
-    bibtex_str = '\n'.join( l )
+    bibtex_str = ''
+    for bibcodes in chunked_bibcodes:
+
+        # Retrieve data from ADS
+        try:
+            q = ads.ExportQuery( bibcodes )
+            bibtex_str_i = q.execute()
+        except:
+            # DEBUG
+            import pdb; pdb.set_trace()
+
+        # Reformat some lines to work with bibtexparser
+        # This is not optimized.
+        l = []
+        for line in bibtex_str_i.split( '\n' ):
+            # ADS puts quotes instead of double brackes around the title
+            if 'title =' in line:
+                line = line.replace( '"{', '{{' )
+                line = line.replace( '}"', '}}' )
+            # ADS' bib export for months doesn't have brackets around it...
+            if 'month =' in line:
+                line = line.replace( '= ', '= {' ).replace( ',', '},' )
+            # The eprint is usually also the arxivid.
+            if 'eprint =' in line:
+                l.append( line.replace( 'eprint', 'arxivid' ) )
+            l.append( line )
+        bibtex_str += '\n'.join( l )
 
     # Save the bibtex
     with open( bibtex_fp, 'a' ) as f:
