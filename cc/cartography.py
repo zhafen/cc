@@ -732,25 +732,37 @@ class Cartographer( object ):
         if -2 in self.update_history:
             raise ValueError( 'Incomplete update history, some entries have values of -2.' )
 
-        cospsi = self.cospsi( key, 'all' )
-        sort_inds = np.argsort( cospsi )[::-1]
-        sorted_cospsi = cospsi[sort_inds]
-        sorted_history = self.update_history[sort_inds]
+        if key != 'all':
+            publications = [ key, ]
+        else:
+            publications = self.publications
 
-        result = []
-        cospsi_result = []
-        max_rank =  self.update_history.max() 
-        for rank in range( max_rank ):
+        # Loop over all publications
+        full_result = []
+        full_cospsi_result = []
+        for pub in publications:
 
-            result_i = np.argmin( sorted_history <= rank ) - 1
-            result.append( result_i )
-            cospsi_result.append( sorted_cospsi[result_i] )
+            cospsi = self.cospsi( pub, 'all' )
+            sort_inds = np.argsort( cospsi )[::-1]
+            sorted_cospsi = cospsi[sort_inds]
+            sorted_history = self.update_history[sort_inds]
 
-        # Finish by appending information for max rank
-        result.append( max_rank )
-        cospsi_result.append( np.nanmin( cospsi ) )
+            result = []
+            cospsi_result = []
+            max_rank =  self.update_history.max() 
+            for rank in range( max_rank ):
 
-        return result, cospsi_result
+                result_i = np.argmin( sorted_history <= rank ) - 1
+                result.append( result_i )
+                cospsi_result.append( sorted_cospsi[result_i] )
+
+            if key != 'all':
+                return result, cospsi_result
+
+            full_result.append( result )
+            full_cospsi_result.append( cospsi_result )
+
+        return np.array( full_result ), np.array( full_cospsi_result )
 
     ########################################################################
     # Estimators
