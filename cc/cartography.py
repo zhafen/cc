@@ -412,7 +412,7 @@ class Cartographer( object ):
         return pairwise_values
 
     ########################################################################
-    # Exploration
+    # Automated exploration, expansion, or otherwise updating
     ########################################################################
 
     def explore(
@@ -681,6 +681,33 @@ class Cartographer( object ):
         a_exp.data._storage.update( a.data )
 
         return a_exp
+
+    ########################################################################
+
+    def record_update_history( self, pubs_per_update ):
+        '''Record when publications were added.
+
+        Args:
+            pubs_per_update (list of list of strs):
+                A list of which publications existed at which iteration,
+                with the index of the overall list corresponding to the
+                iteration the publication was added.
+
+        Modifies:
+            self.update_history (array of ints):
+                When publications were added. A value of -2 indicates
+                no record of being added.
+        '''
+
+        # Loop backwards
+        i_max = len( pubs_per_update ) - 1
+        self.update_history = np.full( self.publications.shape, -2 )
+        for i, pubs_i in enumerate( pubs_per_update[::-1] ):
+
+            is_in = np.in1d( self.publications, pubs_i )
+            self.update_history[is_in] = i_max - i
+
+        return self.update_history
 
     ########################################################################
     # Estimators

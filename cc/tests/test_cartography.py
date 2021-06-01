@@ -420,6 +420,21 @@ class TestExplore( unittest.TestCase ):
         for key in missing_from_actual:
             assert 'arXiv' in key or 'tmp' in key
 
+    ########################################################################
+
+    def test_record_update_history( self ):
+
+        input = [
+            [ 'Hafen2019', 'Hafen2019a' ],
+            [ 'Hafen2019', 'Hafen2019a', 'Stern2018', 'Howk2017' ],
+            [ 'Hafen2019', 'Hafen2019a', 'Stern2018', 'Howk2017', 'VandeVoort2018a' ],
+        ]
+
+        self.c.record_update_history( input )
+
+        expected = np.array([ 2, 1, 1, -2, -2, -2, -2, -2, 0, 0 ])
+        npt.assert_allclose( expected, self.c.update_history )
+
 ########################################################################
 
 class TestAsymmetryMetric( unittest.TestCase ):
