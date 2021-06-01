@@ -693,7 +693,7 @@ class Cartographer( object ):
                 with the index of the overall list corresponding to the
                 iteration the publication was added.
 
-        Modifies:
+        Returns:
             self.update_history (array of ints):
                 When publications were added. A value of -2 indicates
                 no record of being added.
@@ -708,6 +708,49 @@ class Cartographer( object ):
             self.update_history[is_in] = i_max - i
 
         return self.update_history
+
+    ########################################################################
+
+    def converged_kernel_size( self, key ):
+        '''Calculate the largest size of the kernel that's converged (at differing levels of convergence).
+
+        Args:
+            key (str):
+                Key to calculate convergence w.r.t.
+
+        Returns:
+            kernel_size (np.ndarray of ints):
+                The kernel size for converged kernels. The first column (or value, for single publications)
+                indicates the largest kernel size that hasn't changed since the beginning.
+                The second column indicates the largest kernel size that hasn't changed since the first update.
+                Etc.
+
+            cospsi_kernel (np.ndarray of floats):
+                Value of cospsi for the largest converged kernel.
+        '''
+
+        if -2 in self.update_history:
+            raise ValueError( 'Incomplete update history, some entries have values of -2.' )
+
+        cospsi = self.cospsi( key, 'all' )
+        sort_inds = np.argsort( cospsi )[::-1]
+        sorted_cospsi = cospsi[sort_inds]
+        sorted_history = self.update_history[sort_inds]
+
+        result = []
+        cospsi_result = []
+        max_rank =  self.update_history.max() 
+        for rank in range( max_rank ):
+
+            result_i = np.argmin( sorted_history <= rank ) - 1
+            result.append( result_i )
+            cospsi_result.append( sorted_cospsi[result_i] )
+
+        # Finish by appending information for max rank
+        result.append( max_rank )
+        cospsi_result.append( np.nanmin( cospsi ) )
+
+        return result, cospsi_result
 
     ########################################################################
     # Estimators

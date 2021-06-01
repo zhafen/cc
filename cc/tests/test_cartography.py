@@ -435,6 +435,19 @@ class TestExplore( unittest.TestCase ):
         expected = np.array([ 2, 1, 1, -2, -2, -2, -2, -2, 0, 0 ])
         npt.assert_allclose( expected, self.c.update_history )
 
+    ########################################################################
+
+    def test_converged_kernel_size( self ):
+
+        # Setup mock data
+        self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
+
+        actual, actual_cospsis = self.c.converged_kernel_size( 'Hafen2019' )
+        expected = np.array([ 1, 3, 3, 3, 4 ])
+        npt.assert_allclose( expected, actual )
+        expected_cospsis = np.array([ 0.6719374, 0.52452437, 0.52452437, 0.52452437, 0.3194376802556804 ])
+        npt.assert_allclose( expected_cospsis, actual_cospsis, rtol=1e-3 )
+
 ########################################################################
 
 class TestAsymmetryMetric( unittest.TestCase ):
