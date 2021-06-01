@@ -443,9 +443,9 @@ class TestExplore( unittest.TestCase ):
         self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
 
         actual, actual_cospsis = self.c.converged_kernel_size( 'Hafen2019' )
-        expected = np.array([ 1, 3, 3, 3, 4 ])
+        expected = np.array([ 1, 3, 3, 3, ])
         npt.assert_allclose( expected, actual )
-        expected_cospsis = np.array([ 0.6719374, 0.52452437, 0.52452437, 0.52452437, 0.3194376802556804 ])
+        expected_cospsis = np.array([ 0.6719374, 0.52452437, 0.52452437, 0.52452437, ])
         npt.assert_allclose( expected_cospsis, actual_cospsis, rtol=1e-3 )
 
     ########################################################################
