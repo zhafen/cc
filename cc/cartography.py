@@ -33,6 +33,7 @@ class Cartographer( object ):
         publications,
         publication_dates,
         entry_dates,
+        prune_zeros = True,
     ):
         '''Update the data used for calculations.
         '''
@@ -40,6 +41,21 @@ class Cartographer( object ):
         # Convert date to a more useable array
         self.publication_dates = pd.to_datetime( publication_dates )
         self.entry_dates = pd.to_datetime( entry_dates )
+
+        if prune_zeros:
+            self.prune_zero_entries()
+
+    ########################################################################
+
+    def prune_zero_entries( self ):
+        '''Toss out any entries which have no components,
+        usually due to no abstract.
+        '''
+
+        is_nonzero = np.invert( np.isclose( self.components.sum( axis=1 ), 0. ) )
+        for attr in [ 'components', 'norms', 'publications', 'publication_dates', 'entry_dates' ]:
+            value = getattr( self, attr )[is_nonzero]
+            setattr( self, attr, value )
 
     ########################################################################
 
@@ -740,7 +756,7 @@ class Cartographer( object ):
         # Loop over all publications
         full_result = []
         full_cospsi_result = []
-        for pub in publications:
+        for pub in tqdm( publications ):
 
             cospsi = self.cospsi( pub, 'all' )
             sort_inds = np.argsort( cospsi )[::-1]
