@@ -464,6 +464,17 @@ class TestExplore( unittest.TestCase ):
         expected = np.array([ -1, -1, 0, 1, ])
         npt.assert_allclose( expected, actual[self.c.publications=='VandeVoort2018a'][0] )
 
+    ########################################################################
+
+    def test_converged_kernel_size_random_subset( self ):
+
+        # Setup mock data
+        self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
+
+        actual, actual_cospsis = self.c.converged_kernel_size( 5 )
+        assert actual.shape == ( 5, 4 )
+        assert actual_cospsis.shape == ( 5, 4 )
+
 ########################################################################
 
 class TestAsymmetryMetric( unittest.TestCase ):

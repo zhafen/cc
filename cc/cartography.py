@@ -748,7 +748,9 @@ class Cartographer( object ):
         if -2 in self.update_history:
             raise ValueError( 'Incomplete update history, some entries have values of -2.' )
 
-        if key != 'all':
+        if isinstance( key, int ):
+            publications = np.random.choice( self.publications, key, replace=False )
+        elif key != 'all':
             publications = [ key, ]
         else:
             publications = self.publications
@@ -772,11 +774,11 @@ class Cartographer( object ):
                 result.append( result_i )
                 cospsi_result.append( sorted_cospsi[result_i] )
 
-            if key != 'all':
-                return result, cospsi_result
-
             full_result.append( result )
             full_cospsi_result.append( cospsi_result )
+
+        if len( full_result ) == 1:
+            return full_result[0], full_cospsi_result[0]
 
         return np.array( full_result ), np.array( full_cospsi_result )
 
