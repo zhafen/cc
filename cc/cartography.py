@@ -60,18 +60,23 @@ class Cartographer( object ):
     ########################################################################
 
     @classmethod
-    def from_hdf5( self, fp ):
+    def from_hdf5( self, fp, sparse=True ):
         '''Load the cartographer from a saved file.
 
         Args:
             fp (str):
                 Filepath to the projected data.
 
+            sparse (int):
+                Whether or not the components are saved as a sparse matrix.
+
         Returns:
             Cartographer instance
         '''
 
-        data = verdict.Dict.from_hdf5( fp )
+        data = verdict.Dict.from_hdf5( fp, sparse=sparse )
+        if sparse:
+            data['components'] = data['components'].toarray()
         return Cartographer( **data )
 
     ########################################################################
