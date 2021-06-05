@@ -897,7 +897,7 @@ class TestAtlasData( unittest.TestCase ):
             d[key] = {}
             d[key]['abstract'] = 'Fake abstract for {}'.format( key )
         # Special case.
-        d.to_hdf5( os.path.join( self.empty_dir, 'atlas_data.h5' ) )
+        d.to_json( os.path.join( self.empty_dir, 'atlas_data.h5' ) )
 
         self.a.load_data()
 
@@ -935,8 +935,8 @@ class TestAtlasData( unittest.TestCase ):
         )
 
         # Load saved data
-        d = verdict.Dict.from_hdf5( 
-            './tests/data/empty_atlas/atlas_data.h5',
+        d = verdict.Dict.from_json( 
+            './tests/data/empty_atlas/atlas_data.json',
         )
         
         for key, item in self.a.data.items():
@@ -980,8 +980,117 @@ class TestAtlasData( unittest.TestCase ):
         self.a.save_data()
 
         # Load saved data
+        d = verdict.Dict.from_json( 
+            './tests/data/empty_atlas/atlas_data.json',
+        )
+                        
+        for key, item in self.a.data.items():
+            abstract = item.abstract['nltk']
+            for ikey, iitem in abstract.items():
+                for i, v_i in enumerate( iitem ):
+                    for j, v_j in enumerate( v_i ):
+                        for k, v_k in enumerate( v_j ):
+                            assert (
+                                v_k ==
+                                d[key]['abstract']['nltk'][ikey][i][j][k]
+                            )
+
+    ########################################################################
+
+    def test_load_data_hdf5( self ):
+
+        # Create test data
+        d = verdict.Dict( {} )
+        for key, item in self.a.data.items():
+            d[key] = {}
+            d[key]['abstract'] = 'Fake abstract for {}'.format( key )
+        # Special case.
+        d.to_hdf5( os.path.join( self.empty_dir, 'atlas_data.h5' ) )
+
+        self.a.load_data( format='hdf5' )
+
+        # Test
+        for key, item in self.a.data.items():
+            assert d[key]['abstract'] == self.a[key].abstract
+
+    ########################################################################
+
+    def test_load_data_concept_projection_hdf5( self ):
+
+        # First load to alter data. Is assumed to work.
+        self.a.load_data()
+        for key, item in self.a.data.items():
+            self.a[key].process_abstract( 'Fake abstract for {}'.format( key ) )
+        self.a.save_data()
+
+        # Reload
+        self.a.load_data( format='hdf5' )
+
+        # Test that a loaded atlas can be used for a concept projection
+        self.a[key].concept_projection()
+
+    ########################################################################
+
+    def test_save_data_hdf5( self ):
+
+        # Create some fake attributes
+        for key, item in self.a.data.items():
+            item.test_attr = key
+
+        # Function itself
+        self.a.save_data(
+            attrs_to_save = [ 'test_attr', ],
+            format = 'hdf5',
+        )
+
+        # Load saved data
         d = verdict.Dict.from_hdf5( 
-            './tests/data/empty_atlas/atlas_data.h5',
+            './tests/data/empty_atlas/atlas_data.hdf5',
+        )
+        
+        for key, item in self.a.data.items():
+            assert d[key]['test_attr'] == self.a[key].test_attr
+
+    ########################################################################
+
+    def test_save_data_ads_abstract_hdf5( self ):
+
+        a_copy = copy.deepcopy( self.a )
+
+        # Get the data
+        self.a.process_abstracts( identifier='from_citation' )
+
+        # Compare to the inefficient way
+        # We don't want to use the abstracts contained in the citation
+        for key, item in a_copy.data.items():
+            # Exception for publication missing an arxiv ID
+            if key == 'VandeVoort2018a': continue
+            if 'abstract' in item.citation:
+                del a_copy[key].citation['abstract']
+        a_copy.data.process_abstract( return_empty_upon_failure=False )
+
+        # Compare abstracts
+        for key, item in a_copy.data.items():
+
+            # Exception for publication missing an arxiv ID
+            if key == 'VandeVoort2018a': continue
+
+            abstract = item.abstract['nltk']
+            for ikey, iitem in abstract.items():
+                for i, v_i in enumerate( iitem ):
+                    for j, v_j in enumerate( v_i ):
+                        for k, v_k in enumerate( v_j ):
+                            assert (
+                                v_k ==
+                                self.a[key].abstract['nltk'][ikey][i][j][k]
+                            )
+
+        # Save function
+        self.a.save_data( format='hdf5' )
+
+        # Load saved data
+        d = verdict.Dict.from_hdf5( 
+            './tests/data/empty_atlas/atlas_data.hdf5',
         )
                         
         for key, item in self.a.data.items():

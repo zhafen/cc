@@ -399,6 +399,7 @@ class Atlas( object ):
     def save_data(
         self,
         fp = None,
+        format = 'json',
         attrs_to_save = [
             'abstract',
             'citations',
@@ -418,13 +419,19 @@ class Atlas( object ):
                 Filepath to the atlas_data.h5 file.
                 If None, looks in self.atlas_dir
 
+            format (str):
+                Data format. Options are json, hdf5.
+
             attrs_to_save (list of strs):
                 List of attributes for each item of self.data to save.
+
+            handle_jagged_arrs (str):
+                How, when saving using hdf5, to handle jagged arrays.
         '''
 
         # Filepath
         if fp is None:
-            fp = os.path.join( self.atlas_dir, 'atlas_data.h5' )
+            fp = os.path.join( self.atlas_dir, 'atlas_data.{}'.format( format ) )
 
         # Retrieve data
         print( 'Preparing to save data.' )
@@ -440,7 +447,10 @@ class Atlas( object ):
 
         # Save
         print( 'Saving to {}'.format( fp ) )
-        data_to_save.to_hdf5( fp, handle_jagged_arrs=handle_jagged_arrs )
+        if format == 'json':
+            data_to_save.to_json( fp, )
+        elif format == 'hdf5':
+            data_to_save.to_hdf5( fp, handle_jagged_arrs=handle_jagged_arrs )
 
         if return_data:
             return data_to_save
