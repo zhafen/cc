@@ -334,20 +334,25 @@ class Atlas( object ):
 
     ########################################################################
 
-    def load_data( self, fp=None ):
+    def load_data( self, fp=None, format='json' ):
         '''Load general data saved to atlas_data.h5
         
         Args:
             fp (str):
                 Filepath to the atlas_data.h5 file.
                 If None, looks in self.atlas_dir
+
+            format (str):
+                Format the data is saved in. Options are json, hdf5.
         '''
 
         print( 'Loading saved atlas data.' )
 
         # Filepath
         if fp is None:
-            fp = os.path.join( self.atlas_dir, 'atlas_data.h5' )
+            fp = os.path.join( self.atlas_dir, 'atlas_data.{}'.format( format ) )
+            if not os.path.isfile( fp ) and format == 'hdf5':
+                fp = os.path.join( self.atlas_dir, 'atlas_data.h5'.format( format ) )
 
         # Exit if no data to load
         if not os.path.isfile( fp ):
@@ -355,7 +360,12 @@ class Atlas( object ):
             return
 
         # Load
-        data_to_load = verdict.Dict.from_hdf5( fp )
+        if format == 'json':
+            data_to_load = verdict.Dict.from_json( fp )
+        elif format == 'hdf5':
+            data_to_load = verdict.Dict.from_hdf5( fp )
+        else:
+            raise KeyError( 'Unrecognized file format, {}'.format( format ) )
 
         # Update data with loaded data
         for key, item in tqdm( self.data.items() ):
@@ -451,6 +461,8 @@ class Atlas( object ):
             data_to_save.to_json( fp, )
         elif format == 'hdf5':
             data_to_save.to_hdf5( fp, handle_jagged_arrs=handle_jagged_arrs )
+        else:
+            raise KeyError( 'Unrecognized file format, {}'.format( format ) )
 
         if return_data:
             return data_to_save

@@ -897,7 +897,7 @@ class TestAtlasData( unittest.TestCase ):
             d[key] = {}
             d[key]['abstract'] = 'Fake abstract for {}'.format( key )
         # Special case.
-        d.to_json( os.path.join( self.empty_dir, 'atlas_data.h5' ) )
+        d.to_json( os.path.join( self.empty_dir, 'atlas_data.json' ) )
 
         self.a.load_data()
 
