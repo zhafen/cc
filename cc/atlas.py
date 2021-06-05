@@ -10,6 +10,7 @@ import numpy as np
 import os
 import pandas as pd
 import re
+import scipy.sparse as ss
 import warnings
 
 import matplotlib.pyplot as plt
@@ -1020,6 +1021,7 @@ class Atlas( object ):
         existing = None,
         verbose = True,
         return_data = True,
+        sparse = True,
     ):
         '''Project the abstract of each publication into concept space.
         In simplest form this finds all shared, stemmed nouns, verbs, and
@@ -1046,6 +1048,9 @@ class Atlas( object ):
 
             return_data (bool):
                 If True return the resultant dictionary.
+
+            sparse (bool):
+                If True save the data as a memory-saving sparse matrix.
 
         Returns:
             Dictionary:
@@ -1093,7 +1098,9 @@ class Atlas( object ):
                     + 'existing and new concept projection share a save ' \
                     + 'location.'
                 )
-            self.projection = verdict.Dict.from_hdf5( projection_fp )
+            self.projection = verdict.Dict.from_hdf5( projection_fp, sparse=sparse )
+            if isinstance( self.projection['components'], ss.csr_matrix ):
+                self.projection['components'] = self.projection['components'].toarray()
             return self.projection
         if hasattr( self, 'projection' ) and not overwrite:
             if verbose:
@@ -1155,7 +1162,12 @@ class Atlas( object ):
             'entry_dates': np.array( entry_date ),
         } )
         if projection_fp != 'pass':
-            self.projection.to_hdf5( projection_fp )
+            if sparse:
+                self.projection['components'] = ss.csr_matrix( components )
+            self.projection.to_hdf5( projection_fp, sparse=sparse )
+            # Convert back...
+            if sparse:
+                self.projection['components'] = components
 
         if return_data:
             return self.projection

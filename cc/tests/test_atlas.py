@@ -1133,17 +1133,40 @@ class TestConceptProjection( unittest.TestCase ):
 
     ########################################################################
 
+    def test_concept_projection_sparse_save( self ):
+
+        # Make sure we don't count cached files
+        fp = './tests/data/example_atlas/projection.h5' 
+        if os.path.isfile( fp ):
+            os.remove( fp )
+
+        # Not sparse
+        self.a.process_abstracts( identifier='from_citation' )
+        cp = self.a.concept_projection( sparse=False )
+        size = os.path.getsize( fp )
+
+        # Sparse
+        self.a.process_abstracts( identifier='from_citation' )
+        cp = self.a.concept_projection( overwrite=True, sparse=True )
+        sparse_size = os.path.getsize( fp )
+
+        assert sparse_size < size
+
+    ########################################################################
+
     def test_cached_concept_projection( self ):
 
         # Full calculation
         cp = self.a.concept_projection( projection_fp=self.alt_fp )
 
-        with patch( 'numpy.zeros' ) as mock_zeros:
+        with patch( 'verdict.Dict.from_hdf5', wraps=verdict.Dict.from_hdf5 ) as mock_from_hdf5:
             # This will cause the function to break if it tries to do the
             # actual calculation
 
             # Loaded fiducial full calculation
             cp_cache =  self.a.concept_projection( projection_fp=self.alt_fp )
+
+            mock_from_hdf5.assert_called_once()
 
         # Cached should equal full
         npt.assert_allclose( cp['components'], cp_cache['components'] )
