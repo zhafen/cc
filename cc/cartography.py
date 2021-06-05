@@ -732,7 +732,7 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def converged_kernel_size( self, key ):
+    def converged_kernel_size( self, key, python=False ):
         '''Calculate the largest size of the kernel that's converged (at differing levels of convergence).
 
         Args:
@@ -751,7 +751,7 @@ class Cartographer( object ):
         '''
 
         if -2 in self.update_history:
-            raise ValueError( 'Incomplete update history, some entries have values of -2.' )
+            raise ValueError( 'Incomplete update history as indicated by entries with values of -2.' )
 
         if isinstance( key, int ):
             publications = np.random.choice( self.publications, key, replace=False )
@@ -760,32 +760,34 @@ class Cartographer( object ):
         else:
             publications = self.publications
 
-        # Loop over all publications
-        full_result = []
-        full_cospsi_result = []
-        for pub in tqdm( publications ):
+        # Pure python calculation
+        if python:
+            # Loop over all publications
+            full_result = []
+            full_cospsi_result = []
+            for pub in tqdm( publications ):
 
-            cospsi = self.cospsi( pub, 'all' )
-            sort_inds = np.argsort( cospsi )[::-1]
-            sorted_cospsi = cospsi[sort_inds]
-            sorted_history = self.update_history[sort_inds]
+                cospsi = self.cospsi( pub, 'all' )
+                sort_inds = np.argsort( cospsi )[::-1]
+                sorted_cospsi = cospsi[sort_inds]
+                sorted_history = self.update_history[sort_inds]
 
-            result = []
-            cospsi_result = []
-            max_rank =  self.update_history.max() 
-            for rank in range( max_rank ):
+                result = []
+                cospsi_result = []
+                max_rank =  self.update_history.max() 
+                for rank in range( max_rank ):
 
-                result_i = np.argmin( sorted_history <= rank ) - 1
-                result.append( result_i )
-                cospsi_result.append( sorted_cospsi[result_i] )
+                    result_i = np.argmin( sorted_history <= rank ) - 1
+                    result.append( result_i )
+                    cospsi_result.append( sorted_cospsi[result_i] )
 
-            full_result.append( result )
-            full_cospsi_result.append( cospsi_result )
+                full_result.append( result )
+                full_cospsi_result.append( cospsi_result )
 
-        if len( full_result ) == 1:
-            return full_result[0], full_cospsi_result[0]
+            if len( full_result ) == 1:
+                return full_result[0], full_cospsi_result[0]
 
-        return np.array( full_result ), np.array( full_cospsi_result )
+            return np.array( full_result ), np.array( full_cospsi_result )
 
     ########################################################################
     # Estimators

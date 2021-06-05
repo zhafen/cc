@@ -466,12 +466,41 @@ class TestExplore( unittest.TestCase ):
 
     ########################################################################
 
-    def test_converged_kernel_size_random_subset( self ):
+    def test_converged_kernel_size_python( self ):
 
         # Setup mock data
         self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
 
-        actual, actual_cospsis = self.c.converged_kernel_size( 5 )
+        actual, actual_cospsis = self.c.converged_kernel_size( 'Hafen2019', python=True )
+        expected = np.array([ 1, 2, 2, 2, ])
+        npt.assert_allclose( expected, actual )
+        expected_cospsis = np.array([ 0.6257132252113373, 0.53010468, 0.53010468, 0.53010468, ])
+        npt.assert_allclose( expected_cospsis, actual_cospsis, rtol=1e-3 )
+
+    ########################################################################
+
+    def test_converged_kernel_size_all_python( self ):
+
+        # Setup mock data
+        self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
+
+        actual, actual_cospsis = self.c.converged_kernel_size( 'all', python=True )
+        expected = np.array([ 1, 2, 2, 2 ])
+        npt.assert_allclose( expected, actual[self.c.publications=='Hafen2019'][0] )
+        expected_cospsis = np.array([ 0.6257132252113373, 0.53010468, 0.53010468, 0.53010468, ])
+        npt.assert_allclose( expected_cospsis, actual_cospsis[self.c.publications=='Hafen2019'][0], rtol=1e-3 )
+
+        expected = np.array([ -1, -1, 2, 2, ])
+        npt.assert_allclose( expected, actual[self.c.publications=='VandeVoort2018a'][0] )
+
+    ########################################################################
+
+    def test_converged_kernel_size_random_subset_python( self ):
+
+        # Setup mock data
+        self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
+
+        actual, actual_cospsis = self.c.converged_kernel_size( 5, python=True )
         assert actual.shape == ( 5, 4 )
         assert actual_cospsis.shape == ( 5, 4 )
 
