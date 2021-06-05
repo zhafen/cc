@@ -1027,6 +1027,11 @@ class Atlas( object ):
         In simplest form this finds all shared, stemmed nouns, verbs, and
         adjectives between all publications and counts them.
 
+        After creation the concept projection is saved as a sparse matrix.
+        For atlases consisting of tens of thousands of entries the difference
+        between saving a sparse matrix or saving a traditional matrix is
+        the difference between tens of MB or tens of GB.
+
         Args:
             component_concepts (array-like of strs):                                  
                 Basis concepts to project onto. Defaults to all concepts across
