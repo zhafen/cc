@@ -30,13 +30,27 @@ class Atlas( object ):
         atlas_dir (str):
             Primary location atlas data is stored in.
 
+        load_bibtex (bool):
+            If True, load data from a .bib.
+
         bibtex_fp (str):
             Location to save the bibliography data at. Defaults to 
             $atlas_dir/cc_ads.bib
 
+        bibtex_entries_to_load (str or list-like):
+            If not 'all', load specific bibtex entried.
+
+        load_atlas_data (bool):
+            If True load saved data that has been retrieved/processed.
+
         data_fp (str):
-            Location to save other atlas data at. Defaults to 
+            Location to save atlas data at. Defaults to 
             $atlas_dir/atlas_data.h5
+
+        atlas_data_format (str):
+            How the atlas data should be saved or loaded.
+            Options are json, hdf5. Given the large amount of nesting and text,
+            json is recommended, and can actually save more space than json.
 
     Returns:
         Atlas:
@@ -47,11 +61,12 @@ class Atlas( object ):
     def __init__(
         self,
         atlas_dir,
-        bibtex_fp = None,
-        data_fp = None,
         load_bibtex = True,
-        load_atlas_data = True,
+        bibtex_fp = None,
         bibtex_entries_to_load = 'all',
+        load_atlas_data = True,
+        data_fp = None,
+        atlas_data_format = 'json',
     ):
 
         # Make sure the atlas directory exists
@@ -80,7 +95,7 @@ class Atlas( object ):
 
         # Load general atlas data
         if load_atlas_data:
-            self.load_data( fp=data_fp )
+            self.load_data( fp=data_fp, format=atlas_data_format )
 
     ########################################################################
 
