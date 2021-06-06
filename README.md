@@ -13,6 +13,7 @@ Documentation at [zhafen.github.io/cc](https://zhafen.github.io/cc/).
   * The latest citation information (no need to manually check if an arXiv publication has been published and update the citation).
   * Import and storage is API-call-efficient: up to ~100 publications retrieved per API call.
 * Import and storage of arXiv source files (in-progress).
+* Projection data is stored in a space-conserving sparse matrix.
 
 ### Data-Processing Features
 * Natural language processing of abstracts to extract key words according to word tagging.
