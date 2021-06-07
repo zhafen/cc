@@ -39,8 +39,8 @@ class Cartographer( object ):
         '''
 
         # Convert date to a more useable array
-        self.publication_dates = pd.to_datetime( publication_dates )
-        self.entry_dates = pd.to_datetime( entry_dates )
+        self.publication_dates = pd.to_datetime( publication_dates, errors='coerce' )
+        self.entry_dates = pd.to_datetime( entry_dates, errors='coerce' )
 
         if prune_zeros:
             self.prune_zero_entries()

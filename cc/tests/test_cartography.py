@@ -6,6 +6,7 @@ import os
 import pytest
 import shutil
 import unittest
+import verdict
 import warnings
 
 import cc.atlas as atlas
@@ -14,6 +15,24 @@ import cc.cartography as cartography
 ########################################################################
 
 filepath = './tests/data/arxiv_source/Hafen2019/CGM_origin.tex'
+
+########################################################################
+
+class TestCartographer( unittest.TestCase ):
+
+    def test_init( self ):
+
+        fp = './tests/data/example_atlas/projection.h5'
+
+        data = verdict.Dict.from_hdf5( fp, sparse=True )
+        data['components'] = data['components'].toarray()
+
+        # Time that normally breaks things
+        data['publication_dates'][0] = '1677-01-01 00:00:00'
+
+        return cartography.Cartographer( **data )
+
+########################################################################
 
 class TestInnerProduct( unittest.TestCase ):
 
