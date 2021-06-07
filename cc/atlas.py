@@ -433,6 +433,7 @@ class Atlas( object ):
             'entry_date',
             'notes',
             'unofficial_flag',
+            'citation',
         ],
         handle_jagged_arrs = 'row datasets',
         return_data = False,
