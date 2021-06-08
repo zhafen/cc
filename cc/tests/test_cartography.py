@@ -300,7 +300,7 @@ class TestExplore( unittest.TestCase ):
 
         fp = './tests/data/example_atlas/projection.h5'
         self.c = cartography.Cartographer.from_hdf5( fp )
-        self.a = atlas.Atlas( './tests/data/example_atlas' )
+        self.a = atlas.Atlas( './tests/data/example_atlas', atlas_data_format='hdf5' )
 
     def tearDown(self):
 

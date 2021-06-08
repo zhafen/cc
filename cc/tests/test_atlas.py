@@ -1197,7 +1197,7 @@ class TestConceptProjection( unittest.TestCase ):
 
     def setUp( self ):
 
-        self.a = atlas.Atlas( './tests/data/example_atlas' )
+        self.a = atlas.Atlas( './tests/data/example_atlas', atlas_data_format='hdf5' )
 
         # Ensure we have necessary data available
         self.a['Hafen2019'].abstract['nltk']['primary_stemmed']
