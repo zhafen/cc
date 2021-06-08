@@ -1,5 +1,7 @@
 import copy
+import ctypes
 import numpy as np
+import os
 import pandas as pd
 import scipy.spatial
 from scipy.spatial.distance import cdist
@@ -129,7 +131,7 @@ class Cartographer( object ):
     # Basic Analysis
     ########################################################################
 
-    def inner_product( self, key_a, key_b, **kwargs ):
+    def inner_product( self, key_a, key_b, backend='python', **kwargs ):
         '''Calculate the inner product between a and b, using the
         pre-generated concept projection.
 
@@ -152,7 +154,6 @@ class Cartographer( object ):
         Returns:
             The inner product of a and b
         '''
-
         # When a==b we can use the norms
         if key_a == key_b:
             if key_a == 'atlas':
@@ -174,27 +175,42 @@ class Cartographer( object ):
                 return self.components
             else:
                 raise KeyError( 'Unhandled key, {}'.format( key ) )
+
         a = interpret_key( key_a )
         b = interpret_key( key_b )
 
-        # When we're doing the inner product with the atlas for all pubs
-        if sorted([ key_a, key_b ]) == [ 'all', 'atlas' ]:
-            result = np.array([ np.dot( a, row ).sum() for row in b ])
-            return result
+        if backend == 'python':
 
-        # Dot product
-        try:
+            # When we're doing the inner product with the atlas for all pubs
+            if sorted([ key_a, key_b ]) == [ 'all', 'atlas' ]:
+                result = np.array([ np.dot( a, row ).sum() for row in b ])
+                return result
+
+            # Dot product
             try:
-                result = np.dot( a, b )
-            except TypeError:
-                # DEBUG
-                import pdb; pdb.set_trace()
-        except ValueError:
-            result = np.dot( b, a )
+                try:
+                    result = np.dot( a, b )
+                except TypeError:
+                    # DEBUG
+                    import pdb; pdb.set_trace()
+            except ValueError:
+                result = np.dot( b, a )
 
-        # Finish dot product
-        if key_a == 'atlas' or key_b == 'atlas':
-            result = result.sum()
+            # Finish dot product
+            if key_a == 'atlas' or key_b == 'atlas':
+                result = result.sum()
+        elif backend == 'cpp':
+
+            ## call the c executable
+            exec_call = os.path.join( '__file__', 'backend', 'cartography' )
+            c_obj = ctypes.CDLL( exec_call )
+
+            result = c_obj.inner_product(
+                a.ctypes.data_as(ctypes.c_int),
+                b.ctypes.data_as(ctypes.c_int),
+            )
+        else:
+            raise KeyError( 'Unrecognized backend, {}'.format( backend ) )
 
         return result
 
