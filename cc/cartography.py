@@ -694,13 +694,11 @@ class Cartographer( object ):
                 pass
 
             # Prune bibcodes_i for obvious overlap
-            bibcodes_i = list( set( bibcodes_i ) - existing_keys )
+            bibcodes += list( set( bibcodes_i ) - existing_keys )
 
             # Break when the search is centered and we're maxed out
-            if len( bibcodes ) + len( bibcodes_i ) > n_pubs_max and center is not None:
+            if len( bibcodes ) > n_pubs_max and center is not None:
                 break
-            else:
-                bibcodes += bibcodes_i
         bibcodes = list( set( bibcodes ) )
 
         assert len( bibcodes ) > 0, "Overly-restrictive search, no bibcodes to retrieve."

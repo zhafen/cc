@@ -361,8 +361,6 @@ class TestExplore( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        previous_size = len( self.a.data )
-
         # Build expected keys
         cite_key = 'Hafen2019a'
         expected_keys = np.union1d(
@@ -414,15 +412,23 @@ class TestExplore( unittest.TestCase ):
         dummy_key = '2017MNRAS.470.4698A'
         self.a.data[dummy_key] = self.a.data['Howk2017']
 
-        n_downloaded = len( self.a['Hafen2019'].references ) + len( self.a['Hafen2019a'].references )
-        self.c.expand( self.a, center='Hafen2019', n_pubs_max=n_downloaded+1 )
-
-        # Build the expected call, and check that it was retrieved
-        expected_call = list( self.a['Hafen2019'].references ) + list( self.a['Hafen2019a'].references )
-        expected_call = list( set( expected_call ) )
+        # Build the expected call
+        expected_call = (
+            list( self.a['Hafen2019'].references ) +
+            list( self.a['Hafen2019a'].references )
+            # list( self.a['VandeVoort2016'].references )
+        )
+        expected_call = sorted( list( set( expected_call ) ) )
         expected_call.remove( dummy_key )
+
+        self.c.expand( self.a, center='Hafen2019', n_pubs_max=len( expected_call ) )
         actual_call = mock.call_args[0][0] 
-        assert sorted( expected_call ) == sorted( actual_call )
+
+        # Check
+        is_not_in = np.invert( np.in1d( actual_call, expected_call ) )
+        assert is_not_in.sum() == 0
+        for i, key in enumerate( sorted( actual_call ) ):
+            assert key == expected_call[i]
 
     ########################################################################
 
