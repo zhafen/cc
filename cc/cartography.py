@@ -4,6 +4,7 @@ import glob
 import numpy as np
 import os
 import pandas as pd
+import scipy.sparse as ss
 import scipy.spatial
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
@@ -201,6 +202,8 @@ class Cartographer( object ):
             if key_a == 'atlas' or key_b == 'atlas':
                 result = result.sum()
         elif backend == 'cpp':
+
+            components_sparse = ss.csr_matrix( self.components )
 
             ## Get the c executable
             cc_dir = os.path.dirname( os.path.dirname( __file__ ) )
