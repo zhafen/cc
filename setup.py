@@ -36,4 +36,10 @@ setuptools.setup(
         'rebound>=3.12.3',
         'verdict>=1.1.4',
     ],
+    ext_modules = [
+        setuptools.Extension(
+            'inner_product',
+            [ './cc/backend/cartography.cpp' ],
+        ),
+    ],
 )

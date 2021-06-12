@@ -1,5 +1,6 @@
 import copy
 import ctypes
+import glob
 import numpy as np
 import os
 import pandas as pd
@@ -201,13 +202,24 @@ class Cartographer( object ):
                 result = result.sum()
         elif backend == 'cpp':
 
-            ## call the c executable
-            exec_call = os.path.join( '__file__', 'backend', 'cartography' )
-            c_obj = ctypes.CDLL( exec_call )
+            ## Get the c executable
+            cc_dir = os.path.dirname( os.path.dirname( __file__ ) )
+            lib_glob = os.path.join( cc_dir, 'build', '*/inner_product*.so' )
+            lib_fp = glob.glob( lib_glob )[0]
+            c_inner_product = ctypes.CDLL( lib_fp )
 
-            result = c_obj.inner_product(
-                a.ctypes.data_as(ctypes.c_int),
-                b.ctypes.data_as(ctypes.c_int),
+            # Setup types
+            c_inner_product.inner_product.restype = ctypes.c_int
+            c_inner_product.inner_product.argtypes = [
+                np.ctypeslib.ndpointer( dtype=np.int32 ),
+                np.ctypeslib.ndpointer( dtype=np.int32 ),
+                ctypes.c_int,
+            ]
+
+            result = c_inner_product.inner_product(
+                a.astype( 'int32' ),
+                b.astype( 'int32' ),
+                len( a ),
             )
         else:
             raise KeyError( 'Unrecognized backend, {}'.format( backend ) )
