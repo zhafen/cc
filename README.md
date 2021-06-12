@@ -30,6 +30,7 @@ Documentation at [zhafen.github.io/cc](https://zhafen.github.io/cc/).
   - Handling macros
   - Changing ~ into whitespace unless escaped
   - Informative visual display of roughly-chunked sentences.
+* Custom C/C++ backend for speed.
 
 ### Practicing Scientist Utility Features:
 * Automatic approximate generation of relevant text for a given concept.
