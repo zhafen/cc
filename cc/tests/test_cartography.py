@@ -43,6 +43,54 @@ class TestInnerProduct( unittest.TestCase ):
 
     ########################################################################
 
+    def test_inner_product_publication_publication_cpp( self ):
+
+        # Identify the right publication
+        ind_h = np.argmax( self.c.publications == 'Hafen2019' )
+        ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
+
+        np.random.seed( 1234 )
+
+        expected = ( self.c.components[ind_v,:] * self.c.components[ind_h,:] ).sum()
+
+        actual = self.c.inner_product(
+            'Hafen2019',
+            'VandeVoort2018a',
+        )
+        npt.assert_allclose( actual, expected, rtol=0.05 )
+
+
+    ########################################################################
+
+    def test_inner_product_publication_all_cpp( self ):
+
+        # Identify the right publication
+        ind_h = np.argmax( self.c.publications == 'Hafen2019' )
+        ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
+
+        np.random.seed( 1234 )
+
+        expected = ( self.c.components[ind_v,:] * self.c.components[ind_h,:] ).sum()
+
+        actual = self.c.inner_product(
+            'Hafen2019',
+            'all',
+            backend = 'cpp',
+        )
+        npt.assert_allclose( actual[ind_v], expected, rtol=0.05 )
+        npt.assert_allclose( actual[ind_v], expected, rtol=0.05 )
+
+########################################################################
+
+class TestInnerProductPython( unittest.TestCase ):
+
+    def setUp( self ):
+
+        fp = './tests/data/example_atlas/projection.h5'
+        self.c = cartography.Cartographer.from_hdf5( fp, backend='python' )
+
+    ########################################################################
+
     def test_inner_product_atlas_atlas( self ):
 
         np.random.seed( 1234 )
@@ -124,26 +172,6 @@ class TestInnerProduct( unittest.TestCase ):
         actual = self.c.inner_product(
             'Hafen2019',
             'VandeVoort2018a',
-            backend = 'python',
-        )
-        npt.assert_allclose( actual, expected, rtol=0.05 )
-
-    ########################################################################
-
-    def test_inner_product_publication_publication_cpp( self ):
-
-        # Identify the right publication
-        ind_h = np.argmax( self.c.publications == 'Hafen2019' )
-        ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
-
-        np.random.seed( 1234 )
-
-        expected = ( self.c.components[ind_v,:] * self.c.components[ind_h,:] ).sum()
-
-        actual = self.c.inner_product(
-            'Hafen2019',
-            'VandeVoort2018a',
-            backend = 'cpp',
         )
         npt.assert_allclose( actual, expected, rtol=0.05 )
 
@@ -163,26 +191,6 @@ class TestInnerProduct( unittest.TestCase ):
             'Hafen2019',
             'all',
         )
-
-    ########################################################################
-
-    def test_inner_product_publication_all_cpp( self ):
-
-        # Identify the right publication
-        ind_h = np.argmax( self.c.publications == 'Hafen2019' )
-        ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
-
-        np.random.seed( 1234 )
-
-        expected = ( self.c.components[ind_v,:] * self.c.components[ind_h,:] ).sum()
-
-        actual = self.c.inner_product(
-            'Hafen2019',
-            'all',
-            backend = 'cpp',
-        )
-        npt.assert_allclose( actual[ind_v], expected, rtol=0.05 )
-        npt.assert_allclose( actual[ind_v], expected, rtol=0.05 )
 
     ########################################################################
 

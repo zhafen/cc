@@ -23,9 +23,17 @@ from . import atlas
 
 class Cartographer( object ):
     '''Class for analyzing and exploring projected data.
+
+        Args:
+            backend (str):
+                What code to use for calculations?
+                Options are 'python', 'c/cpp'.
     '''
 
-    def __init__( self, **kwargs ):
+    def __init__( self, backend='c/cpp', **kwargs ):
+
+        self.backend = backend
+
         self.update_data( **kwargs )
 
     @augment.store_parameters
@@ -64,7 +72,7 @@ class Cartographer( object ):
     ########################################################################
 
     @classmethod
-    def from_hdf5( self, fp, sparse=True ):
+    def from_hdf5( self, fp, sparse=True, backend='c/cpp' ):
         '''Load the cartographer from a saved file.
 
         Args:
@@ -74,6 +82,10 @@ class Cartographer( object ):
             sparse (int):
                 Whether or not the components are saved as a sparse matrix.
 
+            backend (str):
+                What code to use for calculations?
+                Options are 'python', 'c/cpp'.
+
         Returns:
             Cartographer instance
         '''
@@ -81,7 +93,7 @@ class Cartographer( object ):
         data = verdict.Dict.from_hdf5( fp, sparse=sparse )
         if sparse:
             data['components'] = data['components'].toarray()
-        return Cartographer( **data )
+        return Cartographer( backend=backend, **data )
 
     ########################################################################
 
@@ -133,7 +145,7 @@ class Cartographer( object ):
     # Basic Analysis
     ########################################################################
 
-    def inner_product( self, key_a, key_b, backend='python', **kwargs ):
+    def inner_product( self, key_a, key_b, backend=None, **kwargs ):
         '''Calculate the inner product between a and b, using the
         pre-generated concept projection.
 
@@ -149,6 +161,11 @@ class Cartographer( object ):
 
             key_b (str):
                 Reference to the second object, same options as key_a.
+
+            backend (str):
+                What code to use to calculate the inner product?
+                If None then falls back to self.backend,
+                set during initialization.
 
         Keyword Args:
             Passed to self.concept_projection
@@ -180,6 +197,9 @@ class Cartographer( object ):
 
         a = interpret_key( key_a )
         b = interpret_key( key_b )
+
+        if backend is None:
+            backend = self.backend
 
         if backend == 'python':
 
