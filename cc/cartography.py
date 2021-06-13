@@ -34,6 +34,14 @@ class Cartographer( object ):
 
         self.backend = backend
 
+        if self.backend == 'c/c++':
+            # Sparse matrix
+            ## Get the c executable
+            cc_dir = os.path.dirname( os.path.dirname( __file__ ) )
+            lib_glob = os.path.join( cc_dir, 'build', '*/cartography*.so' )
+            lib_fp = glob.glob( lib_glob )[0]
+            self.c_cartography = ctypes.CDLL( lib_fp )
+
         self.update_data( **kwargs )
 
     @augment.store_parameters
@@ -56,6 +64,17 @@ class Cartographer( object ):
 
         if prune_zeros:
             self.prune_zero_entries()
+
+    ########################################################################
+
+    @property
+    def components_sp( self ):
+
+        if not hasattr( self, '_components_sp' ):
+
+            self._components_sp = ss.csr_matrix( self.components )
+
+        return self._components_sp
 
     ########################################################################
 
@@ -91,9 +110,16 @@ class Cartographer( object ):
         '''
 
         data = verdict.Dict.from_hdf5( fp, sparse=sparse )
+
         if sparse:
+            components_sp = copy.copy( data['components'] )
             data['components'] = data['components'].toarray()
-        return Cartographer( backend=backend, **data )
+        c = Cartographer( backend=backend, **data )
+
+        if sparse:
+            c._components_sp = components_sp
+
+        return c
 
     ########################################################################
 
@@ -228,31 +254,22 @@ class Cartographer( object ):
                 result = result.sum()
         elif backend == 'c/c++':
 
-            # Sparse matrix
-            sp_components = ss.csr_matrix( self.components )
-
-            ## Get the c executable
-            cc_dir = os.path.dirname( os.path.dirname( __file__ ) )
-            lib_glob = os.path.join( cc_dir, 'build', '*/cartography*.so' )
-            lib_fp = glob.glob( lib_glob )[0]
-            c_cartography = ctypes.CDLL( lib_fp )
-
             # Publication-publication case
             if key_a != 'all' and key_b != 'all':
 
                 # Get the sparse rows
                 i_a = np.argmax( self.publications == key_a )
                 i_b = np.argmax( self.publications == key_b )
-                slice_a = slice(sp_components.indptr[i_a], sp_components.indptr[i_a+1])
-                slice_b = slice(sp_components.indptr[i_b], sp_components.indptr[i_b+1])
-                data_a = sp_components.data[slice_a]
-                data_b = sp_components.data[slice_b]
-                indices_a = sp_components.indices[slice_a]
-                indices_b = sp_components.indices[slice_b]
+                slice_a = slice(self.components_sp.indptr[i_a], self.components_sp.indptr[i_a+1])
+                slice_b = slice(self.components_sp.indptr[i_b], self.components_sp.indptr[i_b+1])
+                data_a = self.components_sp.data[slice_a]
+                data_b = self.components_sp.data[slice_b]
+                indices_a = self.components_sp.indices[slice_a]
+                indices_b = self.components_sp.indices[slice_b]
 
                 # Setup types
-                c_cartography.inner_product_sparse.restype = ctypes.c_int
-                c_cartography.inner_product_sparse.argtypes = [
+                self.c_cartography.inner_product_sparse.restype = ctypes.c_int
+                self.c_cartography.inner_product_sparse.argtypes = [
                     np.ctypeslib.ndpointer( dtype=np.int32 ),
                     np.ctypeslib.ndpointer( dtype=np.int32 ),
                     ctypes.c_int,
@@ -262,7 +279,7 @@ class Cartographer( object ):
                 ]
 
                 # Call
-                result = c_cartography.inner_product_sparse(
+                result = self.c_cartography.inner_product_sparse(
                     data_a.astype( 'int32' ),
                     indices_a.astype( 'int32' ),
                     len( data_a ),
@@ -277,8 +294,8 @@ class Cartographer( object ):
                 i_a = np.argmax( self.publications == key_a )
 
                 # Setup types
-                c_cartography.inner_product_row_all_sparse.restype = ctypes.c_void_p
-                c_cartography.inner_product_row_all_sparse.argtypes = [
+                self.c_cartography.inner_product_row_all_sparse.restype = ctypes.c_void_p
+                self.c_cartography.inner_product_row_all_sparse.argtypes = [
                     ctypes.c_int,
                     np.ctypeslib.ndpointer( dtype=np.int32 ),
                     np.ctypeslib.ndpointer( dtype=np.int32 ),
@@ -289,11 +306,11 @@ class Cartographer( object ):
 
                 # Call
                 result = np.zeros( self.publications.size ).astype( 'int32' )
-                c_cartography.inner_product_row_all_sparse(
+                self.c_cartography.inner_product_row_all_sparse(
                     i_a,
-                    sp_components.data.astype( 'int32' ),
-                    sp_components.indices.astype( 'int32' ),
-                    sp_components.indptr.astype( 'int32' ),
+                    self.components_sp.data.astype( 'int32' ),
+                    self.components_sp.indices.astype( 'int32' ),
+                    self.components_sp.indptr.astype( 'int32' ),
                     self.publications.size,
                     result,
                 )
