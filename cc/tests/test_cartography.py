@@ -74,7 +74,6 @@ class TestInnerProduct( unittest.TestCase ):
         actual = self.c.inner_product(
             'Hafen2019',
             'all',
-            backend = 'cpp',
         )
         npt.assert_allclose( actual[ind_v], expected, rtol=0.05 )
         npt.assert_allclose( actual[ind_v], expected, rtol=0.05 )

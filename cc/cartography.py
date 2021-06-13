@@ -228,16 +228,8 @@ class Cartographer( object ):
                 result = result.sum()
         elif backend == 'c/c++':
 
-            # Get the sparse rows
+            # Sparse matrix
             sp_components = ss.csr_matrix( self.components )
-            i_a = np.argmax( self.publications == key_a )
-            i_b = np.argmax( self.publications == key_b )
-            slice_a = slice(sp_components.indptr[i_a], sp_components.indptr[i_a+1])
-            slice_b = slice(sp_components.indptr[i_b], sp_components.indptr[i_b+1])
-            data_a = sp_components.data[slice_a]
-            data_b = sp_components.data[slice_b]
-            indices_a = sp_components.indices[slice_a]
-            indices_b = sp_components.indices[slice_b]
 
             ## Get the c executable
             cc_dir = os.path.dirname( os.path.dirname( __file__ ) )
@@ -247,6 +239,17 @@ class Cartographer( object ):
 
             # Publication-publication case
             if key_a != 'all' and key_b != 'all':
+
+                # Get the sparse rows
+                i_a = np.argmax( self.publications == key_a )
+                i_b = np.argmax( self.publications == key_b )
+                slice_a = slice(sp_components.indptr[i_a], sp_components.indptr[i_a+1])
+                slice_b = slice(sp_components.indptr[i_b], sp_components.indptr[i_b+1])
+                data_a = sp_components.data[slice_a]
+                data_b = sp_components.data[slice_b]
+                indices_a = sp_components.indices[slice_a]
+                indices_b = sp_components.indices[slice_b]
+
                 # Setup types
                 c_cartography.inner_product_sparse.restype = ctypes.c_int
                 c_cartography.inner_product_sparse.argtypes = [
@@ -270,7 +273,30 @@ class Cartographer( object ):
              
             elif key_a != 'all' and key_b == 'all':
 
-                 pass
+                # Setup input
+                i_a = np.argmax( self.publications == key_a )
+
+                # Setup types
+                c_cartography.inner_product_row_all_sparse.restype = ctypes.c_void_p
+                c_cartography.inner_product_row_all_sparse.argtypes = [
+                    ctypes.c_int,
+                    np.ctypeslib.ndpointer( dtype=np.int32 ),
+                    np.ctypeslib.ndpointer( dtype=np.int32 ),
+                    np.ctypeslib.ndpointer( dtype=np.int32 ),
+                    ctypes.c_int,
+                    np.ctypeslib.ndpointer( dtype=np.int32 ),
+                ]
+
+                # Call
+                result = np.zeros( self.publications.size ).astype( 'int32' )
+                c_cartography.inner_product_row_all_sparse(
+                    i_a,
+                    sp_components.data.astype( 'int32' ),
+                    sp_components.indices.astype( 'int32' ),
+                    sp_components.indptr.astype( 'int32' ),
+                    self.publications.size,
+                    result,
+                )
 
         else:
             raise KeyError( 'Unrecognized backend, {}'.format( backend ) )

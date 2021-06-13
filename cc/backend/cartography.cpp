@@ -63,56 +63,64 @@ int inner_product_sparse( int data_a[], int indices_a[], int size_a, int data_b[
 	return ip;
 }
 
+extern "C" // required when using C++ compiler
+
 /**
  * Inner product of all rows in a sparse matrix with a single row from that matrix.
  * Output is an array the size of the number of rows.
  * The sparse matrix is assumed to be in compressed sparse row format.
  * 
- * @ind The target row.
+ * @i Index of the target row.
  * @data The data values for the sparse matrix.
  * @indices The indices for each data value.
  * @data_size The total number of data values/indices.
  * @indptr Where indices for one row ends and another begins.
  * @n_rows The number of rows.
+ * @result For storing the output.
  */
-//int * inner_product_row_all_sparse(int ind, int data[], int indices[], int data_size, int indptr[], int n_rows, int result[] ) {
-//
-//	// Retrieve the target row indices and values.
-//	// This is python thinking, and will break.
-//	// I'll need to do otherwise, basically...
-//	//row_data = data[indptr[ind]:indptr[ind+1]]
-//	//row_indices = indices[indptr[ind]:indptr[ind+1]]
-//
-//	// int i, ip = 0;
-//	// int start_ind = indptr[ind];
-//	// int end_ind = indptr[ind+1];
-//
-//	// Loop over all rows
-//	int i = 0;
-//	for ( i = 0; i < n_rows - 1; i++ ){
-//		
-//		// Calculate IP
-//		int ip = 0;
-//	}
-//
-//	return ip;
-//}
+void inner_product_row_all_sparse( int i, int data[], int indices[], int indptr[], int n_rows, int result[] ) {
 
+	// Get starting in
+	int i_a = indptr[i];
+	int size_a = indptr[i+1] - i_a;
+
+	// Loop over all rows
+	int i_b, size_b;
+	int j = 0;
+	for ( j = 0; j < n_rows; j++ ){
+
+		i_b = indptr[j];
+		size_b = indptr[j+1] - i_b;
+		
+		// Calculate IP
+		result[j] = inner_product_sparse( &data[i_a], &indices[i_a], size_a, &data[i_b], &indices[i_b], size_b );
+	}
+}
+
+// The stronger test framework is with Python, but a simple test framework is found below.
 /**
 int main () {
-	int ip;
-
+	// Inner product between two sparse rows.
 	int data_a[4] = {1, 2, 3, 5};
 	int indices_a[4] = { 0, 1, 4, 5};
 	int data_b[5] = {-1, 2, 2, 5, 3};
 	int indices_b[5] = { 0, 1, 3, 4, 17};
 
 	int expected = -1 + 2 * 2 + 5 * 3;
-
-	ip = inner_product_sparse( data_a, indices_a, 4, data_b, indices_b, 5 );
+	int ip = inner_product_sparse( data_a, indices_a, 4, data_b, indices_b, 5 );
 
 	// Return value
-	cout << "Inner product is: "  << ip << endl;
 	cout << "Expected is: "  << expected << endl;
+	cout << "Inner product is: "  << ip << endl;
+
+	int data[9] = { 1, 2, 3, 5, -1, 2, 2, 5, 3 };
+	int indices[9] = { 0, 1, 4, 5, 0, 1, 3, 4, 17 };
+	int indptr[3] = { 0, 4, 9};
+	int result[2] = { 0, 0 };
+
+	inner_product_row_all_sparse( 0, data, indices, indptr, 2, result );
+
+	// Return value
+	cout << "Inner product row-all[1] is: "  << result[1] << endl;
 }
 */
