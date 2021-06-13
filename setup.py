@@ -38,7 +38,7 @@ setuptools.setup(
     ],
     ext_modules = [
         setuptools.Extension(
-            'inner_product_sparse',
+            'cartography',
             [ './cc/backend/cartography.cpp' ],
         ),
     ],

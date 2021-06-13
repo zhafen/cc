@@ -59,7 +59,6 @@ class TestInnerProduct( unittest.TestCase ):
         )
         npt.assert_allclose( actual, expected, rtol=0.05 )
 
-
     ########################################################################
 
     def test_inner_product_publication_all_cpp( self ):

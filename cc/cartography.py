@@ -173,6 +173,11 @@ class Cartographer( object ):
         Returns:
             The inner product of a and b
         '''
+
+        # Swap a and b since it doesn't matter anyways when one is all
+        if key_b != 'all' and key_a == 'all':
+            key_a, key_b = key_b, key_a
+
         # When a==b we can use the norms
         if key_a == key_b:
             if key_a == 'atlas':
@@ -183,25 +188,25 @@ class Cartographer( object ):
                 is_p = self.publications == key_a
                 return self.norms[is_p]**2.
 
-        # Find the objects the keys refer to
-        def interpret_key( key ):
-            # A single publication
-            if key in self.publications:
-                is_p = self.publications == key
-                return self.components[is_p][0]
-            # The entire atlas
-            elif key == 'atlas' or key == 'all':
-                return self.components
-            else:
-                raise KeyError( 'Unhandled key, {}'.format( key ) )
-
-        a = interpret_key( key_a )
-        b = interpret_key( key_b )
-
         if backend is None:
             backend = self.backend
 
         if backend == 'python':
+
+            # Find the objects the keys refer to
+            def interpret_key( key ):
+                # A single publication
+                if key in self.publications:
+                    is_p = self.publications == key
+                    return self.components[is_p][0]
+                # The entire atlas
+                elif key == 'atlas' or key == 'all':
+                    return self.components
+                else:
+                    raise KeyError( 'Unhandled key, {}'.format( key ) )
+
+            a = interpret_key( key_a )
+            b = interpret_key( key_b )
 
             # When we're doing the inner product with the atlas for all pubs
             if sorted([ key_a, key_b ]) == [ 'all', 'atlas' ]:
@@ -236,30 +241,37 @@ class Cartographer( object ):
 
             ## Get the c executable
             cc_dir = os.path.dirname( os.path.dirname( __file__ ) )
-            lib_glob = os.path.join( cc_dir, 'build', '*/inner_product*.so' )
+            lib_glob = os.path.join( cc_dir, 'build', '*/cartography*.so' )
             lib_fp = glob.glob( lib_glob )[0]
-            c_inner_product = ctypes.CDLL( lib_fp )
+            c_cartography = ctypes.CDLL( lib_fp )
 
-            # Setup types
-            c_inner_product.inner_product_sparse.restype = ctypes.c_int
-            c_inner_product.inner_product_sparse.argtypes = [
-                np.ctypeslib.ndpointer( dtype=np.int32 ),
-                np.ctypeslib.ndpointer( dtype=np.int32 ),
-                ctypes.c_int,
-                np.ctypeslib.ndpointer( dtype=np.int32 ),
-                np.ctypeslib.ndpointer( dtype=np.int32 ),
-                ctypes.c_int,
-            ]
+            # Publication-publication case
+            if key_a != 'all' and key_b != 'all':
+                # Setup types
+                c_cartography.inner_product_sparse.restype = ctypes.c_int
+                c_cartography.inner_product_sparse.argtypes = [
+                    np.ctypeslib.ndpointer( dtype=np.int32 ),
+                    np.ctypeslib.ndpointer( dtype=np.int32 ),
+                    ctypes.c_int,
+                    np.ctypeslib.ndpointer( dtype=np.int32 ),
+                    np.ctypeslib.ndpointer( dtype=np.int32 ),
+                    ctypes.c_int,
+                ]
 
-            # Calculation
-            result = c_inner_product.inner_product_sparse(
-                data_a.astype( 'int32' ),
-                indices_a.astype( 'int32' ),
-                len( data_a ),
-                data_b.astype( 'int32' ),
-                indices_b.astype( 'int32' ),
-                len( data_b ),
-            )
+                # Call
+                result = c_cartography.inner_product_sparse(
+                    data_a.astype( 'int32' ),
+                    indices_a.astype( 'int32' ),
+                    len( data_a ),
+                    data_b.astype( 'int32' ),
+                    indices_b.astype( 'int32' ),
+                    len( data_b ),
+                )
+             
+            elif key_a != 'all' and key_b == 'all':
+
+                 pass
+
         else:
             raise KeyError( 'Unrecognized backend, {}'.format( backend ) )
 
