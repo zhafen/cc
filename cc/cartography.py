@@ -27,10 +27,10 @@ class Cartographer( object ):
         Args:
             backend (str):
                 What code to use for calculations?
-                Options are 'python', 'c/cpp'.
+                Options are 'python', 'c/c++'.
     '''
 
-    def __init__( self, backend='c/cpp', **kwargs ):
+    def __init__( self, backend='c/c++', **kwargs ):
 
         self.backend = backend
 
@@ -72,7 +72,7 @@ class Cartographer( object ):
     ########################################################################
 
     @classmethod
-    def from_hdf5( self, fp, sparse=True, backend='c/cpp' ):
+    def from_hdf5( self, fp, sparse=True, backend='c/c++' ):
         '''Load the cartographer from a saved file.
 
         Args:
@@ -84,7 +84,7 @@ class Cartographer( object ):
 
             backend (str):
                 What code to use for calculations?
-                Options are 'python', 'c/cpp'.
+                Options are 'python', 'c/c++'.
 
         Returns:
             Cartographer instance
@@ -226,7 +226,7 @@ class Cartographer( object ):
             # Finish dot product
             if key_a == 'atlas' or key_b == 'atlas':
                 result = result.sum()
-        elif backend == 'c/cpp':
+        elif backend == 'c/c++':
 
             # Get the sparse rows
             sp_components = ss.csr_matrix( self.components )
