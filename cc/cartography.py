@@ -221,9 +221,18 @@ class Cartographer( object ):
             # Finish dot product
             if key_a == 'atlas' or key_b == 'atlas':
                 result = result.sum()
-        elif backend == 'cpp':
+        elif backend == 'c/cpp':
 
-            components_sparse = ss.csr_matrix( self.components )
+            # Get the sparse rows
+            sp_components = ss.csr_matrix( self.components )
+            i_a = np.argmax( self.publications == key_a )
+            i_b = np.argmax( self.publications == key_b )
+            slice_a = slice(sp_components.indptr[i_a], sp_components.indptr[i_a+1])
+            slice_b = slice(sp_components.indptr[i_b], sp_components.indptr[i_b+1])
+            data_a = sp_components.data[slice_a]
+            data_b = sp_components.data[slice_b]
+            indices_a = sp_components.indices[slice_a]
+            indices_b = sp_components.indices[slice_b]
 
             ## Get the c executable
             cc_dir = os.path.dirname( os.path.dirname( __file__ ) )
@@ -232,17 +241,24 @@ class Cartographer( object ):
             c_inner_product = ctypes.CDLL( lib_fp )
 
             # Setup types
-            c_inner_product.inner_product.restype = ctypes.c_int
-            c_inner_product.inner_product.argtypes = [
+            c_inner_product.inner_product_sparse.restype = ctypes.c_int
+            c_inner_product.inner_product_sparse.argtypes = [
+                np.ctypeslib.ndpointer( dtype=np.int32 ),
+                np.ctypeslib.ndpointer( dtype=np.int32 ),
+                ctypes.c_int,
                 np.ctypeslib.ndpointer( dtype=np.int32 ),
                 np.ctypeslib.ndpointer( dtype=np.int32 ),
                 ctypes.c_int,
             ]
 
-            result = c_inner_product.inner_product(
-                a.astype( 'int32' ),
-                b.astype( 'int32' ),
-                len( a ),
+            # Calculation
+            result = c_inner_product.inner_product_sparse(
+                data_a.astype( 'int32' ),
+                indices_a.astype( 'int32' ),
+                len( data_a ),
+                data_b.astype( 'int32' ),
+                indices_b.astype( 'int32' ),
+                len( data_b ),
             )
         else:
             raise KeyError( 'Unrecognized backend, {}'.format( backend ) )
