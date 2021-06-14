@@ -110,12 +110,17 @@ extern "C" // required when using C++ compiler
  * @data_size The total number of data values/indices.
  * @indptr Where indices for one row ends and another begins.
  * @n_rows The number of rows.
- * @result For storing the output.
  */
-void inner_product_matrix( int data[], int indices[], int indptr[], int n_rows, int **result ) {
+int** inner_product_matrix( int data[], int indices[], int indptr[], int n_rows ) {
+
+	// Create result array
+	int** result;
+	result = new int*[n_rows];
 
 	int i, j, i_a, i_b, size_a, size_b;
 	for ( i = 0; i < n_rows; i++ ){
+
+		result[i] = new int[n_rows];
 
 		// Get ind
 		i_a = indptr[i];
@@ -130,10 +135,11 @@ void inner_product_matrix( int data[], int indices[], int indptr[], int n_rows, 
 			result[i][j] = inner_product_sparse( &data[i_a], &indices[i_a], size_a, &data[i_b], &indices[i_b], size_b );
 		}
 	}
+
+	return result;
 }
 
 // The stronger test framework is setup for the frontend, but a simple test framework is found below.
-/**
 int main () {
 	// Inner product between two sparse rows.
 	int data_a[4] = {1, 2, 3, 5};
@@ -153,11 +159,6 @@ int main () {
 	int indices[9] = { 0, 1, 4, 5, 0, 1, 3, 4, 17 };
 	int indptr[3] = { 0, 4, 9};
 	int result[2] = { 0, 0 };
-	int **result_all;
-	result_all = new int *[2];
-	for ( int i = 0; i < 2 ; i++ ) {
-		result_all[i] = new int[2];
-	}
 
 	int expected_norm = 1 + 2 * 2 + 3 * 3 + 5 * 5;
 	cout << "Inner product row-all expected is: "  << expected_norm << " " << expected << endl;
@@ -175,9 +176,9 @@ int main () {
 	cout << expected_all[1][0] << "  " << expected_all[1][1] << endl;
 
 	// Result for all
-	inner_product_matrix( data, indices, indptr, 2, result_all );
+	int** result_all;
+	result_all = inner_product_matrix( data, indices, indptr, 2 );
 	cout << "Inner product matrix is: " << endl;
 	cout << result_all[0][0] << "  " << result_all[0][1] << endl;
 	cout << result_all[1][0] << "  " << result_all[1][1] << endl;
 }
-*/
