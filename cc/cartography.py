@@ -306,7 +306,7 @@ class Cartographer( object ):
                 ]
 
                 # Call
-                result = np.zeros( self.publications.size ).astype( 'int32' )
+                result = np.zeros( self.publications.size, dtype='int32' )
                 self.c_cartography.inner_product_row_all_sparse(
                     i_a,
                     self.components_sp.data.astype( 'int32' ),
@@ -320,6 +320,38 @@ class Cartographer( object ):
             raise KeyError( 'Unrecognized backend, {}'.format( backend ) )
 
         return result
+
+    ########################################################################
+
+    @property
+    def inner_product_matrix( self ):
+
+        if not hasattr( self, '_inner_product_matrix' ):
+
+            # Setup types
+            self.c_cartography.inner_product_matrix.restype = ctypes.c_void_p
+            self.c_cartography.inner_product_matrix.argtypes = [
+                np.ctypeslib.ndpointer( dtype=np.int32 ),
+                np.ctypeslib.ndpointer( dtype=np.int32 ),
+                np.ctypeslib.ndpointer( dtype=np.int32 ),
+                ctypes.c_int,
+                np.ctypeslib.ndpointer( dtype=np.int32 ),
+            ]
+
+            # Call
+            shape = ( self.publications.size, self.publications.size )
+            self._inner_product_matrix = np.zeros( shape, dtype='int32' )
+            # n_pubs = self.publications.size
+            # self._inner_product_matrix = ( ( ctypes.c_int * n_pubs ) * n_pubs )
+            self.c_cartography.inner_product_matrix(
+                self.components_sp.data.astype( 'int32' ),
+                self.components_sp.indices.astype( 'int32' ),
+                self.components_sp.indptr.astype( 'int32' ),
+                self.publications.size,
+                self._inner_product_matrix,
+            )
+
+        return self._inner_product_matrix
 
     ########################################################################
 

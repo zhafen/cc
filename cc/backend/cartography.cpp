@@ -98,14 +98,28 @@ void inner_product_row_all_sparse( int i, int data[], int indices[], int indptr[
 	}
 }
 
+extern "C" // required when using C++ compiler
+
+/**
+ * Pairwise inner product of all rows in a sparse matrix.
+ * Output is a ( n_rows, n_rows ) array.
+ * The sparse matrix is assumed to be in compressed sparse row format.
+ * 
+ * @data The data values for the sparse matrix.
+ * @indices The indices for each data value.
+ * @data_size The total number of data values/indices.
+ * @indptr Where indices for one row ends and another begins.
+ * @n_rows The number of rows.
+ * @result For storing the output.
+ */
 void inner_product_matrix( int data[], int indices[], int indptr[], int n_rows, int **result ) {
 
 	int i, j, i_a, i_b, size_a, size_b;
 	for ( i = 0; i < n_rows; i++ ){
 
 		// Get ind
-		int i_a = indptr[i];
-		int size_a = indptr[i+1] - i_a;
+		i_a = indptr[i];
+		size_a = indptr[i+1] - i_a;
 
 		for ( j = i; j < n_rows ; j++ ) {
 
@@ -119,6 +133,7 @@ void inner_product_matrix( int data[], int indices[], int indptr[], int n_rows, 
 }
 
 // The stronger test framework is setup for the frontend, but a simple test framework is found below.
+/**
 int main () {
 	// Inner product between two sparse rows.
 	int data_a[4] = {1, 2, 3, 5};
@@ -165,3 +180,4 @@ int main () {
 	cout << result_all[0][0] << "  " << result_all[0][1] << endl;
 	cout << result_all[1][0] << "  " << result_all[1][1] << endl;
 }
+*/
