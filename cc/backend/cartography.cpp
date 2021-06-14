@@ -37,7 +37,7 @@ int inner_product_sparse( int data_a[], int indices_a[], int size_a, int data_b[
 
 	int ind_a, ind_b;
 	int ip = 0, i_a = 0, i_b = 0;
-	while ( i_a < size_a - 1 & i_b < size_b - 1)
+	while ( i_a < size_a & i_b < size_b )
 	{
 		// Find out the current index
 		ind_a = indices_a[i_a];
@@ -98,7 +98,7 @@ void inner_product_row_all_sparse( int i, int data[], int indices[], int indptr[
 	}
 }
 
-void inner_product_matrix( int data[], int indices[], int indptr[], int n_rows, int result[][2] ) {
+void inner_product_matrix( int data[], int indices[], int indptr[], int n_rows, int **result ) {
 
 	int i, j, i_a, i_b, size_a, size_b;
 	for ( i = 0; i < n_rows; i++ ){
@@ -118,7 +118,7 @@ void inner_product_matrix( int data[], int indices[], int indptr[], int n_rows, 
 	}
 }
 
-// The stronger test framework is setup for the fronted, but a simple test framework is found below.
+// The stronger test framework is setup for the frontend, but a simple test framework is found below.
 int main () {
 	// Inner product between two sparse rows.
 	int data_a[4] = {1, 2, 3, 5};
@@ -138,7 +138,11 @@ int main () {
 	int indices[9] = { 0, 1, 4, 5, 0, 1, 3, 4, 17 };
 	int indptr[3] = { 0, 4, 9};
 	int result[2] = { 0, 0 };
-	int result_all[2][2] = { 0, 0, 0, 0 };
+	int **result_all;
+	result_all = new int *[2];
+	for ( int i = 0; i < 2 ; i++ ) {
+		result_all[i] = new int[2];
+	}
 
 	int expected_norm = 1 + 2 * 2 + 3 * 3 + 5 * 5;
 	cout << "Inner product row-all expected is: "  << expected_norm << " " << expected << endl;
