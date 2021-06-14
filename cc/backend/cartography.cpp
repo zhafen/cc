@@ -80,7 +80,7 @@ extern "C" // required when using C++ compiler
  */
 void inner_product_row_all_sparse( int i, int data[], int indices[], int indptr[], int n_rows, int result[] ) {
 
-	// Get starting in
+	// Get starting ind
 	int i_a = indptr[i];
 	int size_a = indptr[i+1] - i_a;
 
@@ -89,11 +89,32 @@ void inner_product_row_all_sparse( int i, int data[], int indices[], int indptr[
 	int j = 0;
 	for ( j = 0; j < n_rows; j++ ){
 
+		// Other ind
 		i_b = indptr[j];
 		size_b = indptr[j+1] - i_b;
 		
 		// Calculate IP
 		result[j] = inner_product_sparse( &data[i_a], &indices[i_a], size_a, &data[i_b], &indices[i_b], size_b );
+	}
+}
+
+void inner_product_matrix( int data[], int indices[], int indptr[], int n_rows, int result[][2] ) {
+
+	int i, j, i_a, i_b, size_a, size_b;
+	for ( i = 0; i < n_rows; i++ ){
+
+		// Get ind
+		int i_a = indptr[i];
+		int size_a = indptr[i+1] - i_a;
+
+		for ( j = i; j < n_rows ; j++ ) {
+
+			// Other ind
+			i_b = indptr[j];
+			size_b = indptr[j+1] - i_b;
+		
+			result[i][j] = inner_product_sparse( &data[i_a], &indices[i_a], size_a, &data[i_b], &indices[i_b], size_b );
+		}
 	}
 }
 
@@ -105,8 +126,8 @@ int main () {
 	int data_b[5] = {-1, 2, 2, 5, 3};
 	int indices_b[5] = { 0, 1, 3, 4, 17};
 
-	cout << "Expected is: "  << expected << endl;
 	int expected = -1 + 2 * 2 + 5 * 3;
+	cout << "Expected is: "  << expected << endl;
 
 	// Result value
 	int ip = inner_product_sparse( data_a, indices_a, 4, data_b, indices_b, 5 );
@@ -119,21 +140,24 @@ int main () {
 	int result[2] = { 0, 0 };
 	int result_all[2][2] = { 0, 0, 0, 0 };
 
+	int expected_norm = 1 + 2 * 2 + 3 * 3 + 5 * 5;
+	cout << "Inner product row-all expected is: "  << expected_norm << " " << expected << endl;
+
 	// Result for one row
 	inner_product_row_all_sparse( 0, data, indices, indptr, 2, result );
-	cout << "Inner product row-all[1] is: "  << result[1] << endl;
+	cout << "Inner product row-all is: "  << result[0] << " " << result[1] << endl;
 
 	int expected_all[2][2] = {
-		{ 1 * 1 + 2 * 2 + 3 * 3 + 5 * 5, expected, },
+		{ expected_norm, expected, },
 		{ 0, 1 * 1 + 2 * 2 + 2 * 2 + 5 * 5 + 3 * 3 },
 	};
 	cout << "Inner product matrix expected is: " << endl;
-	cout << expected_all[0][0] << expected_all[0][1] << endl;
-	cout << expected_all[1][0] << expected_all[1][1] << endl;
+	cout << expected_all[0][0] << " " << expected_all[0][1] << endl;
+	cout << expected_all[1][0] << "  " << expected_all[1][1] << endl;
 
 	// Result for all
-	inner_product_matrix( data, indices, indptr, 2, result_all )
+	inner_product_matrix( data, indices, indptr, 2, result_all );
 	cout << "Inner product matrix is: " << endl;
-	cout << result_all[0][0] << result_all[0][1] << endl;
-	cout << result_all[1][0] << result_all[1][1] << endl;
+	cout << result_all[0][0] << "  " << result_all[0][1] << endl;
+	cout << result_all[1][0] << "  " << result_all[1][1] << endl;
 }
