@@ -114,6 +114,7 @@ class Cartographer( object ):
         if sparse:
             components_sp = copy.copy( data['components'] )
             data['components'] = data['components'].toarray()
+
         c = Cartographer( backend=backend, **data )
 
         if sparse:
