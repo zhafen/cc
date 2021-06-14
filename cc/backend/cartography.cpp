@@ -97,8 +97,7 @@ void inner_product_row_all_sparse( int i, int data[], int indices[], int indptr[
 	}
 }
 
-// The stronger test framework is with Python, but a simple test framework is found below.
-/**
+// The stronger test framework is setup for the fronted, but a simple test framework is found below.
 int main () {
 	// Inner product between two sparse rows.
 	int data_a[4] = {1, 2, 3, 5};
@@ -106,21 +105,35 @@ int main () {
 	int data_b[5] = {-1, 2, 2, 5, 3};
 	int indices_b[5] = { 0, 1, 3, 4, 17};
 
-	int expected = -1 + 2 * 2 + 5 * 3;
-	int ip = inner_product_sparse( data_a, indices_a, 4, data_b, indices_b, 5 );
-
-	// Return value
 	cout << "Expected is: "  << expected << endl;
+	int expected = -1 + 2 * 2 + 5 * 3;
+
+	// Result value
+	int ip = inner_product_sparse( data_a, indices_a, 4, data_b, indices_b, 5 );
 	cout << "Inner product is: "  << ip << endl;
 
+	// Inner product for a component matrix
 	int data[9] = { 1, 2, 3, 5, -1, 2, 2, 5, 3 };
 	int indices[9] = { 0, 1, 4, 5, 0, 1, 3, 4, 17 };
 	int indptr[3] = { 0, 4, 9};
 	int result[2] = { 0, 0 };
+	int result_all[2][2] = { 0, 0, 0, 0 };
 
+	// Result for one row
 	inner_product_row_all_sparse( 0, data, indices, indptr, 2, result );
-
-	// Return value
 	cout << "Inner product row-all[1] is: "  << result[1] << endl;
+
+	int expected_all[2][2] = {
+		{ 1 * 1 + 2 * 2 + 3 * 3 + 5 * 5, expected, },
+		{ 0, 1 * 1 + 2 * 2 + 2 * 2 + 5 * 5 + 3 * 3 },
+	};
+	cout << "Inner product matrix expected is: " << endl;
+	cout << expected_all[0][0] << expected_all[0][1] << endl;
+	cout << expected_all[1][0] << expected_all[1][1] << endl;
+
+	// Result for all
+	inner_product_matrix( data, indices, indptr, 2, result_all )
+	cout << "Inner product matrix is: " << endl;
+	cout << result_all[0][0] << result_all[0][1] << endl;
+	cout << result_all[1][0] << result_all[1][1] << endl;
 }
-*/
