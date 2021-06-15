@@ -136,6 +136,13 @@ int** inner_product_matrix( int data[], int indices[], int indptr[], int n_rows 
 		}
 	}
 
+	// Reflect across the diagonal
+	for ( i = 0; i < n_rows; i++ ){
+		for (j = 0; j < i ; j++ ){
+			result[i][j] = result[j][i];
+		}
+	}
+
 	return result;
 }
 
