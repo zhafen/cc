@@ -92,6 +92,22 @@ class TestInnerProduct( unittest.TestCase ):
         actual = self.c.inner_product_matrix
         npt.assert_allclose( actual[ind_h][ind_v], expected, rtol=0.05 )
 
+    ########################################################################
+
+    def test_cospsi_matrix( self ):
+
+        # Identify the right publication
+        ind_h = np.argmax( self.c.publications == 'Hafen2019' )
+        ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
+
+        np.random.seed( 1234 )
+
+        expected = self.c.cospsi( 'Hafen2019', 'VandeVoort2018a' )
+
+        actual = self.c.cospsi_matrix
+        npt.assert_allclose( actual[ind_h][ind_v], expected, rtol=0.05 )
+        npt.assert_allclose( actual[ind_v,ind_h], expected, rtol=0.05 )
+
 ########################################################################
 
 class TestInnerProductPython( unittest.TestCase ):

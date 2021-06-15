@@ -325,6 +325,9 @@ class Cartographer( object ):
 
     @property
     def inner_product_matrix( self ):
+        '''Matrix with element [i,j] describing the inner product between
+        publications i and j.
+        '''
 
         if not hasattr( self, '_inner_product_matrix' ):
 
@@ -380,6 +383,25 @@ class Cartographer( object ):
         ip_bb = self.inner_product( key_b, key_b, **kwargs )
 
         return ip_ab / np.sqrt( ip_aa * ip_bb )
+
+    ########################################################################
+
+    @property
+    def cospsi_matrix( self ):
+        '''Matrix with element [i,j] describing the cosine between
+        publications i and j.
+        '''
+
+        if not hasattr( self, '_cospsi_matrix' ):
+
+            norms = np.diagonal( self.inner_product_matrix )
+            self._cospsi_matrix = (
+                self.inner_product_matrix /
+                np.sqrt( norms ) /
+                np.sqrt( norms[:,np.newaxis] )
+            )
+
+        return self._cospsi_matrix
 
     ########################################################################
 
