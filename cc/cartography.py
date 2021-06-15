@@ -330,8 +330,7 @@ class Cartographer( object ):
 
             # Setup types
             n_pubs = self.publications.size
-            shape = ( n_pubs * n_pubs, )
-            self.c_cartography.inner_product_matrix.restype = np.ctypeslib.ndpointer( dtype=np.int64, shape=shape )
+            self.c_cartography.inner_product_matrix.restype = ctypes.POINTER( ctypes.c_long )
             self.c_cartography.inner_product_matrix.argtypes = [
                 np.ctypeslib.ndpointer( dtype=np.int64 ),
                 np.ctypeslib.ndpointer( dtype=np.int64 ),
@@ -340,13 +339,13 @@ class Cartographer( object ):
             ]
 
             # Call
-            result_flat = self.c_cartography.inner_product_matrix(
+            result_pointer = self.c_cartography.inner_product_matrix(
                 self.components_sp.data.astype( 'int64' ),
                 self.components_sp.indices.astype( 'int64' ),
                 self.components_sp.indptr.astype( 'int64' ),
                 n_pubs,
             )
-            self._inner_product_matrix = np.reshape( result_flat, ( n_pubs, n_pubs ) )
+            self._inner_product_matrix = np.ctypeslib.as_array( result_pointer, ( n_pubs, n_pubs ) )
 
         return self._inner_product_matrix
 
@@ -882,7 +881,7 @@ class Cartographer( object ):
 
     ########################################################################
 
-    def converged_kernel_size( self, key, python=False ):
+    def converged_kernel_size( self, key, backend=None ):
         '''Calculate the largest size of the kernel that's converged (at differing levels of convergence).
 
         Args:
@@ -910,8 +909,11 @@ class Cartographer( object ):
         else:
             publications = self.publications
 
+        if backend is None:
+            backend = self.backend
+
         # Pure python calculation
-        if python:
+        if backend == 'python':
             # Loop over all publications
             full_result = []
             full_cospsi_result = []
@@ -938,6 +940,12 @@ class Cartographer( object ):
                 return full_result[0], full_cospsi_result[0]
 
             return np.array( full_result ), np.array( full_cospsi_result )
+        elif backend == 'c/c++':
+            pass
+
+        else:
+            raise KeyError( 'Unrecognized backend, {}'.format( backend ) )
+
 
     ########################################################################
     # Estimators
