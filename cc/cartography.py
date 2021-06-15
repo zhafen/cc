@@ -295,25 +295,22 @@ class Cartographer( object ):
                 i_a = np.argmax( self.publications == key_a )
 
                 # Setup types
-                self.c_cartography.inner_product_row_all_sparse.restype = ctypes.c_void_p
+                self.c_cartography.inner_product_row_all_sparse.restype = np.ctypeslib.ndpointer( dtype=np.int32, shape=( self.publications.size, )  )
                 self.c_cartography.inner_product_row_all_sparse.argtypes = [
                     ctypes.c_int,
                     np.ctypeslib.ndpointer( dtype=np.int32 ),
                     np.ctypeslib.ndpointer( dtype=np.int32 ),
                     np.ctypeslib.ndpointer( dtype=np.int32 ),
                     ctypes.c_int,
-                    np.ctypeslib.ndpointer( dtype=np.int32 ),
                 ]
 
                 # Call
-                result = np.zeros( self.publications.size, dtype='int32' )
-                self.c_cartography.inner_product_row_all_sparse(
+                result = self.c_cartography.inner_product_row_all_sparse(
                     i_a,
                     self.components_sp.data.astype( 'int32' ),
                     self.components_sp.indices.astype( 'int32' ),
                     self.components_sp.indptr.astype( 'int32' ),
                     self.publications.size,
-                    result,
                 )
 
         else:
@@ -329,27 +326,36 @@ class Cartographer( object ):
         if not hasattr( self, '_inner_product_matrix' ):
 
             # Setup types
-            self.c_cartography.inner_product_matrix.restype = ctypes.c_void_p
+            shape = ( self.publications.size, self.publications.size )
+            self.c_cartography.inner_product_matrix.restype = np.ctypeslib.ndpointer( ndim=2, dtype=np.int32, shape=shape )
             self.c_cartography.inner_product_matrix.argtypes = [
                 np.ctypeslib.ndpointer( dtype=np.int32 ),
                 np.ctypeslib.ndpointer( dtype=np.int32 ),
                 np.ctypeslib.ndpointer( dtype=np.int32 ),
                 ctypes.c_int,
-                np.ctypeslib.ndpointer( dtype=np.int32 ),
             ]
 
             # Call
-            shape = ( self.publications.size, self.publications.size )
-            self._inner_product_matrix = np.zeros( shape, dtype='int32' )
+            # self._inner_product_matrix = np.zeros( shape, dtype='int32' )
             # n_pubs = self.publications.size
             # self._inner_product_matrix = ( ( ctypes.c_int * n_pubs ) * n_pubs )
-            self.c_cartography.inner_product_matrix(
-                self.components_sp.data.astype( 'int32' ),
-                self.components_sp.indices.astype( 'int32' ),
-                self.components_sp.indptr.astype( 'int32' ),
-                self.publications.size,
-                self._inner_product_matrix,
+            # self._inner_product_matrix = self.c_cartography.inner_product_matrix(
+            #     self.components_sp.data.astype( 'int32' ),
+            #     self.components_sp.indices.astype( 'int32' ),
+            #     self.components_sp.indptr.astype( 'int32' ),
+            #     self.publications.size,
+            # )
+
+            # Simpler one we think should work
+            shape = ( 2, 2 )
+            self.c_cartography.inner_product_matrix.restype = np.ctypeslib.ndpointer( dtype=np.int32, shape=shape )
+            result = self.c_cartography.inner_product_matrix(
+                np.array([  1, 2, 3, 5, -1, 2, 2, 5, 3 ]).astype( 'int32' ),
+                np.array([  0, 1, 4, 5, 0, 1, 3, 4, 17 ]).astype( 'int32' ),
+                np.array([ 0, 4, 9 ]).astype( 'int32' ),
+                2,
             )
+            print( 'DEBUG' )
 
         return self._inner_product_matrix
 

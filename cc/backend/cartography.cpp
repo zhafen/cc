@@ -78,7 +78,11 @@ extern "C" // required when using C++ compiler
  * @n_rows The number of rows.
  * @result For storing the output.
  */
-void inner_product_row_all_sparse( int i, int data[], int indices[], int indptr[], int n_rows, int result[] ) {
+int* inner_product_row_all_sparse( int i, int data[], int indices[], int indptr[], int n_rows ) {
+
+	// Create result array
+	int* result;
+	result = new int[n_rows];
 
 	// Get starting ind
 	int i_a = indptr[i];
@@ -96,6 +100,8 @@ void inner_product_row_all_sparse( int i, int data[], int indices[], int indptr[
 		// Calculate IP
 		result[j] = inner_product_sparse( &data[i_a], &indices[i_a], size_a, &data[i_b], &indices[i_b], size_b );
 	}
+
+	return result;
 }
 
 extern "C" // required when using C++ compiler
@@ -165,13 +171,13 @@ int main () {
 	int data[9] = { 1, 2, 3, 5, -1, 2, 2, 5, 3 };
 	int indices[9] = { 0, 1, 4, 5, 0, 1, 3, 4, 17 };
 	int indptr[3] = { 0, 4, 9};
-	int result[2] = { 0, 0 };
 
 	int expected_norm = 1 + 2 * 2 + 3 * 3 + 5 * 5;
 	cout << "Inner product row-all expected is: "  << expected_norm << " " << expected << endl;
 
 	// Result for one row
-	inner_product_row_all_sparse( 0, data, indices, indptr, 2, result );
+	int* result;
+	result = inner_product_row_all_sparse( 0, data, indices, indptr, 2 );
 	cout << "Inner product row-all is: "  << result[0] << " " << result[1] << endl;
 
 	int expected_all[2][2] = {
