@@ -117,16 +117,14 @@ extern "C" // required when using C++ compiler
  * @indptr Where indices for one row ends and another begins.
  * @n_rows The number of rows.
  */
-int** inner_product_matrix( int data[], int indices[], int indptr[], int n_rows ) {
+int* inner_product_matrix( int data[], int indices[], int indptr[], int n_rows ) {
 
-	// Create result array
-	int** result;
-	result = new int*[n_rows];
+	// Create result array. It's a flattened 2D matrix.
+	int* result;
+	result = new int [n_rows*n_rows];
 
 	int i, j, i_a, i_b, size_a, size_b;
 	for ( i = 0; i < n_rows; i++ ){
-
-		result[i] = new int[n_rows];
 
 		// Get ind
 		i_a = indptr[i];
@@ -138,14 +136,14 @@ int** inner_product_matrix( int data[], int indices[], int indptr[], int n_rows 
 			i_b = indptr[j];
 			size_b = indptr[j+1] - i_b;
 		
-			result[i][j] = inner_product_sparse( &data[i_a], &indices[i_a], size_a, &data[i_b], &indices[i_b], size_b );
+			result[i*n_rows + j] = inner_product_sparse( &data[i_a], &indices[i_a], size_a, &data[i_b], &indices[i_b], size_b );
 		}
 	}
 
 	// Reflect across the diagonal
 	for ( i = 0; i < n_rows; i++ ){
 		for (j = 0; j < i ; j++ ){
-			result[i][j] = result[j][i];
+			result[i*n_rows + j] = result[j*n_rows + i];
 		}
 	}
 
@@ -189,9 +187,9 @@ int main () {
 	cout << expected_all[1][0] << "  " << expected_all[1][1] << endl;
 
 	// Result for all
-	int** result_all;
+	int* result_all;
 	result_all = inner_product_matrix( data, indices, indptr, 2 );
 	cout << "Inner product matrix is: " << endl;
-	cout << result_all[0][0] << "  " << result_all[0][1] << endl;
-	cout << result_all[1][0] << "  " << result_all[1][1] << endl;
+	cout << result_all[0] << "  " << result_all[1] << endl;
+	cout << result_all[2] << "  " << result_all[3] << endl;
 }
