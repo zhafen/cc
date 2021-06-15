@@ -11,9 +11,9 @@ extern "C" // required when using C++ compiler
  * @arr_b Second array to take the inner product of.
  * @size Size of the arrays.
  */
-int inner_product(int arr_a[], int arr_b[], int size) {
+long inner_product(long arr_a[], long arr_b[], long size) {
 
-	int i, ip = 0;
+	long i, ip = 0;
 	for ( i = 0; i < size - 1; ++i ) {
 		ip += arr_a[i] * arr_b[i];
 	}
@@ -33,10 +33,10 @@ extern "C" // required when using C++ compiler
  * @indices_b The indices the values correspond to.
  * @size_b The size of the second array.
  */
-int inner_product_sparse( int data_a[], int indices_a[], int size_a, int data_b[], int indices_b[], int size_b ) {
+long inner_product_sparse( long data_a[], long indices_a[], long size_a, long data_b[], long indices_b[], long size_b ) {
 
-	int ind_a, ind_b;
-	int ip = 0, i_a = 0, i_b = 0;
+	long ind_a, ind_b;
+	long ip = 0, i_a = 0, i_b = 0;
 	while ( i_a < size_a & i_b < size_b )
 	{
 		// Find out the current index
@@ -78,19 +78,19 @@ extern "C" // required when using C++ compiler
  * @n_rows The number of rows.
  * @result For storing the output.
  */
-int* inner_product_row_all_sparse( int i, int data[], int indices[], int indptr[], int n_rows ) {
+long* inner_product_row_all_sparse( long i, long data[], long indices[], long indptr[], long n_rows ) {
 
 	// Create result array
-	int* result;
-	result = new int[n_rows];
+	long* result;
+	result = new long[n_rows];
 
 	// Get starting ind
-	int i_a = indptr[i];
-	int size_a = indptr[i+1] - i_a;
+	long i_a = indptr[i];
+	long size_a = indptr[i+1] - i_a;
 
 	// Loop over all rows
-	int i_b, size_b;
-	int j = 0;
+	long i_b, size_b;
+	long j = 0;
 	for ( j = 0; j < n_rows; j++ ){
 
 		// Other ind
@@ -117,13 +117,13 @@ extern "C" // required when using C++ compiler
  * @indptr Where indices for one row ends and another begins.
  * @n_rows The number of rows.
  */
-int* inner_product_matrix( int data[], int indices[], int indptr[], int n_rows ) {
+long* inner_product_matrix( long data[], long indices[], long indptr[], long n_rows ) {
 
 	// Create result array. It's a flattened 2D matrix.
-	int* result;
-	result = new int [n_rows*n_rows];
+	long* result;
+	result = new long [n_rows*n_rows];
 
-	int i, j, i_a, i_b, size_a, size_b;
+	long i, j, i_a, i_b, size_a, size_b;
 	for ( i = 0; i < n_rows; i++ ){
 
 		// Get ind
@@ -153,32 +153,32 @@ int* inner_product_matrix( int data[], int indices[], int indptr[], int n_rows )
 // The stronger test framework is setup for the frontend, but a simple test framework is found below.
 int main () {
 	// Inner product between two sparse rows.
-	int data_a[4] = {1, 2, 3, 5};
-	int indices_a[4] = { 0, 1, 4, 5};
-	int data_b[5] = {-1, 2, 2, 5, 3};
-	int indices_b[5] = { 0, 1, 3, 4, 17};
+	long data_a[4] = {1, 2, 3, 5};
+	long indices_a[4] = { 0, 1, 4, 5};
+	long data_b[5] = {-1, 2, 2, 5, 3};
+	long indices_b[5] = { 0, 1, 3, 4, 17};
 
-	int expected = -1 + 2 * 2 + 5 * 3;
+	long expected = -1 + 2 * 2 + 5 * 3;
 	cout << "Expected is: "  << expected << endl;
 
 	// Result value
-	int ip = inner_product_sparse( data_a, indices_a, 4, data_b, indices_b, 5 );
+	long ip = inner_product_sparse( data_a, indices_a, 4, data_b, indices_b, 5 );
 	cout << "Inner product is: "  << ip << endl;
 
 	// Inner product for a component matrix
-	int data[9] = { 1, 2, 3, 5, -1, 2, 2, 5, 3 };
-	int indices[9] = { 0, 1, 4, 5, 0, 1, 3, 4, 17 };
-	int indptr[3] = { 0, 4, 9};
+	long data[9] = { 1, 2, 3, 5, -1, 2, 2, 5, 3 };
+	long indices[9] = { 0, 1, 4, 5, 0, 1, 3, 4, 17 };
+	long indptr[3] = { 0, 4, 9};
 
-	int expected_norm = 1 + 2 * 2 + 3 * 3 + 5 * 5;
+	long expected_norm = 1 + 2 * 2 + 3 * 3 + 5 * 5;
 	cout << "Inner product row-all expected is: "  << expected_norm << " " << expected << endl;
 
 	// Result for one row
-	int* result;
+	long* result;
 	result = inner_product_row_all_sparse( 0, data, indices, indptr, 2 );
 	cout << "Inner product row-all is: "  << result[0] << " " << result[1] << endl;
 
-	int expected_all[2][2] = {
+	long expected_all[2][2] = {
 		{ expected_norm, expected, },
 		{ 0, 1 * 1 + 2 * 2 + 2 * 2 + 5 * 5 + 3 * 3 },
 	};
@@ -187,7 +187,7 @@ int main () {
 	cout << expected_all[1][0] << "  " << expected_all[1][1] << endl;
 
 	// Result for all
-	int* result_all;
+	long* result_all;
 	result_all = inner_product_matrix( data, indices, indptr, 2 );
 	cout << "Inner product matrix is: " << endl;
 	cout << result_all[0] << "  " << result_all[1] << endl;

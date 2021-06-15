@@ -743,3 +743,19 @@ class TestSimilarityMetric( unittest.TestCase ):
 
         for key, item in metric_values.items():
             assert item.size == expected_size
+
+########################################################################
+
+class TestRealisticProjection( unittest.TestCase ):
+
+    def setUp( self ):
+
+        fp = './tests/data/realistic_atlas/projection_for_testing.h5'
+        self.c = cartography.Cartographer.from_hdf5( fp )
+
+    ########################################################################
+
+    def test_inner_product_matrix( self ):
+
+        # Just make sure we can call this
+        self.c.inner_product_matrix
