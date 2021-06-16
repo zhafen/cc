@@ -152,20 +152,30 @@ long* inner_product_matrix( long data[], long indices[], long indptr[], long n_r
 
 extern "C" // required when using C++ compiler
 
-int* converged_kernel_size_row( int* sorted_history, int size, int max_rank ) {
+/**
+ * Calculate the number of closest publications that haven't been updated since the
+ * nth update, for all n updates.
+ * 
+ * @sorted_history The update with which the publication was added, sorted for closest.
+ * @size The size of sorted_history (n_pubs).
+ */
+int* converged_kernel_size_row( int* sorted_history, int size, int max_update ) {
 
 	int* result;
-	result = new int [max_rank];
+	result = new int [max_update];
 
-	int rank, i;
-	// Loop through ranks. Each rank has a kernel size of convergence,
-	// i.e. how many publications out have been updated at that rank or less.
-	for ( rank = 0; rank <= max_rank; rank++ ) {
+	int update, i;
+	// Loop through updates. Each update has a kernel size of convergence,
+	// i.e. how many publications out have been updated at that update or less.
+	for ( update = 0; update <= max_update; update++ ) {
 		i = 0;
-		while ( sorted_history[i] <= rank ) {
+		while ( sorted_history[i] <= update ) {
 			i++;
+			if ( i >= size ){
+				break;
+			}
 		}
-		result[rank] = i - 1;
+		result[update] = i - 1;
 	}
 
 	return result;
