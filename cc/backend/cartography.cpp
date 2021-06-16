@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ctime>
 
 using namespace std; // It's not clear to me when I should/shouldn't use this for ctypes...
 
@@ -197,9 +198,20 @@ int* converged_kernel_size( int* sorted_history, int n_pubs, int max_update ) {
 	int* result;
 	result = new int [n_pubs*max_update];
 
+	clock_t begin = clock();
+
 	int update, i, j;
 	// Loop through publications
 	for ( j = 0; j < n_pubs; j++ ){
+		
+		if ( j == 9 ) {
+			clock_t end = clock();
+			double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+			cout << "Time elapsed to calculate kernel sizes for 10 publications: " << elapsed_secs << " sec" << endl;
+			double expected = elapsed_secs * n_pubs / 10;
+			cout << "Expected time elapsed for all " << n_pubs << " publications: " << expected << " sec" << endl;
+		}
+
 		// Loop through updates. Each update has a kernel size of convergence,
 		// i.e. how many publications out have been updated at that update or less.
 		update = 0;
@@ -262,7 +274,7 @@ int main () {
 	cout << result_all[0] << "  " << result_all[1] << endl;
 	cout << result_all[2] << "  " << result_all[3] << endl;
 
-	Converged kernel
+	// Converged kernel
 	int sorted_history[] = {
 		0, 0, 1, 4, 1, 1, 3, 1, 2, 3,
 		2, 1, 1, 4, 3, 0, 3, 0, 1, 1,
