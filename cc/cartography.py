@@ -1058,6 +1058,10 @@ class Cartographer( object ):
                 Estimator vallue for all publications.
         '''
 
+        metrics_with_optimized_multiple = [
+            # 'smoothing_length',
+        ]
+
         # By default calculate for all publications
         if publications is None:
             publications = np.arange( self.publications.size )
@@ -1065,6 +1069,11 @@ class Cartographer( object ):
         # Identify valid publications to use as input
         is_minnorm = self.norms > 1e-5
 
+        # if len( publications )  > 1 and metric in metrics_with_optimized_multiple:
+        #     dates = getattr( self, date_type )
+        #     # valid_dates = [ str( _ ) != 'NaT' for _ in dates ] 
+        #     is_prior = dates < dates[:,np.newaxis]
+        #     sorted_cospsi = np.argsort( self.cospsi_matrix )
         es = []
         for i in tqdm( publications ):
 
@@ -1082,14 +1091,12 @@ class Cartographer( object ):
                 continue
 
             # Choose valid publications
-            p = self.components_normed[i]
             is_other = np.arange( self.publications.size ) != i
             is_valid = is_prior & is_other & is_minnorm
-            other_p = self.components_normed[is_valid]
 
             # Get the metric
             fn = getattr( self, '{}_metric'.format( metric ) )
-            e = fn( p, other_p,  **kwargs )
+            e = fn( i, is_valid, **kwargs )
 
             es.append( e )
         es = np.array( es )
@@ -1100,8 +1107,8 @@ class Cartographer( object ):
 
     def constant_asymmetry_metric(
         self,
-        p,
-        other_p,
+        i,
+        is_valid,
     ):
         '''Estimate the asymmetry of a publication by calculating the difference
         between that publication's projection and all other publications.
@@ -1123,6 +1130,9 @@ class Cartographer( object ):
                 Magnitude of the asymmetry metric.
         '''
 
+        p = self.components_normed[i]
+        other_p = self.components_normed[is_valid]
+
         # Differences
         result = ( p - other_p ).sum( axis=0 )
         mag = np.linalg.norm( result )
@@ -1133,8 +1143,8 @@ class Cartographer( object ):
 
     def kernel_constant_asymmetry_metric(
         self,
-        p,
-        other_p,
+        i,
+        is_valid,
         kernel_size = 16,
     ):
         '''Estimate the asymmetry of a publication by calculating the difference
@@ -1161,19 +1171,19 @@ class Cartographer( object ):
         '''
 
         # We can't have the kernel larger than the number of valid publications
-        if kernel_size > other_p.shape[0]:
-            kernel_size = other_p.shape[0]
+        if kernel_size > is_valid.shape[0]:
+            return np.nan
 
-        # Identify the publications to use in the calculation
-        kd_tree = scipy.spatial.cKDTree( other_p )
-        dist, inds = kd_tree.query( p, k=kernel_size, )
-        used_p = other_p[inds]
+        cospsi = self.cospsi_matrix[i][is_valid]
+        smoothing_length = np.sort( cospsi )[::-1][kernel_size]
+        in_kernel = cospsi < smoothing_length
 
-        # Result is the sum of the normalized vectors
-        diff = p - used_p
-        diff_normed = diff / dist[:,np.newaxis] 
-        result = diff_normed.sum( axis=0 )
+        p = self.components_normed[i]
+        other_p = self.components_normed[is_valid]
+        used_p = other_p[in_kernel]
 
+        # Differences
+        result = ( p - used_p ).sum( axis=0 )
         mag = np.linalg.norm( result )
 
         return mag
@@ -1182,8 +1192,8 @@ class Cartographer( object ):
 
     def density_metric(
         self,
-        p,
-        other_p,
+        i,
+        is_valid,
         kernel_size = 16,
     ):
         '''Estimate the density of a publication by calculating the
@@ -1215,6 +1225,9 @@ class Cartographer( object ):
                 Magnitude of the asymmetry metric.
         '''
 
+        p = self.components_normed[i]
+        other_p = self.components_normed[is_valid]
+
         warnings.warn( 'Density is not currently well-defined in our code for many dimensions, which is the default. Consider using smoothing length instead.' )
 
         # We can't have the kernel larger than the number of valid publications
@@ -1242,8 +1255,8 @@ class Cartographer( object ):
 
     def smoothing_length_metric(
         self,
-        p,
-        other_p,
+        i,
+        is_valid,
         kernel_size = 16,
     ):
         '''Proxy for the density of a publication defined as the minimum
@@ -1270,17 +1283,11 @@ class Cartographer( object ):
         '''
 
         # We can't have the kernel larger than the number of valid publications
-        if kernel_size > other_p.shape[0]:
-            kernel_size = other_p.shape[0]
+        if kernel_size > is_valid.shape[0]:
+            return np.nan
 
-        # Identify the publications to use in the calculation
-        kd_tree = scipy.spatial.cKDTree( other_p )
-        dist, inds = kd_tree.query( p, k=kernel_size, )
-
-        # Calculate the smoothing length
-        h = np.nanmax( dist )
-
-        return h
+        cospsi = self.cospsi_matrix[i][is_valid]
+        return np.sort( cospsi )[::-1][kernel_size]
 
     ########################################################################
     # Mapping

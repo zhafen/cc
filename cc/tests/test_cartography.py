@@ -602,7 +602,7 @@ class TestExplore( unittest.TestCase ):
 
 ########################################################################
 
-class TestAsymmetryMetric( unittest.TestCase ):
+class TestTopographyMetric( unittest.TestCase ):
 
     def setUp( self ):
 
@@ -667,7 +667,8 @@ class TestAsymmetryMetric( unittest.TestCase ):
         actual = self.c.topography_metric(
             [ 3, ],
             metric = 'kernel_constant_asymmetry',
-            date_type = 'publication_dates'
+            date_type = 'publication_dates',
+            kernel_size = 4,
         )
         assert not np.isnan( actual[0] )
 
@@ -675,7 +676,8 @@ class TestAsymmetryMetric( unittest.TestCase ):
         actual = self.c.topography_metric(
             [ 0, ],
             metric = 'kernel_constant_asymmetry',
-            date_type = 'publication_dates'
+            date_type = 'publication_dates',
+            kernel_size = 4,
         )
         assert np.isnan( actual[0] )
 
@@ -711,7 +713,8 @@ class TestAsymmetryMetric( unittest.TestCase ):
         actual = self.c.topography_metric(
             [ 3, ],
             metric = 'smoothing_length',
-            date_type = 'publication_dates'
+            date_type = 'publication_dates',
+            kernel_size = 4,
         )
         assert not np.isnan( actual[0] )
 
@@ -719,7 +722,8 @@ class TestAsymmetryMetric( unittest.TestCase ):
         actual = self.c.topography_metric(
             [ 0, ],
             metric = 'smoothing_length',
-            date_type = 'publication_dates'
+            date_type = 'publication_dates',
+            kernel_size = 4,
         )
         assert np.isnan( actual[0] )
 
