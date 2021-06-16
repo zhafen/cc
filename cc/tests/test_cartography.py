@@ -647,7 +647,8 @@ class TestTopographyMetric( unittest.TestCase ):
         actual = self.c.topography_metric(
             [ 3, ],
             metric = 'constant_asymmetry',
-            date_type = 'publication_dates'
+            date_type = 'publication_dates',
+            kernel_size = 4,
         )
         assert not np.isnan( actual[0] )
 
@@ -655,7 +656,8 @@ class TestTopographyMetric( unittest.TestCase ):
         actual = self.c.topography_metric(
             [ 0, ],
             metric = 'constant_asymmetry',
-            date_type = 'publication_dates'
+            date_type = 'publication_dates',
+            kernel_size = 4,
         )
         assert np.isnan( actual[0] )
 

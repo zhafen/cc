@@ -1,6 +1,7 @@
 import copy
 import ctypes
 import glob
+import inspect
 import numpy as np
 import os
 import pandas as pd
@@ -1096,7 +1097,16 @@ class Cartographer( object ):
 
             # Get the metric
             fn = getattr( self, '{}_metric'.format( metric ) )
-            e = fn( i, is_valid, **kwargs )
+
+            # Identify arguments to pass
+            fn_args = inspect.getfullargspec( fn )
+            used_kwargs = {}
+            for key, item in kwargs.items():
+                if key in fn_args.args:
+                    used_kwargs[key] = item
+
+            # Call
+            e = fn( i, is_valid, **used_kwargs )
 
             es.append( e )
         es = np.array( es )
@@ -1171,7 +1181,7 @@ class Cartographer( object ):
         '''
 
         # We can't have the kernel larger than the number of valid publications
-        if kernel_size > is_valid.shape[0]:
+        if kernel_size > is_valid.sum():
             return np.nan
 
         cospsi = self.cospsi_matrix[i][is_valid]
@@ -1283,7 +1293,7 @@ class Cartographer( object ):
         '''
 
         # We can't have the kernel larger than the number of valid publications
-        if kernel_size > is_valid.shape[0]:
+        if kernel_size > is_valid.sum():
             return np.nan
 
         cospsi = self.cospsi_matrix[i][is_valid]
