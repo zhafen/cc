@@ -156,10 +156,11 @@ extern "C" // required when using C++ compiler
  * Calculate the number of closest publications that haven't been updated since the
  * nth update, for all n updates.
  * 
- * @sorted_history The update with which the publication was added, sorted for closest.
- * @size The size of sorted_history (n_pubs).
+ * @sorted_history_row The update with which the publication was added, sorted for closest.
+ * @n_pubs The size of sorted_history_row.
+ * @max_update Maximum number of updates.
  */
-int* converged_kernel_size_row( int* sorted_history, int size, int max_update ) {
+int* converged_kernel_size_row( int* sorted_history_row, int n_pubs, int max_update ) {
 
 	int* result;
 	result = new int [max_update];
@@ -169,9 +170,9 @@ int* converged_kernel_size_row( int* sorted_history, int size, int max_update ) 
 	// i.e. how many publications out have been updated at that update or less.
 	for ( update = 0; update <= max_update; update++ ) {
 		i = 0;
-		while ( sorted_history[i] <= update ) {
+		while ( sorted_history_row[i] <= update ) {
 			i++;
-			if ( i >= size ){
+			if ( i >= n_pubs ){
 				break;
 			}
 		}
@@ -181,37 +182,38 @@ int* converged_kernel_size_row( int* sorted_history, int size, int max_update ) 
 	return result;
 }
 
-int* converged_kernel_size( ) {
+extern "C" // required when using C++ compiler
+
+/**
+ * Calculate the number of closest publications that haven't been updated since the
+ * nth update, for all n updates and all publications.
+ * 
+ * @sorted_history The update with which the publication was added, sorted for closest.
+ * @n_pubs Nmber of publications
+ * @max_update Maximum number of updates.
+ */
+int* converged_kernel_size( int* sorted_history, int n_pubs, int max_update ) {
 
 	int* result;
-	/**
-            # Loop over all publications
-            full_result = []
-            full_cospsi_result = []
-            for pub in tqdm( publications ):
+	result = new int [n_pubs*max_update];
 
-                cospsi = self.cospsi( pub, 'all' )
-                sort_inds = np.argsort( cospsi )[::-1]
-                sorted_cospsi = cospsi[sort_inds]
-                sorted_history = self.update_history[sort_inds]
-
-                result = []
-                cospsi_result = []
-                max_rank =  self.update_history.max() 
-                for rank in range( max_rank ):
-
-                    result_i = np.argmin( sorted_history <= rank ) - 1
-                    result.append( result_i )
-                    cospsi_result.append( sorted_cospsi[result_i] )
-
-                full_result.append( result )
-                full_cospsi_result.append( cospsi_result )
-
-            if len( full_result ) == 1:
-                return full_result[0], full_cospsi_result[0]
-
-            return np.array( full_result ), np.array( full_cospsi_result )
-	*/
+	int update, i, j;
+	// Loop through publications
+	for ( j = 0; j < n_pubs; j++ ){
+		// Loop through updates. Each update has a kernel size of convergence,
+		// i.e. how many publications out have been updated at that update or less.
+		update = 0;
+		for ( update = 0; update <= max_update; update++ ) {
+			i = 0;
+			while ( sorted_history[j*n_pubs + i] <= update ) {
+				i++;
+				if ( i >= n_pubs ){
+					break;
+				}
+			}
+			result[j*max_update + update] = i - 1;
+		}
+	}
 
 	return result;
 }
@@ -258,4 +260,24 @@ int main () {
 	cout << "Inner product matrix is: " << result_all << endl;
 	cout << result_all[0] << "  " << result_all[1] << endl;
 	cout << result_all[2] << "  " << result_all[3] << endl;
+
+	// Converged kernel
+	int sorted_history[] = {
+		0, 0, 1, 4, 1, 1, 3, 1, 2, 3,
+		2, 1, 1, 4, 3, 0, 3, 0, 1, 1,
+	};
+	int* kernel;
+	kernel = converged_kernel_size( sorted_history, 10, 4 );
+	int i;
+	cout << "Converged kernel size row 1: ";
+	for ( i = 0; i < 4 ; i++ ) {
+		cout << kernel[i] << " ";
+	}
+	cout << endl;
+	cout << "Converged kernel size row 2: ";
+	for ( i = 4; i < 8 ; i++ ) {
+		cout << kernel[i] << " ";
+	}
+	cout << endl;
+	
 }

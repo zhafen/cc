@@ -553,11 +553,9 @@ class TestExplore( unittest.TestCase ):
         # Setup mock data
         self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
 
-        actual, actual_cospsis = self.c.converged_kernel_size( 'all' )
+        actual = self.c.converged_kernel_size( 'all' )
         expected = np.array([ 1, 2, 2, 2 ])
         npt.assert_allclose( expected, actual[self.c.publications=='Hafen2019'][0] )
-        expected_cospsis = np.array([ 0.6257132252113373, 0.53010468, 0.53010468, 0.53010468, ])
-        npt.assert_allclose( expected_cospsis, actual_cospsis[self.c.publications=='Hafen2019'][0], rtol=1e-3 )
 
         expected = np.array([ -1, -1, 2, 2, ])
         npt.assert_allclose( expected, actual[self.c.publications=='VandeVoort2018a'][0] )

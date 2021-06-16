@@ -995,7 +995,26 @@ class Cartographer( object ):
             else:
                 sort_inds = np.argsort( self.cospsi_matrix )[:,::-1]
                 # sorted_cospsi_matrix = np.array([ cospsi_row[sort_inds[i]] for i, cospsi_row in enumerate( self.cospsi_matrix ) ])
-                sorted_history = self.update_history[sort_inds]
+                sorted_history_flat = self.update_history[sort_inds].flatten()
+
+                # Setup types
+                self.c_cartography.converged_kernel_size.restype = ctypes.POINTER( ctypes.c_int )
+                self.c_cartography.converged_kernel_size.argtypes = [
+                    np.ctypeslib.ndpointer( dtype=np.int32 ),
+                    ctypes.c_int,
+                    ctypes.c_int,
+                ]
+
+                # Call
+                n_pubs = self.publications.size
+                result_pointer = self.c_cartography.converged_kernel_size(
+                    sorted_history_flat.astype( 'int32' ),
+                    n_pubs,
+                    max_rank,
+                )
+                result = np.ctypeslib.as_array( result_pointer, ( n_pubs, max_rank, ) )
+
+                return result
 
         else:
             raise KeyError( 'Unrecognized backend, {}'.format( backend ) )
