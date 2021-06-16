@@ -150,6 +150,62 @@ long* inner_product_matrix( long data[], long indices[], long indptr[], long n_r
 	return result;
 }
 
+extern "C" // required when using C++ compiler
+
+int* converged_kernel_size_row( int* sorted_history, int size, int max_rank ) {
+
+	int* result;
+	result = new int [max_rank];
+
+	int rank, i;
+	// Loop through ranks. Each rank has a kernel size of convergence,
+	// i.e. how many publications out have been updated at that rank or less.
+	for ( rank = 0; rank <= max_rank; rank++ ) {
+		i = 0;
+		while ( sorted_history[i] <= rank ) {
+			i++;
+		}
+		result[rank] = i - 1;
+	}
+
+	return result;
+}
+
+int* converged_kernel_size( ) {
+
+	int* result;
+	/**
+            # Loop over all publications
+            full_result = []
+            full_cospsi_result = []
+            for pub in tqdm( publications ):
+
+                cospsi = self.cospsi( pub, 'all' )
+                sort_inds = np.argsort( cospsi )[::-1]
+                sorted_cospsi = cospsi[sort_inds]
+                sorted_history = self.update_history[sort_inds]
+
+                result = []
+                cospsi_result = []
+                max_rank =  self.update_history.max() 
+                for rank in range( max_rank ):
+
+                    result_i = np.argmin( sorted_history <= rank ) - 1
+                    result.append( result_i )
+                    cospsi_result.append( sorted_cospsi[result_i] )
+
+                full_result.append( result )
+                full_cospsi_result.append( cospsi_result )
+
+            if len( full_result ) == 1:
+                return full_result[0], full_cospsi_result[0]
+
+            return np.array( full_result ), np.array( full_cospsi_result )
+	*/
+
+	return result;
+}
+
 // The stronger test framework is setup for the frontend, but a simple test framework is found below.
 int main () {
 	// Inner product between two sparse rows.
@@ -189,7 +245,7 @@ int main () {
 	// Result for all
 	long* result_all;
 	result_all = inner_product_matrix( data, indices, indptr, 2 );
-	cout << "Inner product matrix is: " << endl;
+	cout << "Inner product matrix is: " << result_all << endl;
 	cout << result_all[0] << "  " << result_all[1] << endl;
 	cout << result_all[2] << "  " << result_all[3] << endl;
 }

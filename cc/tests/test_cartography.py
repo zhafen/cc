@@ -542,11 +542,9 @@ class TestExplore( unittest.TestCase ):
         # Setup mock data
         self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
 
-        actual, actual_cospsis = self.c.converged_kernel_size( 'Hafen2019' )
+        actual  = self.c.converged_kernel_size( 'Hafen2019' )
         expected = np.array([ 1, 2, 2, 2, ])
         npt.assert_allclose( expected, actual )
-        expected_cospsis = np.array([ 0.6257132252113373, 0.53010468, 0.53010468, 0.53010468, ])
-        npt.assert_allclose( expected_cospsis, actual_cospsis, rtol=1e-3 )
 
     ########################################################################
 
@@ -571,7 +569,7 @@ class TestExplore( unittest.TestCase ):
         # Setup mock data
         self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
 
-        actual, actual_cospsis = self.c.converged_kernel_size( 'Hafen2019', python=True )
+        actual, actual_cospsis = self.c.converged_kernel_size( 'Hafen2019', backend='python' )
         expected = np.array([ 1, 2, 2, 2, ])
         npt.assert_allclose( expected, actual )
         expected_cospsis = np.array([ 0.6257132252113373, 0.53010468, 0.53010468, 0.53010468, ])
@@ -584,7 +582,7 @@ class TestExplore( unittest.TestCase ):
         # Setup mock data
         self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
 
-        actual, actual_cospsis = self.c.converged_kernel_size( 'all', python=True )
+        actual, actual_cospsis = self.c.converged_kernel_size( 'all', backend='python' )
         expected = np.array([ 1, 2, 2, 2 ])
         npt.assert_allclose( expected, actual[self.c.publications=='Hafen2019'][0] )
         expected_cospsis = np.array([ 0.6257132252113373, 0.53010468, 0.53010468, 0.53010468, ])
@@ -600,7 +598,7 @@ class TestExplore( unittest.TestCase ):
         # Setup mock data
         self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
 
-        actual, actual_cospsis = self.c.converged_kernel_size( 5, python=True )
+        actual, actual_cospsis = self.c.converged_kernel_size( 5, backend='python' )
         assert actual.shape == ( 5, 4 )
         assert actual_cospsis.shape == ( 5, 4 )
 

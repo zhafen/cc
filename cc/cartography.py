@@ -924,6 +924,9 @@ class Cartographer( object ):
         if -2 in self.update_history:
             raise ValueError( 'Incomplete update history as indicated by entries with values of -2.' )
 
+        # Used later
+        max_rank =  self.update_history.max() 
+
         if isinstance( key, int ):
             publications = np.random.choice( self.publications, key, replace=False )
         elif key != 'all':
@@ -963,7 +966,36 @@ class Cartographer( object ):
 
             return np.array( full_result ), np.array( full_cospsi_result )
         elif backend == 'c/c++':
-            pass
+            if key != 'all':
+
+                # Sorting input
+                cospsi = self.cospsi( key, 'all' )
+                sort_inds = np.argsort( cospsi )[::-1]
+                # sorted_cospsi = cospsi[sort_inds]
+                sorted_history = self.update_history[sort_inds]
+
+                # Setup types
+                self.c_cartography.converged_kernel_size_row.restype = ctypes.POINTER( ctypes.c_int )
+                self.c_cartography.converged_kernel_size_row.argtypes = [
+                    np.ctypeslib.ndpointer( dtype=np.int32 ),
+                    ctypes.c_int,
+                    ctypes.c_int,
+                ]
+
+                # Call
+                result_pointer = self.c_cartography.converged_kernel_size_row(
+                    sorted_history.astype( 'int32' ),
+                    sorted_history.size,
+                    max_rank,
+                )
+                result = np.ctypeslib.as_array( result_pointer, ( max_rank, ) )
+
+                return result
+
+            else:
+                sort_inds = np.argsort( self.cospsi_matrix )[:,::-1]
+                # sorted_cospsi_matrix = np.array([ cospsi_row[sort_inds[i]] for i, cospsi_row in enumerate( self.cospsi_matrix ) ])
+                sorted_history = self.update_history[sort_inds]
 
         else:
             raise KeyError( 'Unrecognized backend, {}'.format( backend ) )
