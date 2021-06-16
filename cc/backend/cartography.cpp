@@ -218,6 +218,7 @@ int* converged_kernel_size( int* sorted_history, int n_pubs, int max_update ) {
 	return result;
 }
 
+/**
 // The stronger test framework is setup for the frontend, but a simple test framework is found below.
 int main () {
 	// Inner product between two sparse rows.
@@ -261,7 +262,7 @@ int main () {
 	cout << result_all[0] << "  " << result_all[1] << endl;
 	cout << result_all[2] << "  " << result_all[3] << endl;
 
-	// Converged kernel
+	Converged kernel
 	int sorted_history[] = {
 		0, 0, 1, 4, 1, 1, 3, 1, 2, 3,
 		2, 1, 1, 4, 3, 0, 3, 0, 1, 1,
@@ -279,5 +280,5 @@ int main () {
 		cout << kernel[i] << " ";
 	}
 	cout << endl;
-	
 }
+*/
