@@ -83,7 +83,7 @@ long* inner_product_row_all_sparse( long i, long data[], long indices[], long in
 
 	// Create result array
 	long* result;
-	result = new long[n_rows];
+	result = new long [n_rows];
 
 	// Get starting ind
 	long i_a = indptr[i];
@@ -166,16 +166,15 @@ int* converged_kernel_size_row( int* sorted_history_row, int n_pubs, int max_upd
 	int* result;
 	result = new int [max_update];
 
-	int update, i;
+	int update, i, history_i;
 	// Loop through updates. Each update has a kernel size of convergence,
 	// i.e. how many publications out have been updated at that update or less.
-	for ( update = 0; update <= max_update; update++ ) {
+	for ( update = 0; update < max_update; update++ ) {
 		i = 0;
-		while ( sorted_history_row[i] <= update ) {
+		history_i = sorted_history_row[i];
+		while ( history_i <= update ) {
 			i++;
-			if ( i >= n_pubs ){
-				break;
-			}
+			history_i = sorted_history_row[i];
 		}
 		result[update] = i - 1;
 	}
@@ -200,10 +199,10 @@ int* converged_kernel_size( int* sorted_history, int n_pubs, int max_update ) {
 
 	clock_t begin = clock();
 
-	int update, i, j;
+	int update, i, j, history_i;
 	// Loop through publications
 	for ( j = 0; j < n_pubs; j++ ){
-		
+	
 		if ( j == 9 ) {
 			clock_t end = clock();
 			double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
@@ -214,15 +213,14 @@ int* converged_kernel_size( int* sorted_history, int n_pubs, int max_update ) {
 
 		// Loop through updates. Each update has a kernel size of convergence,
 		// i.e. how many publications out have been updated at that update or less.
-		update = 0;
-		for ( update = 0; update <= max_update; update++ ) {
-			i = 0;
-			while ( sorted_history[j*n_pubs + i] <= update ) {
-				i++;
-				if ( i >= n_pubs ){
-					break;
-				}
-			}
+		for ( update = 0; update < max_update; update++ ) {
+		 	i = 0;
+			history_i = sorted_history[j*n_pubs + i];
+		 	while ( history_i <= update ) {
+
+		 		i++;
+				history_i = sorted_history[j*n_pubs + i];
+		 	}
 			result[j*max_update + update] = i - 1;
 		}
 	}
@@ -230,7 +228,6 @@ int* converged_kernel_size( int* sorted_history, int n_pubs, int max_update ) {
 	return result;
 }
 
-/**
 // The stronger test framework is setup for the frontend, but a simple test framework is found below.
 int main () {
 	// Inner product between two sparse rows.
@@ -258,6 +255,7 @@ int main () {
 	long* result;
 	result = inner_product_row_all_sparse( 0, data, indices, indptr, 2 );
 	cout << "Inner product row-all is: "  << result[0] << " " << result[1] << endl;
+	delete[] result;
 
 	long expected_all[2][2] = {
 		{ expected_norm, expected, },
@@ -273,11 +271,24 @@ int main () {
 	cout << "Inner product matrix is: " << result_all << endl;
 	cout << result_all[0] << "  " << result_all[1] << endl;
 	cout << result_all[2] << "  " << result_all[3] << endl;
+	delete[] result_all;
 
 	// Converged kernel
 	int sorted_history[] = {
 		0, 0, 1, 4, 1, 1, 3, 1, 2, 3,
-		2, 1, 1, 4, 3, 0, 3, 0, 1, 1,
+		2, 1, 1, 2, 3, 4, 3, 0, 1, 1,
+		0, 0, 1, 4, 1, 1, 3, 1, 2, 3,
+		2, 1, 1, 2, 3, 4, 3, 0, 1, 1,
+		0, 0, 1, 4, 1, 1, 3, 1, 2, 3,
+		2, 1, 1, 2, 3, 4, 3, 0, 1, 1,
+		0, 0, 1, 4, 1, 1, 3, 1, 2, 3,
+		2, 1, 1, 2, 3, 4, 3, 0, 1, 1,
+		0, 0, 1, 4, 1, 1, 3, 1, 2, 3,
+		2, 1, 1, 2, 3, 4, 3, 0, 1, 1,
+	};
+	int expected_kernel[] = {		
+		1, 2, 2, 2,
+		-1, -1, 3, 4,
 	};
 	int* kernel;
 	kernel = converged_kernel_size( sorted_history, 10, 4 );
@@ -292,5 +303,17 @@ int main () {
 		cout << kernel[i] << " ";
 	}
 	cout << endl;
+	cout << "Expected kernel size row 1: ";
+	for ( i = 0; i < 4 ; i++ ) {
+		cout << expected_kernel[i] << " ";
+	}
+	cout << endl;
+	cout << "Expected kernel size row 2: ";
+	for ( i = 4; i < 8 ; i++ ) {
+		cout << expected_kernel[i] << " ";
+	}
+	cout << endl;
+	delete kernel;
+
+	// Clear memory
 }
-*/
