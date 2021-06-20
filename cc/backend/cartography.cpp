@@ -3,6 +3,13 @@
 
 using namespace std; // It's not clear to me when I should/shouldn't use this for ctypes...
 
+// Widely used struct for sparse vector
+struct sparse {
+	long * data;
+	long * indices;
+	long size;
+};
+
 extern "C" // required when using C++ compiler
 
 /**
@@ -153,6 +160,50 @@ long* inner_product_matrix( long data[], long indices[], long indptr[], long n_r
 
 extern "C" // required when using C++ compiler
 
+sparse add_sparse( sparse a, sparse b) {
+
+	// For now we give more than enough room for the result
+	// We'll cut off the extra before returning
+	// long *result;
+	// result = new long [a.size + b.size];
+	sparse result;
+	result.size = a.size + b.size;
+	result.data = new long [result.size];
+	result.indices = new long [result.size];
+
+	long ind_a, ind_b;
+	long i_a = 0, i_b = 0;
+	while ( i_a < a.size & i_b < b.size )
+	{
+		// Find out the current index
+		ind_a = a.indices[i_a];
+		ind_b = b.indices[i_b];
+
+
+		// When they share components add to the inner product.
+		// When they don't increase the location by 1.
+		if ( ind_a == ind_b )
+		{
+			result.data[i_a] = a.data[i_a] + b.data[i_b];
+			i_a++;
+			i_b++;
+		}
+		else if ( ind_a > ind_b )
+		{
+			result.data[i_b] = b.data[i_b];
+			i_b++;
+		} else
+		{
+			result.data[i_a] = a.data[i_a];
+			i_a++;
+		}
+	}
+	
+	return result;
+}
+
+extern "C" // required when using C++ compiler
+
 /**
  * Calculate the number of closest publications that haven't been updated since the
  * nth update, for all n updates.
@@ -231,13 +282,22 @@ int* converged_kernel_size( int* sorted_history, int n_pubs, int max_update ) {
 // The stronger test framework is setup for the frontend, but a simple test framework is found below.
 int main () {
 	// Inner product between two sparse rows.
+	int i;
 	long data_a[4] = {1, 2, 3, 5};
 	long indices_a[4] = { 0, 1, 4, 5};
 	long data_b[5] = {-1, 2, 2, 5, 3};
 	long indices_b[5] = { 0, 1, 3, 4, 17};
+	sparse a, b;
+	a.data = data_a;
+	b.data = data_b;
+	a.indices = indices_a;
+	b.indices = indices_b;
+	a.size = 4;
+	b.size = 5;
 
+	/**
 	long expected = -1 + 2 * 2 + 5 * 3;
-	cout << "Expected is: "  << expected << endl;
+	cout << "Expected inner product is: "  << expected << endl;
 
 	// Result value
 	long ip = inner_product_sparse( data_a, indices_a, 4, data_b, indices_b, 5 );
@@ -272,7 +332,38 @@ int main () {
 	cout << result_all[0] << "  " << result_all[1] << endl;
 	cout << result_all[2] << "  " << result_all[3] << endl;
 	delete[] result_all;
+	*/
 
+	// Subtraction and addition
+	sparse added, added_result;
+	long data_e[6] = { 0, 4, 2, 10, 3 };
+	added.data = data_e;
+	long indices_e[6] = { 0, 1, 3, 4, 5, 17 };
+	added.indices = indices_e;
+	added.size = 6;
+	cout << "Expected data for addition: ";
+	for ( i = 0; i < 6; i++ ){
+		cout << added.data[i] << " ";
+	}
+	cout << endl;
+	cout << "Expected indices for subtraction: ";
+	for ( i = 0; i < 6; i++ ){
+		cout << added.indices[i] << " ";
+	}
+	cout << endl;
+	added_result = add_sparse( a, b );
+	cout << "Actual data for addition: ";
+	for ( i = 0; i < 6; i++ ){
+		cout << added_result.data[i] << " ";
+	}
+	cout << endl;
+	cout << "Expected indices for subtraction: ";
+	for ( i = 0; i < 6; i++ ){
+		cout << added_result.indices[i] << " ";
+	}
+	cout << endl;
+
+	/**
 	// Converged kernel
 	int sorted_history[] = {
 		0, 0, 1, 4, 1, 1, 3, 1, 2, 3,
@@ -292,7 +383,6 @@ int main () {
 	};
 	int* kernel;
 	kernel = converged_kernel_size( sorted_history, 10, 4 );
-	int i;
 	cout << "Converged kernel size row 1: ";
 	for ( i = 0; i < 4 ; i++ ) {
 		cout << kernel[i] << " ";
@@ -314,6 +404,5 @@ int main () {
 	}
 	cout << endl;
 	delete kernel;
-
-	// Clear memory
+	*/
 }

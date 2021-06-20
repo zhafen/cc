@@ -1156,6 +1156,7 @@ class Cartographer( object ):
         i,
         is_valid,
         kernel_size = 16,
+        backend = None,
     ):
         '''Estimate the asymmetry of a publication by calculating the difference
         between that publication's projection and all other publications.
@@ -1184,19 +1185,28 @@ class Cartographer( object ):
         if kernel_size > is_valid.sum():
             return np.nan
 
+        # Input
         cospsi = self.cospsi_matrix[i][is_valid]
-        smoothing_length = np.sort( cospsi )[::-1][kernel_size]
-        in_kernel = cospsi < smoothing_length
-
+        other_inds = np.argsort( cospsi )[::-1][:kernel_size]
         p = self.components_normed[i]
-        other_p = self.components_normed[is_valid]
-        used_p = other_p[in_kernel]
+        used_p = self.components_normed[is_valid][other_inds]
 
-        # Differences
-        result = ( p - used_p ).sum( axis=0 )
-        mag = np.linalg.norm( result )
+        if backend is None:
+            backend = self.backend
 
-        return mag
+        if backend == 'python':
+
+            # Differences
+            result = ( p - used_p ).sum( axis=0 )
+            mag = np.linalg.norm( result )
+
+            return mag
+
+        elif backend == 'c/c++':
+            pass
+
+        else:
+            raise KeyError( 'Unrecognized backend, {}'.format( backend ) )
 
     ########################################################################
 
