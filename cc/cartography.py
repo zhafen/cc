@@ -1031,6 +1031,7 @@ class Cartographer( object ):
         metric = 'constant_asymmetry',
         min_prior = 2,
         date_type = 'entry_dates',
+        kernel_size = 16,
         **kwargs
     ):
         '''Estimate the asymmetry of all publications relative to prior
@@ -1060,7 +1061,7 @@ class Cartographer( object ):
         '''
 
         metrics_with_optimized_multiple = [
-            # 'smoothing_length',
+            'kernel_constant_asymmetry',
         ]
 
         # By default calculate for all publications
@@ -1070,46 +1071,67 @@ class Cartographer( object ):
         # Identify valid publications to use as input
         is_minnorm = self.norms > 1e-5
 
-        # if len( publications )  > 1 and metric in metrics_with_optimized_multiple:
-        #     dates = getattr( self, date_type )
-        #     # valid_dates = [ str( _ ) != 'NaT' for _ in dates ] 
-        #     is_prior = dates < dates[:,np.newaxis]
-        #     sorted_cospsi = np.argsort( self.cospsi_matrix )
-        es = []
-        for i in tqdm( publications ):
-
-            # Don't try to calculate for publications we don't have a date for.
+        if len( publications )  > 1 and metric in metrics_with_optimized_multiple:
             dates = getattr( self, date_type )
-            date = dates[i]
-            if str( date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
-                es.append( np.nan )
-                continue
+            sort_inds = np.argsort( self.cospsi_matrix )[:,::-1]
+            es = []
+            for i in tqdm( publications ):
 
-            # Identify prior publications
-            is_prior = dates < date
-            if is_prior.sum() < min_prior:
-                es.append( np.nan )
-                continue
+                # Don't try to calculate for publications we don't have a date for.
+                date = dates[i]
+                if str( date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
+                    es.append( np.nan )
+                    continue
 
-            # Choose valid publications
-            is_other = np.arange( self.publications.size ) != i
-            is_valid = is_prior & is_other & is_minnorm
+                # Identify prior publications
+                is_prior = dates < date
+                if is_prior.sum() < min_prior:
+                    es.append( np.nan )
+                    continue
 
-            # Get the metric
-            fn = getattr( self, '{}_metric'.format( metric ) )
+                prior_sorted = is_prior[i][sort_inds[i]]
+                kernel_p = self.components_normed[sort_inds[i]][prior_sorted][:kernel_size]
+                diff_i = self.components_normed[i] * kernel_size - kernel_p.sum( axis=0 )
+                es.append( np.linalg.norm( diff_i ) )
 
-            # Identify arguments to pass
-            fn_args = inspect.getfullargspec( fn )
-            used_kwargs = {}
-            for key, item in kwargs.items():
-                if key in fn_args.args:
-                    used_kwargs[key] = item
+        else:
+            es = []
+            dates = getattr( self, date_type )
+            for i in tqdm( publications ):
 
-            # Call
-            e = fn( i, is_valid, **used_kwargs )
+                # Don't try to calculate for publications we don't have a date for.
+                date = dates[i]
+                if str( date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
+                    es.append( np.nan )
+                    continue
 
-            es.append( e )
-        es = np.array( es )
+                # Identify prior publications
+                is_prior = dates < date
+                if is_prior.sum() < min_prior:
+                    es.append( np.nan )
+                    continue
+
+                # Choose valid publications
+                is_other = np.arange( self.publications.size ) != i
+                is_valid = is_prior & is_other & is_minnorm
+
+                # Get the metric
+                fn = getattr( self, '{}_metric'.format( metric ) )
+
+                # Identify arguments to pass
+                fn_args = inspect.getfullargspec( fn )
+                used_kwargs = {}
+                for key, item in kwargs.items():
+                    if key in fn_args.args:
+                        used_kwargs[key] = item
+                if 'kernel_size' in fn_args.args:
+                    used_kwargs['kernel_size'] = kernel_size
+
+                # Call
+                e = fn( i, is_valid, **used_kwargs )
+
+                es.append( e )
+            es = np.array( es )
 
         return es
 
@@ -1197,7 +1219,7 @@ class Cartographer( object ):
         if backend == 'python':
 
             # Differences
-            result = ( p - used_p ).sum( axis=0 )
+            result = len( other_inds ) * p - used_p.sum( axis=0 )
             mag = np.linalg.norm( result )
 
             return mag
@@ -1307,7 +1329,8 @@ class Cartographer( object ):
             return np.nan
 
         cospsi = self.cospsi_matrix[i][is_valid]
-        return np.sort( cospsi )[::-1][kernel_size]
+        cospsi_max = np.sort( cospsi )[::-1][kernel_size]
+        return np.arccos( cospsi_max )
 
     ########################################################################
     # Mapping
