@@ -1190,8 +1190,11 @@ class Cartographer( object ):
         p = self.components_normed[i]
         used_p = self.components_normed[other_inds]
 
+
         # Differences
-        result = len( other_inds ) * p - used_p.sum( axis=0 )
+        diff = p - used_p
+        diff_mag = np.linalg.norm( diff, axis=1 )
+        result = ( diff / diff_mag[:,np.newaxis ]).sum( axis=0 )
         mag = np.linalg.norm( result )
 
         return mag
@@ -1253,6 +1256,7 @@ class Cartographer( object ):
         Returns:
             h (float):
                 Arc length containing kernel_size other publications.
+                (Assumes normalized to a radius of 1.)
         '''
 
         # We can't have the kernel larger than the number of valid publications

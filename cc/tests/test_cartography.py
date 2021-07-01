@@ -674,7 +674,9 @@ class TestTopographyMetric( unittest.TestCase ):
         )
         c_i = self.c.components_normed[3]
         other = self.c.components_normed[np.array([4,5,6,7])]
-        result = ( c_i - other ).sum( axis=0 )
+        diff = c_i - other
+        diff_mags = np.linalg.norm( diff, axis=1 )
+        result = ( diff/diff_mags[:,np.newaxis] ).sum( axis=0 )
         expected = np.linalg.norm( result )
         npt.assert_allclose( actual[0], expected )
 
@@ -700,7 +702,9 @@ class TestTopographyMetric( unittest.TestCase ):
         )
         c_i = self.c.components_normed[3]
         other = self.c.components_normed[np.array([4,5,6,7])]
-        result = ( c_i - other ).sum( axis=0 )
+        diff = c_i - other
+        diff_mags = np.linalg.norm( diff, axis=1 )
+        result = ( diff/diff_mags[:,np.newaxis] ).sum( axis=0 )
         expected = np.linalg.norm( result )
         npt.assert_allclose( actual, expected )
 
