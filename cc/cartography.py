@@ -1071,67 +1071,68 @@ class Cartographer( object ):
         # Identify valid publications to use as input
         is_minnorm = self.norms > 1e-5
 
-        if len( publications )  > 1 and metric in metrics_with_optimized_multiple:
-            dates = getattr( self, date_type )
-            sort_inds = np.argsort( self.cospsi_matrix )[:,::-1]
-            es = []
-            for i in tqdm( publications ):
+        # if len( publications )  > 1 and metric in metrics_with_optimized_multiple:
+        #     dates = getattr( self, date_type )
+        #     sort_inds = np.argsort( self.cospsi_matrix )[:,::-1]
+        #     es = []
+        #     for i in tqdm( publications ):
 
-                # Don't try to calculate for publications we don't have a date for.
-                date = dates[i]
-                if str( date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
-                    es.append( np.nan )
-                    continue
+        #         # Don't try to calculate for publications we don't have a date for.
+        #         date = dates[i]
+        #         if str( date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
+        #             es.append( np.nan )
+        #             continue
 
-                # Identify prior publications
-                is_prior = dates < date
-                if is_prior.sum() < min_prior:
-                    es.append( np.nan )
-                    continue
+        #         # Identify prior publications
+        #         is_prior = dates < date
+        #         if is_prior.sum() < min_prior:
+        #             es.append( np.nan )
+        #         continue
 
-                prior_sorted = is_prior[i][sort_inds[i]]
-                kernel_p = self.components_normed[sort_inds[i]][prior_sorted][:kernel_size]
-                diff_i = self.components_normed[i] * kernel_size - kernel_p.sum( axis=0 )
-                es.append( np.linalg.norm( diff_i ) )
+        #         prior_sorted = is_prior[i][sort_inds[i]]
+        #         kernel_p = self.components_normed[sort_inds[i]][prior_sorted][:kernel_size]
+        #         diff_i = self.components_normed[i] * kernel_size - kernel_p.sum( axis=0 )
+        #         es.append( np.linalg.norm( diff_i ) )
 
-        else:
-            es = []
-            dates = getattr( self, date_type )
-            for i in tqdm( publications ):
+        es = []
+        dates = getattr( self, date_type )
+        for i in tqdm( publications ):
 
-                # Don't try to calculate for publications we don't have a date for.
-                date = dates[i]
-                if str( date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
-                    es.append( np.nan )
-                    continue
+            # Don't try to calculate for publications we don't have a date for.
+            date = dates[i]
+            if str( date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
+                es.append( np.nan )
+                continue
 
-                # Identify prior publications
-                is_prior = dates < date
-                if is_prior.sum() < min_prior:
-                    es.append( np.nan )
-                    continue
+            # Identify prior publications
+            is_prior = dates < date
+            if is_prior.sum() < min_prior:
+                es.append( np.nan )
+                continue
 
-                # Choose valid publications
-                is_other = np.arange( self.publications.size ) != i
-                is_valid = is_prior & is_other & is_minnorm
+            # Choose valid publications
+            inds = np.arange( self.publications.size )
+            is_other = inds != i
+            is_valid = is_prior & is_other & is_minnorm
+            valid_is = inds[is_valid]
 
-                # Get the metric
-                fn = getattr( self, '{}_metric'.format( metric ) )
+            # Get the metric
+            fn = getattr( self, '{}_metric'.format( metric ) )
 
-                # Identify arguments to pass
-                fn_args = inspect.getfullargspec( fn )
-                used_kwargs = {}
-                for key, item in kwargs.items():
-                    if key in fn_args.args:
-                        used_kwargs[key] = item
-                if 'kernel_size' in fn_args.args:
-                    used_kwargs['kernel_size'] = kernel_size
+            # Identify arguments to pass
+            fn_args = inspect.getfullargspec( fn )
+            used_kwargs = {}
+            for key, item in kwargs.items():
+                if key in fn_args.args:
+                    used_kwargs[key] = item
+            if 'kernel_size' in fn_args.args:
+                used_kwargs['kernel_size'] = kernel_size
 
-                # Call
-                e = fn( i, is_valid, **used_kwargs )
+            # Call
+            e = fn( i, valid_is, **used_kwargs )
 
-                es.append( e )
-            es = np.array( es )
+            es.append( e )
+        es = np.array( es )
 
         return es
 
@@ -1176,7 +1177,7 @@ class Cartographer( object ):
     def kernel_constant_asymmetry_metric(
         self,
         i,
-        is_valid,
+        valid_is,
         kernel_size = 16,
         backend = None,
     ):
@@ -1204,14 +1205,15 @@ class Cartographer( object ):
         '''
 
         # We can't have the kernel larger than the number of valid publications
-        if kernel_size > is_valid.sum():
+        if kernel_size > len( valid_is ):
             return np.nan
 
         # Input
-        cospsi = self.cospsi_matrix[i][is_valid]
-        other_inds = np.argsort( cospsi )[::-1][:kernel_size]
+        cospsi = self.cospsi_matrix[i][valid_is]
+        sorted_inds = np.argsort( cospsi )[::-1][:kernel_size]
+        other_inds = np.arange( self.publications.size )[valid_is][sorted_inds]
         p = self.components_normed[i]
-        used_p = self.components_normed[is_valid][other_inds]
+        used_p = self.components_normed[other_inds]
 
         if backend is None:
             backend = self.backend
@@ -1235,17 +1237,11 @@ class Cartographer( object ):
     def density_metric(
         self,
         i,
-        is_valid,
+        valid_is,
         kernel_size = 16,
     ):
         '''Estimate the density of a publication by calculating the
-        spherical volume that encloses kernel_size other publications.
-        WARNING: This is typically calculated in a many-dimensional space,
-        and our naiive estimates of calculating the spherical volume
-        numerically fail due to overflow errors. Consider using smoothing
-        length as a proxy. If we think density is essential we can
-        calculate volume in n-dimensions using a monte-carlo approach
-        (fraction of random points in a volume).
+        smoothing length that encloses kernel_size other publications.
 
         Args:
             p ((n_concepts,) np.ndarray of floats):
@@ -1267,29 +1263,8 @@ class Cartographer( object ):
                 Magnitude of the asymmetry metric.
         '''
 
-        p = self.components_normed[i]
-        other_p = self.components_normed[is_valid]
-
-        warnings.warn( 'Density is not currently well-defined in our code for many dimensions, which is the default. Consider using smoothing length instead.' )
-
-        # We can't have the kernel larger than the number of valid publications
-        if kernel_size > other_p.shape[0]:
-            kernel_size = other_p.shape[0]
-
-        # Identify the publications to use in the calculation
-        kd_tree = scipy.spatial.cKDTree( other_p )
-        dist, inds = kd_tree.query( p, k=kernel_size, )
-
-        # Calculate density from smoothing length
-        h = np.nanmax( dist )
-        n_dim = self.component_concepts.size
-        # Volume of an n-ball in n-dimensional Euclidean space
-        volume = (
-            np.pi**(n_dim/2.)
-            * h**n_dim
-            / scipy.special.gamma( n_dim/2. + 1 )
-        )
-        density = h / volume
+        h = self.smoothing_length_metric( i, valid_is, kernel_size )
+        density = kernel_size / h
                 
         return density
 
@@ -1298,7 +1273,7 @@ class Cartographer( object ):
     def smoothing_length_metric(
         self,
         i,
-        is_valid,
+        valid_is,
         kernel_size = 16,
     ):
         '''Proxy for the density of a publication defined as the minimum
@@ -1325,10 +1300,10 @@ class Cartographer( object ):
         '''
 
         # We can't have the kernel larger than the number of valid publications
-        if kernel_size > is_valid.sum():
+        if kernel_size > len( valid_is ):
             return np.nan
 
-        cospsi = self.cospsi_matrix[i][is_valid]
+        cospsi = self.cospsi_matrix[i][valid_is]
         cospsi_max = np.sort( cospsi )[::-1][kernel_size]
         return np.arccos( cospsi_max )
 

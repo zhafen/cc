@@ -747,25 +747,23 @@ class TestTopographyMetric( unittest.TestCase ):
 
     def test_density_metric( self ):
 
-        with warnings.catch_warnings(record=True) as w:
+        # Try for some publication
+        actual = self.c.topography_metric(
+            [ 3, ],
+            metric = 'density',
+            date_type = 'publication_dates',
+            kernel_size = 4,
+        )
+        assert not np.isnan( actual[0] )
 
-            # Try for some publication
-            actual = self.c.topography_metric(
-                [ 3, ],
-                metric = 'density',
-                date_type = 'publication_dates'
-            )
-            assert not np.isnan( actual[0] )
-
-            # Try for a file with a nan publication date.
-            actual = self.c.topography_metric(
-                [ 0, ],
-                metric = 'density',
-                date_type = 'publication_dates'
-            )
-            assert np.isnan( actual[0] )
-
-            assert len( w ) == 2
+        # Try for a file with a nan publication date.
+        actual = self.c.topography_metric(
+            [ 0, ],
+            metric = 'density',
+            date_type = 'publication_dates',
+            kernel_size = 4,
+        )
+        assert np.isnan( actual[0] )
 
     ########################################################################
 
