@@ -69,6 +69,17 @@ class Cartographer( object ):
     ########################################################################
 
     @property
+    def inds( self ):
+
+        if not hasattr( self, '_inds' ):
+
+            self._inds = np.arange( self.publications.size )
+
+        return self._inds
+
+    ########################################################################
+
+    @property
     def components_sp( self ):
 
         if not hasattr( self, '_components_sp' ):
@@ -1060,39 +1071,12 @@ class Cartographer( object ):
                 Estimator vallue for all publications.
         '''
 
-        metrics_with_optimized_multiple = [
-            'kernel_constant_asymmetry',
-        ]
-
         # By default calculate for all publications
         if publications is None:
-            publications = np.arange( self.publications.size )
+            publications = self.inds
 
         # Identify valid publications to use as input
         is_minnorm = self.norms > 1e-5
-
-        # if len( publications )  > 1 and metric in metrics_with_optimized_multiple:
-        #     dates = getattr( self, date_type )
-        #     sort_inds = np.argsort( self.cospsi_matrix )[:,::-1]
-        #     es = []
-        #     for i in tqdm( publications ):
-
-        #         # Don't try to calculate for publications we don't have a date for.
-        #         date = dates[i]
-        #         if str( date ) == 'NaT' or np.isclose( self.norms[i], 0. ):
-        #             es.append( np.nan )
-        #             continue
-
-        #         # Identify prior publications
-        #         is_prior = dates < date
-        #         if is_prior.sum() < min_prior:
-        #             es.append( np.nan )
-        #         continue
-
-        #         prior_sorted = is_prior[i][sort_inds[i]]
-        #         kernel_p = self.components_normed[sort_inds[i]][prior_sorted][:kernel_size]
-        #         diff_i = self.components_normed[i] * kernel_size - kernel_p.sum( axis=0 )
-        #         es.append( np.linalg.norm( diff_i ) )
 
         es = []
         dates = getattr( self, date_type )
@@ -1111,10 +1095,9 @@ class Cartographer( object ):
                 continue
 
             # Choose valid publications
-            inds = np.arange( self.publications.size )
-            is_other = inds != i
+            is_other = self.inds != i
             is_valid = is_prior & is_other & is_minnorm
-            valid_is = inds[is_valid]
+            valid_is = self.inds[is_valid]
 
             # Get the metric
             fn = getattr( self, '{}_metric'.format( metric ) )
@@ -1147,18 +1130,14 @@ class Cartographer( object ):
         between that publication's projection and all other publications.
 
         Args:
-            p ((n_concepts,) np.ndarray of floats):
-                The vector of the publication to calculate the asymmetry
-                metric for.
+            i (int):
+                The index of the vector to calculate the asymmetry metric for.
 
-            other_p ((n_other,n_concepts) np.ndarray of floats):
-                Vectors of the other publication used when calculating the
+            valid_is ((n_other) np.ndarray of ints):
+                Indices of the other publication used when calculating the
                 metric.
 
         Returns:
-            result (np.ndarray of floats):
-                Full asymmetry metric in vector form.
-
             mag (float):
                 Magnitude of the asymmetry metric.
         '''
@@ -1179,27 +1158,23 @@ class Cartographer( object ):
         i,
         valid_is,
         kernel_size = 16,
-        backend = None,
     ):
         '''Estimate the asymmetry of a publication by calculating the difference
-        between that publication's projection and all other publications.
+        between that publication's projection and the other publications within
+        the kernel.
 
         Args:
-            p ((n_concepts,) np.ndarray of floats):
-                The vector of the publication to calculate the asymmetry
-                metric for.
+            i (int):
+                The index of the vector to calculate the asymmetry metric for.
 
-            other_p ((n_other,n_concepts) np.ndarray of floats):
-                Vectors of the other publication used when calculating the
+            valid_is ((n_other) np.ndarray of ints):
+                Indices of the other publication used when calculating the
                 metric.
 
             kernel_size (int):
                 Number of nearest neighbors to calculate the asymmetry on.
 
         Returns:
-            result (np.ndarray of floats):
-                Full asymmetry metric in vector form.
-
             mag (float):
                 Magnitude of the asymmetry metric.
         '''
@@ -1211,26 +1186,15 @@ class Cartographer( object ):
         # Input
         cospsi = self.cospsi_matrix[i][valid_is]
         sorted_inds = np.argsort( cospsi )[::-1][:kernel_size]
-        other_inds = np.arange( self.publications.size )[valid_is][sorted_inds]
+        other_inds = self.inds[valid_is][sorted_inds]
         p = self.components_normed[i]
         used_p = self.components_normed[other_inds]
 
-        if backend is None:
-            backend = self.backend
+        # Differences
+        result = len( other_inds ) * p - used_p.sum( axis=0 )
+        mag = np.linalg.norm( result )
 
-        if backend == 'python':
-
-            # Differences
-            result = len( other_inds ) * p - used_p.sum( axis=0 )
-            mag = np.linalg.norm( result )
-
-            return mag
-
-        elif backend == 'c/c++':
-            pass
-
-        else:
-            raise KeyError( 'Unrecognized backend, {}'.format( backend ) )
+        return mag
 
     ########################################################################
 
@@ -1244,23 +1208,19 @@ class Cartographer( object ):
         smoothing length that encloses kernel_size other publications.
 
         Args:
-            p ((n_concepts,) np.ndarray of floats):
-                The vector of the publication to calculate the asymmetry
-                metric for.
+            i (int):
+                The index of the vector to calculate the asymmetry metric for.
 
-            other_p ((n_other,n_concepts) np.ndarray of floats):
-                Vectors of the other publication used when calculating the
+            valid_is ((n_other) np.ndarray of ints):
+                Indices of the other publication used when calculating the
                 metric.
 
             kernel_size (int):
                 Number of nearest neighbors to calculate the asymmetry on.
 
         Returns:
-            result (np.ndarray of floats):
-                Full asymmetry metric in vector form.
-
-            mag (float):
-                Magnitude of the asymmetry metric.
+            density (float):
+                kernel_size divided by arc length containing kernel_size other publications.
         '''
 
         h = self.smoothing_length_metric( i, valid_is, kernel_size )
@@ -1280,23 +1240,19 @@ class Cartographer( object ):
         radius that encloses kernel_size other publications.
 
         Args:
-            p ((n_concepts,) np.ndarray of floats):
-                The vector of the publication to calculate the asymmetry
-                metric for.
+            i (int):
+                The index of the vector to calculate the asymmetry metric for.
 
-            other_p ((n_other,n_concepts) np.ndarray of floats):
-                Vectors of the other publication used when calculating the
+            valid_is ((n_other) np.ndarray of ints):
+                Indices of the other publication used when calculating the
                 metric.
 
             kernel_size (int):
                 Number of nearest neighbors to calculate the asymmetry on.
 
         Returns:
-            result (np.ndarray of floats):
-                Full asymmetry metric in vector form.
-
-            mag (float):
-                Magnitude of the asymmetry metric.
+            h (float):
+                Arc length containing kernel_size other publications.
         '''
 
         # We can't have the kernel larger than the number of valid publications

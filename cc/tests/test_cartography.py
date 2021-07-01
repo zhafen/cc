@@ -667,37 +667,10 @@ class TestTopographyMetric( unittest.TestCase ):
 
         # Try for some publication
         actual = self.c.topography_metric(
-            [ 3, ],
-            metric = 'kernel_constant_asymmetry',
-            date_type = 'publication_dates',
-            kernel_size = 4,
-        )
-        c_i = self.c.components_normed[3]
-        other = self.c.components_normed[np.array([4,5,6,7])]
-        result = ( c_i - other ).sum( axis=0 )
-        expected = np.linalg.norm( result )
-        npt.assert_allclose( actual, expected )
-
-        # Try for a file with a nan publication date.
-        actual = self.c.topography_metric(
-            [ 0, ],
-            metric = 'kernel_constant_asymmetry',
-            date_type = 'publication_dates',
-            kernel_size = 4,
-        )
-        assert np.isnan( actual[0] )
-
-    ########################################################################
-
-    def test_kernel_constant_asymmetry_metric_python( self ):
-
-        # Try for some publication
-        actual = self.c.topography_metric(
             [ 3, 4 ],
             metric = 'kernel_constant_asymmetry',
             date_type = 'publication_dates',
             kernel_size = 4,
-            backend = 'python',
         )
         c_i = self.c.components_normed[3]
         other = self.c.components_normed[np.array([4,5,6,7])]
@@ -711,13 +684,12 @@ class TestTopographyMetric( unittest.TestCase ):
             metric = 'kernel_constant_asymmetry',
             date_type = 'publication_dates',
             kernel_size = 4,
-            backend = 'python',
         )
         assert np.isnan( actual[0] )
 
     ########################################################################
 
-    def test_kernel_constant_asymmetry_metric_single_python( self ):
+    def test_kernel_constant_asymmetry_metric_single( self ):
 
         # Try for some publication
         actual = self.c.topography_metric(
@@ -725,7 +697,6 @@ class TestTopographyMetric( unittest.TestCase ):
             metric = 'kernel_constant_asymmetry',
             date_type = 'publication_dates',
             kernel_size = 4,
-            backend = 'python',
         )
         c_i = self.c.components_normed[3]
         other = self.c.components_normed[np.array([4,5,6,7])]
@@ -739,7 +710,6 @@ class TestTopographyMetric( unittest.TestCase ):
             metric = 'kernel_constant_asymmetry',
             date_type = 'publication_dates',
             kernel_size = 4,
-            backend = 'python',
         )
         assert np.isnan( actual[0] )
 
