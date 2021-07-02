@@ -33,7 +33,6 @@ setuptools.setup(
         'simple-augment>=1.0',
         'mock>=4.0.2',
         'pandas>=1.1.4',
-        'rebound>=3.12.3',
         'verdict>=1.1.4',
     ],
     ext_modules = [
