@@ -1190,7 +1190,6 @@ class Cartographer( object ):
         p = self.components_normed[i]
         used_p = self.components_normed[other_inds]
 
-
         # Differences
         diff = p - used_p
         diff_mag = np.linalg.norm( diff, axis=1 )
@@ -1240,7 +1239,7 @@ class Cartographer( object ):
         kernel_size = 16,
     ):
         '''Proxy for the density of a publication defined as the minimum
-        radius that encloses kernel_size other publications.
+        arc length that encloses kernel_size other publications.
 
         Args:
             i (int):
