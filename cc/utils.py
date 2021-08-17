@@ -207,7 +207,7 @@ def tokenize_and_sort_text( text, tag_mapping=None ):
         result['primary'].append( nltk1 )
         result['secondary'].append( nltk2 )
         result['primary_stemmed'].append( stem( nltk1 ) )
-    result['uncategorized'] = set( uncategorized )
+    result['uncategorized'] = list( set( uncategorized ) )
 
     return result
 
