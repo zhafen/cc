@@ -6,116 +6,116 @@ from . import utils
 
 ########################################################################
 
-def concept_projection( words, component_concepts=None ):
-    '''Given a list of words, project into concept space.
+def vectorize( words, feature_names=None ):
+    '''Given a list of words, project into conckey_concept space.
 
     Args:
         words (list-like of strs):
-            Words to project into concept space.
+            Words to project into conckey_concept space.
 
-        component_concepts (list-like of strs):
-            Existing concepts to project onto.
+        feature_names (list-like of strs):
+            Existing features to project onto.
 
     Returns:
-        components (list-like of floats):
+        vector (list-like of floats):
             Components in new space.
        
-        component_concepts
+        feature_names
             Concepts for the space.
     '''
 
-    # Project for non-zero concepts
+    # Project for non-zero features
     flattened = np.hstack( words )
-    nonzero_concepts, values = np.unique( flattened, return_counts=True )
+    nonzero_features, values = np.unique( flattened, return_counts=True )
 
-    # Combine with existing component concepts
-    if component_concepts is not None:
-        components, component_concepts = project_onto_existing(
-            original_concepts = component_concepts,
-            added_components = values,
-            added_concepts = nonzero_concepts,
+    # Combine with existing component features
+    if feature_names is not None:
+        vector, feature_names = project_onto_existing(
+            original_feature_names = feature_names,
+            added_vector = values,
+            added_feature_names = nonzero_features,
         )
         
     else:
-        components = values
-        component_concepts = nonzero_concepts
+        vector = values
+        feature_names = nonzero_features
 
-    return components, component_concepts
+    return vector, feature_names
 
 ########################################################################
 
 def project_onto_existing(
-    original_concepts,
-    added_components,
-    added_concepts,
+    original_feature_names,
+    added_vector,
+    added_feature_names,
 ):
-    '''Project onto an existing list of concepts.
+    '''Project onto an existing list of features.
 
     Args:
-        original_concepts (list-like of strs):
-            Original concepts to project onto.
+        original_feature_names (list-like of strs):
+            Original features to project onto.
 
-        added_components (list-like of floats or ints):
+        added_vector (list-like of floats or ints):
             Weights for the new words.
 
-        added_concepts (list-like of strs):
+        added_feature_names (list-like of strs):
             Concepts for the new vector. Some may already be part of
-            original_concepts
+            original_feature_names
 
     Returns:
-        components (list-like of floats):
+        vector (list-like of floats):
             Components in new space.
        
-        component_concepts
+        feature_names
             Concepts for the space.
     '''
 
     @numba.njit
     def numba_fn(
-        original_concepts,
-        added_components,
-        added_concepts,
+        original_feature_names,
+        added_vector,
+        added_feature_names,
     ):
 
-        # Store the concepts shared with other publications
+        # Store the features shared with other publications
         dup_inds = List()
-        components = List()
-        component_concepts = List( original_concepts )
-        for i, ci in enumerate( original_concepts ):
+        vector = List()
+        feature_names = List( original_feature_names )
+        for i, ci in enumerate( original_feature_names ):
             no_match = True
-            for j, cj in enumerate( added_concepts ):
+            for j, cj in enumerate( added_feature_names ):
                 # If a match is found
                 if ci == cj:
-                    components.append( added_components[j] )
+                    vector.append( added_vector[j] )
                     dup_inds.append( j )
                     no_match = False
                     break
             # If made to the end of the loop with no match
             if no_match:
-                components.append( 0 )
+                vector.append( 0 )
 
         # Finish combining
-        for i in range( len( added_concepts ) ):
+        for i in range( len( added_feature_names ) ):
             if i in dup_inds:
                 continue
-            components.append( added_components[i] )
-            component_concepts.append( added_concepts[i] )
+            vector.append( added_vector[i] )
+            feature_names.append( added_feature_names[i] )
 
-        return components, component_concepts
+        return vector, feature_names
 
-    components, component_concepts = numba_fn(
-        List( original_concepts ),
-        List( added_components ),
-        List( added_concepts ),
+    vector, feature_names = numba_fn(
+        List( original_feature_names ),
+        List( added_vector ),
+        List( added_feature_names ),
     )
 
-    return np.array( components ), np.array( component_concepts )
+    return np.array( vector ), np.array( feature_names )
 
 ########################################################################
 
 def inner_product( a, b, word_per_concept=True, **kwargs ):
     '''The inner product between two relations.
-    Fiducially defined as the number of shared key concepts.
+    Fiducially defined as the number of shared key features.
 
     Args:
         a (str):
@@ -125,16 +125,16 @@ def inner_product( a, b, word_per_concept=True, **kwargs ):
             The second relation to calculate the inner product of.
 
         word_per_concept (bool):
-            If True, break each concept into its composite words.
+            If True, break each conckey_concept into its composite words.
 
     Kwargs:
         max_edit_distance (int):
-            Maximum Levenshtein edit-distance between two concepts for them
+            Maximum Levenshtein edit-distance between two features for them
             to count as the same concept.
 
     Returns:
         result (int):
-            The number of shared key concepts between two relations.
+            The number of shared key features between two relations.
     '''
 
     a_kcs = parse_relation_for_key_concepts(
@@ -167,15 +167,15 @@ def parse_relation_for_key_concepts( a, word_per_concept=True ):
             The written relation you want to parse.
 
         word_per_concept (bool):
-            If True, limit concepts to one word per concept, and break down
-            multi-word concepts (including nested concepts) into individuals.
+            If True, limit features to one word per concept, and break down
+            multi-word features (including nested features) into individuals.
 
     Returns:
         list of strs:
-            The key concepts contained in the relation.
+            The key features contained in the relation.
     '''
 
-    # Parse key concepts, including nested brackets
+    # Parse key features, including nested brackets
     key_concepts = []
     stack = []
     nesting = 0

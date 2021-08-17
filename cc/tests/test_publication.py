@@ -320,7 +320,7 @@ class TestPublicationAnalysis( unittest.TestCase ):
 
 ########################################################################
 
-class ComponentProjection( unittest.TestCase ):
+class Vectorize( unittest.TestCase ):
 
     def setUp( self ):
 
@@ -330,66 +330,66 @@ class ComponentProjection( unittest.TestCase ):
 
     ########################################################################
 
-    def test_concept_projection( self ):
+    def test_vectorize( self ):
 
-        values, comp_concepts = self.p.concept_projection()
+        values, feature_names = self.p.vectorize()
 
         # Should be no 0s
         assert values.min() > 0
 
         # Two spot checks
-        assert 'wind' in comp_concepts
-        assert 'cohes' in comp_concepts
-        assert 'garglflinx' in comp_concepts
+        assert 'wind' in feature_names
+        assert 'cohes' in feature_names
+        assert 'garglflinx' in feature_names
 
     ########################################################################
 
-    def test_concept_projection_existing_vector( self ):
+    def test_vectorize_existing_vector( self ):
 
-        comp_concepts_orig = [ 'accret', 'dog' ]
-        values, comp_concepts = self.p.concept_projection(
-            comp_concepts_orig
+        feature_names_orig = [ 'accret', 'dog' ]
+        values, feature_names = self.p.vectorize(
+            feature_names_orig
         )
 
         # Should be one 0
         assert values[1] == 0
 
         # Should match with the formatting of the original vector
-        for i, comp_concept in enumerate( comp_concepts_orig ):
-            assert comp_concept == comp_concepts[i]
+        for i, feature_name in enumerate( feature_names_orig ):
+            assert feature_name == feature_names[i]
 
-        assert len( values ) == len( comp_concepts )
+        assert len( values ) == len( feature_names )
 
         # Spot checks
-        assert 'wind' in comp_concepts
-        assert 'cohes' in comp_concepts
-        assert 'accret' in comp_concepts
-        assert 'dog' in comp_concepts
+        assert 'wind' in feature_names
+        assert 'cohes' in feature_names
+        assert 'accret' in feature_names
+        assert 'dog' in feature_names
 
     ########################################################################
 
-    def test_concept_projection_notes_not_included( self ):
+    def test_vectorize_notes_not_included( self ):
 
-        values, comp_concepts = self.p.concept_projection( include_notes=False )
+        values, feature_names = self.p.vectorize( include_notes=False )
 
         # Should be no 0s
         assert values.min() > 0
 
         # Two spot checks
-        assert 'wind' in comp_concepts
-        assert 'cohes' in comp_concepts
-        assert 'garglflinx' not in comp_concepts
+        assert 'wind' in feature_names
+        assert 'cohes' in feature_names
+        assert 'garglflinx' not in feature_names
 
     ########################################################################
     
-    def test_concept_projection_no_viable_words( self ):
+    def test_vectorize_no_viable_words( self ):
 
         # Modify to provide one w/o nouns
         self.p.citation['abstract'] = '(Without )'
 
-        comp_concepts_orig = [ 'accret', 'dog' ]
-        values, comp_concepts = self.p.concept_projection(
-            comp_concepts_orig,
+        feature_names_orig = [ 'accret', 'dog' ]
+        values, feature_names = self.p.vectorize(
+            feature_names_orig,
             include_notes = False
         )
 
@@ -397,10 +397,10 @@ class ComponentProjection( unittest.TestCase ):
         npt.assert_allclose( values, np.array([0., 0.]) )
 
         # Should match with the formatting of the original vector
-        for i, comp_concept in enumerate( comp_concepts ):
-            assert comp_concept == comp_concepts_orig[i]
+        for i, feature_name in enumerate( feature_names ):
+            assert feature_name == feature_names_orig[i]
 
-        assert len( values ) == len( comp_concepts )
+        assert len( values ) == len( feature_names )
 
 ########################################################################
 

@@ -7,12 +7,12 @@ import cc.relation as relation
 
 ########################################################################
 
-class TestConceptProjection( unittest.TestCase ):
+class TestVectorize( unittest.TestCase ):
 
-    def test_concept_projection( self ):
+    def test_vectorize( self ):
 
         words = [ 'dog', 'cat', 'wolf', 'parrot', 'bird' ]
-        values, comp_concepts = relation.concept_projection(
+        values, feature_names = relation.vectorize(
             words,
         )
 
@@ -20,7 +20,7 @@ class TestConceptProjection( unittest.TestCase ):
         assert values.min() > 0
 
         for w in words:
-            assert w in comp_concepts
+            assert w in feature_names
 
 ########################################################################
 

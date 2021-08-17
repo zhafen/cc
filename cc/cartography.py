@@ -48,9 +48,9 @@ class Cartographer( object ):
     @augment.store_parameters
     def update_data(
         self,
-        components,
+        vectors,
         norms,
-        component_concepts,
+        feature_names,
         publications,
         publication_dates,
         entry_dates,
@@ -80,13 +80,13 @@ class Cartographer( object ):
     ########################################################################
 
     @property
-    def components_sp( self ):
+    def vectors_sp( self ):
 
-        if not hasattr( self, '_components_sp' ):
+        if not hasattr( self, '_vectors_sp' ):
 
-            self._components_sp = ss.csr_matrix( self.components )
+            self._vectors_sp = ss.csr_matrix( self.vectors )
 
-        return self._components_sp
+        return self._vectors_sp
 
     ########################################################################
 
@@ -95,8 +95,8 @@ class Cartographer( object ):
         usually due to no abstract.
         '''
 
-        is_nonzero = np.invert( np.isclose( self.components.sum( axis=1 ), 0. ) )
-        for attr in [ 'components', 'norms', 'publications', 'publication_dates', 'entry_dates' ]:
+        is_nonzero = np.invert( np.isclose( self.vectors.sum( axis=1 ), 0. ) )
+        for attr in [ 'vectors', 'norms', 'publications', 'publication_dates', 'entry_dates' ]:
             value = getattr( self, attr )[is_nonzero]
             setattr( self, attr, value )
 
@@ -124,31 +124,31 @@ class Cartographer( object ):
         data = verdict.Dict.from_hdf5( fp, sparse=sparse )
 
         if sparse:
-            components_sp = copy.copy( data['components'] )
-            data['components'] = data['components'].toarray()
+            vectors_sp = copy.copy( data['vectors'] )
+            data['vectors'] = data['vectors'].toarray()
 
         c = Cartographer( backend=backend, **data )
 
         if sparse:
-            c._components_sp = components_sp
+            c._vectors_sp = vectors_sp
 
         return c
 
     ########################################################################
 
     @property
-    def components_normed( self ):
+    def vectors_normed( self ):
         '''Components normalized such that <P|P>=1 .
         '''
 
-        if not hasattr( self, '_components_normed' ):
+        if not hasattr( self, '_vectors_normed' ):
 
             # Divide by NaN is unimportant and handled
             with np.errstate(divide='ignore',invalid='ignore'):
 
-                self._components_normed = self.components / self.norms[:,np.newaxis]
+                self._vectors_normed = self.vectors / self.norms[:,np.newaxis]
 
-        return self._components_normed
+        return self._vectors_normed
 
     ########################################################################
 
@@ -186,7 +186,7 @@ class Cartographer( object ):
 
     def inner_product( self, key_a, key_b, backend=None, **kwargs ):
         '''Calculate the inner product between a and b, using the
-        pre-generated concept projection.
+        pre-generated vector projection.
 
         Args:
             key_a (str):
@@ -220,7 +220,7 @@ class Cartographer( object ):
         # When a==b we can use the norms
         if key_a == key_b:
             if key_a == 'atlas':
-                return ( self.components.sum( axis=0 )**2. ).sum()
+                return ( self.vectors.sum( axis=0 )**2. ).sum()
             elif key_a == 'all':
                 return self.norms**2.
             else:
@@ -237,10 +237,10 @@ class Cartographer( object ):
                 # A single publication
                 if key in self.publications:
                     is_p = self.publications == key
-                    return self.components[is_p][0]
+                    return self.vectors[is_p][0]
                 # The entire atlas
                 elif key == 'atlas' or key == 'all':
-                    return self.components
+                    return self.vectors
                 else:
                     raise KeyError( 'Unhandled key, {}'.format( key ) )
 
@@ -273,12 +273,12 @@ class Cartographer( object ):
                 # Get the sparse rows
                 i_a = np.argmax( self.publications == key_a )
                 i_b = np.argmax( self.publications == key_b )
-                slice_a = slice(self.components_sp.indptr[i_a], self.components_sp.indptr[i_a+1])
-                slice_b = slice(self.components_sp.indptr[i_b], self.components_sp.indptr[i_b+1])
-                data_a = self.components_sp.data[slice_a]
-                data_b = self.components_sp.data[slice_b]
-                indices_a = self.components_sp.indices[slice_a]
-                indices_b = self.components_sp.indices[slice_b]
+                slice_a = slice(self.vectors_sp.indptr[i_a], self.vectors_sp.indptr[i_a+1])
+                slice_b = slice(self.vectors_sp.indptr[i_b], self.vectors_sp.indptr[i_b+1])
+                data_a = self.vectors_sp.data[slice_a]
+                data_b = self.vectors_sp.data[slice_b]
+                indices_a = self.vectors_sp.indices[slice_a]
+                indices_b = self.vectors_sp.indices[slice_b]
 
                 # Setup types
                 self.c_cartography.inner_product_sparse.restype = ctypes.c_int
@@ -322,9 +322,9 @@ class Cartographer( object ):
                 # Call
                 result = self.c_cartography.inner_product_row_all_sparse(
                     i_a,
-                    self.components_sp.data.astype( 'int64' ),
-                    self.components_sp.indices.astype( 'int64' ),
-                    self.components_sp.indptr.astype( 'int64' ),
+                    self.vectors_sp.data.astype( 'int64' ),
+                    self.vectors_sp.indices.astype( 'int64' ),
+                    self.vectors_sp.indptr.astype( 'int64' ),
                     self.publications.size,
                 )
 
@@ -355,9 +355,9 @@ class Cartographer( object ):
 
             # Call
             result_pointer = self.c_cartography.inner_product_matrix(
-                self.components_sp.data.astype( 'int64' ),
-                self.components_sp.indices.astype( 'int64' ),
-                self.components_sp.indptr.astype( 'int64' ),
+                self.vectors_sp.data.astype( 'int64' ),
+                self.vectors_sp.indices.astype( 'int64' ),
+                self.vectors_sp.indptr.astype( 'int64' ),
                 n_pubs,
             )
             self._inner_product_matrix = np.ctypeslib.as_array( result_pointer, ( n_pubs, n_pubs ) )
@@ -455,9 +455,9 @@ class Cartographer( object ):
 
         # Get the right components
         if normed:
-            components = self.components_normed
+            components = self.vectors_normed
         else:
-            components = self.components
+            components = self.vectors
 
         # For all compared to all
         if key_a == 'all' and key_b == 'all':
@@ -480,7 +480,7 @@ class Cartographer( object ):
 
     def text_overlap( self, key_a, key_b, norm='a' ):
         '''Calculate the text overlap between a and b, using the
-        pre-generated concept projection.
+        pre-generated vector projection.
 
         Args:
             key_a (str):
@@ -532,10 +532,10 @@ class Cartographer( object ):
             # A single publication
             if key in self.publications:
                 is_p = self.publications == key
-                return self.components[is_p][0]
+                return self.vectors[is_p][0]
             # The entire atlas
             elif key == 'atlas' or key == 'all':
-                return self.components
+                return self.vectors
         a = interpret_key( key_a )
         b = interpret_key( key_b )
 
@@ -565,7 +565,7 @@ class Cartographer( object ):
 
     def symmetric_text_overlap( self, key_a, key_b ):
         '''Calculate the text overlap between a and b, using the
-        pre-generated concept projection. This option uses the
+        pre-generated vector projection. This option uses the
         geometric mean as normalization.
 
         Args:
@@ -592,7 +592,7 @@ class Cartographer( object ):
     ########################################################################
 
     def pairwise( self, metric, trim_and_reshape=True, *args, **kwargs ):
-        '''Calculate the pairwise metric between all publications in the concept projection.
+        '''Calculate the pairwise metric between all publications in the vector projection.
 
         Args:
             metric (str):
@@ -1142,8 +1142,8 @@ class Cartographer( object ):
                 Magnitude of the asymmetry metric.
         '''
 
-        p = self.components_normed[i]
-        other_p = self.components_normed[is_valid]
+        p = self.vectors_normed[i]
+        other_p = self.vectors_normed[is_valid]
 
         # Differences
         result = ( p - other_p ).sum( axis=0 )
@@ -1187,8 +1187,8 @@ class Cartographer( object ):
         cospsi = self.cospsi_matrix[i][valid_is]
         sorted_inds = np.argsort( cospsi )[::-1][:kernel_size]
         other_inds = self.inds[valid_is][sorted_inds]
-        p = self.components_normed[i]
-        used_p = self.components_normed[other_inds]
+        p = self.vectors_normed[i]
+        used_p = self.vectors_normed[other_inds]
 
         # Differences
         diff = p - used_p
@@ -1272,7 +1272,7 @@ class Cartographer( object ):
 
     def concept_rank_map(
         self,
-        n_concepts = 100,
+        n_features = 100,
         highlighted_publications = None,
         default_color = '#000000',
         cmap = palettable.cartocolors.qualitative.Safe_10.hex_colors,
@@ -1289,7 +1289,7 @@ class Cartographer( object ):
         This plot is best explored by mousing over the points of interest.
 
         Args:
-            n_concepts (int):
+            n_features (int):
                 Number of concepts to plot.
 
             highlighted_publications (list of strs):
@@ -1308,30 +1308,30 @@ class Cartographer( object ):
 
         # Parameters
         n_x = self.publications.size
-        n_y = n_concepts
+        n_y = n_features
         publications = self.publications # Can maybe make this flexible later
         if highlighted_publications is None:
             highlighted_publications = []
         
         # Default rank is the concepts that contribute most to the projection
-        rank = self.components_normed.sum( axis=0 )
+        rank = self.vectors_normed.sum( axis=0 )
         sort_inds = np.argsort( rank )[::-1]
 
         # Get the sorted components
-        comp_norm_s_all = self.components_normed[:,sort_inds]
-        comp_norm_s = comp_norm_s_all[:,:n_y]
-        conc_s_all = self.component_concepts[sort_inds]
-        conc_s = conc_s_all[:n_y]
+        vec_norm_s_all = self.vectors_normed[:,sort_inds]
+        vec_norm_s = vec_norm_s_all[:,:n_y]
+        feat_s_all = self.feature_names[sort_inds]
+        feat_s = feat_s_all[:n_y]
 
         # Reformat for the scatter plot
-        xs = comp_norm_s.transpose().flatten()
+        xs = vec_norm_s.transpose().flatten()
         ys = np.tile(
             np.arange( 0., n_y, 1. ),
             ( n_x, 1 ),
         ).transpose().flatten()
         labels = np.tile( publications, n_y )
         for i, y in enumerate( ys ):
-            labels[i] = labels[i] + ', {}'.format( conc_s[int(y)] )
+            labels[i] = labels[i] + ', {}'.format( feat_s[int(y)] )
 
         # Setup the colors for the highlighted publications
         # Values used
@@ -1394,6 +1394,6 @@ class Cartographer( object ):
         )
 
         if return_data:
-            return fig, (comp_norm_s_all, conc_s_all)
+            return fig, (vec_norm_s_all, feat_s_all)
 
         return fig

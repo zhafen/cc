@@ -330,13 +330,13 @@ class TestRealisticAtlas( unittest.TestCase ):
         # Save
         # a.save_data()
 
-        # Calculate concept projection
-        cp_dict = a.concept_projection()
+        # Calculate vector projection
+        vp_dict = a.vectorize()
 
         unhandled = []
         expected_failures = not_in_ads + no_abstract_exists
         for key in a.data.keys():
-            if key not in cp_dict['publications']:
+            if key not in vp_dict['publications']:
                 if key not in expected_failures:
                     unhandled.append( key )
         assert len( unhandled ) == 0
@@ -735,11 +735,11 @@ class TestUnofficialPublication( unittest.TestCase ):
         self.a.add_unpub(
             citation_key = 'Ho2019',
             point = point,
-            references = [ 'Steidel2002', 'Kacprzak2010', 'Kacprzak2011' ],
+            references = [ 'Steidel2002', 'Kavprzak2010', 'Kavprzak2011' ],
         )
         assert self.a.data['Steidel2002:Ho2019'].points() == [ point, ]
-        assert self.a.data['Kacprzak2010:Ho2019'].points() == [ point, ]
-        assert self.a.data['Kacprzak2011:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kavprzak2010:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kavprzak2011:Ho2019'].points() == [ point, ]
 
     ########################################################################
 
@@ -751,13 +751,13 @@ class TestUnofficialPublication( unittest.TestCase ):
         self.a.add_unpub(
             citation_key = 'Ho2019',
             point = point,
-            references = 'Steidel+2002; Kacprzak et al. 2010, 2011; ' \
+            references = 'Steidel+2002; Kavprzak et al. 2010, 2011; ' \
                 'Bouche+2013, 2016; Diamond-Stanic et al. 2016; Ho+2017; ' \
                 'Martin+2019, Ho+2019',
         )
         assert self.a.data['Steidel2002:Ho2019'].points() == [ point, ]
-        assert self.a.data['Kacprzak2010:Ho2019'].points() == [ point, ]
-        assert self.a.data['Kacprzak2011:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kavprzak2010:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kavprzak2011:Ho2019'].points() == [ point, ]
         assert self.a.data['Bouche2013:Ho2019'].points() == [ point, ]
         assert self.a.data['Diamond-Stanic2016:Ho2019'].points() == [ point, ]
         assert self.a.data['Martin2019:Ho2019'].points() == [ point, ]
@@ -771,13 +771,13 @@ class TestUnofficialPublication( unittest.TestCase ):
 
         self.a.add_unpub(
             citation_key = 'Ho2019',
-            point = point + '(Steidel+2002; Kacprzak et al. 2010, 2011; ' \
+            point = point + '(Steidel+2002; Kavprzak et al. 2010, 2011; ' \
                 'Bouche+2013, 2016; Diamond-Stanic et al. 2016; Ho+2017; ' \
                 'Martin+2019)',
         )
         assert self.a.data['Steidel2002:Ho2019'].points() == [ point, ]
-        assert self.a.data['Kacprzak2010:Ho2019'].points() == [ point, ]
-        assert self.a.data['Kacprzak2011:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kavprzak2010:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kavprzak2011:Ho2019'].points() == [ point, ]
         assert self.a.data['Bouche2013:Ho2019'].points() == [ point, ]
         assert self.a.data['Diamond-Stanic2016:Ho2019'].points() == [ point, ]
 
@@ -789,7 +789,7 @@ class TestUnofficialPublication( unittest.TestCase ):
             'cir- cumgalactic absorption with the Doppler shift sharing the ' \
             'same sign as the galactic disk. This implies the CGM corotates ' \
             'with the galaxy disks out to large radii '
-        point_second_half = '(Stei- del et al. 2002; Kacprzak et al. 2010, ' \
+        point_second_half = '(Stei- del et al. 2002; Kavprzak et al. 2010, ' \
             '2011; Bouch´e et al. 2013, 2016; Diamond-Stanic et al. 2016; ' \
             'Ho et al. 2017; Martin et al. 2019).'
 
@@ -800,8 +800,8 @@ class TestUnofficialPublication( unittest.TestCase ):
         )
         point += '.' # Remainder after the citation is cut out...
         assert self.a.data['Stei- del2002:Ho2019'].points() == [ point, ]
-        assert self.a.data['Kacprzak2010:Ho2019'].points() == [ point, ]
-        assert self.a.data['Kacprzak2011:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kavprzak2010:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kavprzak2011:Ho2019'].points() == [ point, ]
         assert self.a.data['Bouch´e2013:Ho2019'].points() == [ point, ]
         assert self.a.data['Diamond-Stanic2016:Ho2019'].points() == [ point, ]
 
@@ -813,7 +813,7 @@ class TestUnofficialPublication( unittest.TestCase ):
             'cir- cumgalactic absorption with the Doppler shift sharing the ' \
             'same sign as the galactic disk. This implies the CGM corotates ' \
             'with the galaxy disks out to large radii '
-        point_second_half = '(Stei- del et al. 2002; Kacprzak et al. 2010, ' \
+        point_second_half = '(Stei- del et al. 2002; Kavprzak et al. 2010, ' \
             '2011; Bouch´e et al. 2013, 2016; Diamond-Stanic et al. 2016; ' \
             'Ho et al. 2017; Martin et al. 2019).'
 
@@ -824,8 +824,8 @@ class TestUnofficialPublication( unittest.TestCase ):
         point += '.' # Remainder after the citation is cut out...
         point = point.replace( '- ', '' )
         assert self.a.data['Steidel2002:Ho2019'].points() == [ point, ]
-        assert self.a.data['Kacprzak2010:Ho2019'].points() == [ point, ]
-        assert self.a.data['Kacprzak2011:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kavprzak2010:Ho2019'].points() == [ point, ]
+        assert self.a.data['Kavprzak2011:Ho2019'].points() == [ point, ]
         assert self.a.data['Bouch´e2013:Ho2019'].points() == [ point, ]
         assert self.a.data['Diamond-Stanic2016:Ho2019'].points() == [ point, ]
 
@@ -839,7 +839,7 @@ class TestUnofficialPublication( unittest.TestCase ):
         self.a.add_unpub(
             citation_key = 'Ho2019',
             point = point,
-            references = [ 'Steidel2002', 'Kacprzak2010', 'Kacprzak2011' ],
+            references = [ 'Steidel2002', 'Kavprzak2010', 'Kavprzak2011' ],
         )
 
         # Save and load
@@ -907,7 +907,7 @@ class TestAtlasData( unittest.TestCase ):
 
     ########################################################################
 
-    def test_load_data_concept_projection( self ):
+    def test_load_data_vectorize( self ):
 
         # First load to alter data. Is assumed to work.
         self.a.load_data()
@@ -918,8 +918,8 @@ class TestAtlasData( unittest.TestCase ):
         # Reload
         self.a.load_data()
 
-        # Test that a loaded atlas can be used for a concept projection
-        self.a[key].concept_projection()
+        # Test that a loaded atlas can be used for a vector projection
+        self.a[key].vectorize()
 
     ########################################################################
 
@@ -1015,7 +1015,7 @@ class TestAtlasData( unittest.TestCase ):
 
     ########################################################################
 
-    def test_load_data_concept_projection_hdf5( self ):
+    def test_load_data_vectorize_hdf5( self ):
 
         # First load to alter data. Is assumed to work.
         self.a.load_data()
@@ -1026,8 +1026,8 @@ class TestAtlasData( unittest.TestCase ):
         # Reload
         self.a.load_data( format='hdf5' )
 
-        # Test that a loaded atlas can be used for a concept projection
-        self.a[key].concept_projection()
+        # Test that a loaded atlas can be used for a vector projection
+        self.a[key].vectorize()
 
     ########################################################################
 
@@ -1193,7 +1193,7 @@ class TestSearchPublicationsKeyConcepts( unittest.TestCase ):
 
 ########################################################################
 
-class TestConceptProjection( unittest.TestCase ):
+class TestVectorize( unittest.TestCase ):
 
     def setUp( self ):
 
@@ -1212,7 +1212,7 @@ class TestConceptProjection( unittest.TestCase ):
 
     ########################################################################
 
-    def test_concept_projection( self ):
+    def test_vectorize( self ):
 
         # Make sure we don't count cached files
         fp = './tests/data/example_atlas/projection.h5' 
@@ -1221,28 +1221,58 @@ class TestConceptProjection( unittest.TestCase ):
 
         # Test
         self.a.process_abstracts( identifier='from_citation' )
-        cp = self.a.concept_projection()
+        vp = self.a.vectorize()
 
-        # The dimensions of the concept projection
+        # The dimensions of the vector projection
         expected_dim = (
             len( self.a.data ),
-            len( cp['component_concepts'] )
+            len( vp['feature_names'] )
         )
-        assert cp['components'].shape == expected_dim
+        assert vp['vectors'].shape == expected_dim
 
         # Projected publications check
         for i, v in enumerate( list( self.a.data.keys() ) ):
-            assert v == cp['publications'][i]
+            assert v == vp['publications'][i]
 
-        assert cp['publication_dates'][0] == self.a[cp['publications'][0]].publication_date
+        assert vp['publication_dates'][0] == self.a[vp['publications'][0]].publication_date
 
         # There should be no component with entirely zeros
-        unnormed_a = cp['components'].sum( axis=0 )
+        unnormed_a = vp['vectors'].sum( axis=0 )
         assert np.nanmin( unnormed_a  ) > 0.
 
     ########################################################################
 
-    def test_concept_projection_sparse_save( self ):
+    def test_vectorize_homebuilt( self ):
+
+        # Make sure we don't count cached files
+        fp = './tests/data/example_atlas/projection.h5' 
+        if os.path.isfile( fp ):
+            os.remove( fp )
+
+        # Test
+        self.a.process_abstracts( identifier='from_citation' )
+        vp = self.a.vectorize( method='homebuilt' )
+
+        # The dimensions of the vector projection
+        expected_dim = (
+            len( self.a.data ),
+            len( vp['feature_names'] )
+        )
+        assert vp['vectors'].shape == expected_dim
+
+        # Projected publications check
+        for i, v in enumerate( list( self.a.data.keys() ) ):
+            assert v == vp['publications'][i]
+
+        assert vp['publication_dates'][0] == self.a[vp['publications'][0]].publication_date
+
+        # There should be no component with entirely zeros
+        unnormed_a = vp['vectors'].sum( axis=0 )
+        assert np.nanmin( unnormed_a  ) > 0.
+
+    ########################################################################
+
+    def test_vectorize_sparse_save( self ):
 
         # Make sure we don't count cached files
         fp = './tests/data/example_atlas/projection.h5' 
@@ -1251,38 +1281,38 @@ class TestConceptProjection( unittest.TestCase ):
 
         # Not sparse
         self.a.process_abstracts( identifier='from_citation' )
-        cp = self.a.concept_projection( sparse=False )
+        vp = self.a.vectorize( sparse=False )
         size = os.path.getsize( fp )
 
         # Sparse
         self.a.process_abstracts( identifier='from_citation' )
-        cp = self.a.concept_projection( overwrite=True, sparse=True )
+        vp = self.a.vectorize( overwrite=True, sparse=True )
         sparse_size = os.path.getsize( fp )
 
         assert sparse_size < size
 
     ########################################################################
 
-    def test_cached_concept_projection( self ):
+    def test_cached_vectorize( self ):
 
         # Full calculation
-        cp = self.a.concept_projection( projection_fp=self.alt_fp )
+        vp = self.a.vectorize( projection_fp=self.alt_fp )
 
         with patch( 'verdict.Dict.from_hdf5', wraps=verdict.Dict.from_hdf5 ) as mock_from_hdf5:
             # This will cause the function to break if it tries to do the
             # actual calculation
 
             # Loaded fiducial full calculation
-            cp_cache =  self.a.concept_projection( projection_fp=self.alt_fp )
+            vp_cache =  self.a.vectorize( projection_fp=self.alt_fp )
 
             mock_from_hdf5.assert_called_once()
 
         # Cached should equal full
-        npt.assert_allclose( cp['components'], cp_cache['components'] )
+        npt.assert_allclose( vp['vectors'], vp_cache['vectors'] )
 
     ########################################################################
 
-    def test_concept_projection_extend_existing( self ):
+    def test_vectorize_extend_existing( self ):
 
         # Make sure we don't count cached files
         fp = './tests/data/example_atlas/projection.h5' 
@@ -1294,29 +1324,29 @@ class TestConceptProjection( unittest.TestCase ):
             del a_partial.data[key]
 
         # Test
-        cp_partial = a_partial.concept_projection()
-        cp = self.a.concept_projection( existing=cp_partial, overwrite=True )
+        vp_partial = a_partial.vectorize()
+        vp = self.a.vectorize( existing=vp_partial, overwrite=True )
 
-        # The dimensions of the concept projection
+        # The dimensions of the vector projection
         expected_dim = (
             len( self.a.data ),
-            len( cp['component_concepts'] )
+            len( vp['feature_names'] )
         )
-        assert cp['components'].shape == expected_dim
+        assert vp['vectors'].shape == expected_dim
 
         # Projected publications check
         for i, v in enumerate( list( self.a.data.keys() ) ):
-            assert v in cp['publications']
+            assert v in vp['publications']
 
-        assert cp['publication_dates'][0] == self.a[cp['publications'][0]].publication_date
+        assert vp['publication_dates'][0] == self.a[vp['publications'][0]].publication_date
 
         # There should be no component with entirely zeros
-        unnormed_a = cp['components'].sum( axis=0 )
+        unnormed_a = vp['vectors'].sum( axis=0 )
         assert np.nanmin( unnormed_a  ) > 0.
 
     ########################################################################
 
-    def test_concept_projection_notes_too( self ):
+    def test_vectorize_notes_too( self ):
 
         # Make sure we don't count cached files
         fp = './tests/data/example_atlas/projection.h5' 
@@ -1326,33 +1356,33 @@ class TestConceptProjection( unittest.TestCase ):
         # Test
         self.a.process_abstracts( identifier='from_citation' )
         self.a.data.process_bibtex_annotations()
-        cp = self.a.concept_projection()
+        vp = self.a.vectorize()
 
-        # The dimensions of the concept projection
+        # The dimensions of the vector projection
         expected_dim = (
             len( self.a.data ),
-            len( cp['component_concepts'] )
+            len( vp['feature_names'] )
         )
-        assert cp['components'].shape == expected_dim
+        assert vp['vectors'].shape == expected_dim
 
         # Projected publications check
         for i, v in enumerate( list( self.a.data.keys() ) ):
-            assert v == cp['publications'][i]
+            assert v == vp['publications'][i]
 
-        assert cp['publication_dates'][0] == self.a[cp['publications'][0]].publication_date
+        assert vp['publication_dates'][0] == self.a[vp['publications'][0]].publication_date
 
         # There should be no component with entirely zeros
-        unnormed_a = cp['components'].sum( axis=0 )
+        unnormed_a = vp['vectors'].sum( axis=0 )
         assert np.nanmin( unnormed_a  ) > 0.
 
-        # The concept projection should also be using notes (properly)
-        assert 'garglflinx' in cp['component_concepts']
-        assert 'author' not in cp['component_concepts']
-        assert 'read' not in cp['component_concepts']
+        # The vector projection should also be using notes (properly)
+        assert 'garglflinx' in vp['feature_names']
+        assert 'author' not in vp['feature_names']
+        assert 'read' not in vp['feature_names']
 
     ########################################################################
 
-    def test_concept_projection_unofficial( self ):
+    def test_vectorize_unofficial( self ):
 
         # Make sure we don't count cached files
         fp = './tests/data/example_atlas/projection_unofficial.h5' 
@@ -1372,23 +1402,23 @@ class TestConceptProjection( unittest.TestCase ):
             conditions = { 'tcool/tff': np.array([ -np.inf, 10. ]) }
         )
         assert self.a.data['Prateek Sharma'].points() == [ point_a, ]
-        cp = self.a.concept_projection( projection_fp=fp )
+        vp = self.a.vectorize( projection_fp=fp )
 
-        # The dimensions of the concept projection
+        # The dimensions of the vector projection
         expected_dim = (
             len( self.a.data ),
-            len( cp['component_concepts'] )
+            len( vp['feature_names'] )
         )
-        assert cp['components'].shape == expected_dim
+        assert vp['vectors'].shape == expected_dim
 
         # Projected publications check
         for i, v in enumerate( list( self.a.data.keys() ) ):
-            assert v == cp['publications'][i]
+            assert v == vp['publications'][i]
 
-        assert cp['publication_dates'][0] == self.a[cp['publications'][0]].publication_date
+        assert vp['publication_dates'][0] == self.a[vp['publications'][0]].publication_date
 
         # There should be no component with entirely zeros
-        unnormed_a = cp['components'].sum( axis=0 )
+        unnormed_a = vp['vectors'].sum( axis=0 )
         assert np.nanmin( unnormed_a  ) > 0.
 
         # Make sure we clean up

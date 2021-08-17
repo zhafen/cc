@@ -1051,15 +1051,16 @@ class Atlas( object ):
 
     ########################################################################
 
-    def concept_projection(
+    def vectorize(
         self,
-        component_concepts = None,
+        feature_names = None,
         projection_fp = None,
         overwrite = False,
         existing = None,
         verbose = True,
         return_data = True,
         sparse = True,
+        method = 'scikit-learn',
     ):
         '''Project the abstract of each publication into concept space.
         In simplest form this finds all shared, stemmed nouns, verbs, and
@@ -1071,7 +1072,7 @@ class Atlas( object ):
         the difference between tens of MB or tens of GB.
 
         Args:
-            component_concepts (array-like of strs):                                  
+            feature_names (array-like of strs):                                  
                 Basis concepts to project onto. Defaults to all concepts across
                 all publications.
 
@@ -1098,14 +1099,14 @@ class Atlas( object ):
         Returns:
             Dictionary:
                 Dictionary containing...
-                components ((n_pub,n_concepts) np.ndarray of ints):
+                vectors ((n_pub,n_features) np.ndarray of ints):
                     The value at [i,j] is the value of the projection for
                     publication for each i for each concept j.
 
                 norms ((n_pub,) np.ndarray of floats):
                     Normalization for each publication.
 
-                component_concepts ((n_concepts,) np.ndarray of strs):
+                feature_names ((n_features,) np.ndarray of strs):
                     The basis concepts used. By default the union of all
                     stemmed nouns, adjectives, and verbs across all abstracts.
 
@@ -1142,8 +1143,8 @@ class Atlas( object ):
                     + 'location.'
                 )
             self.projection = verdict.Dict.from_hdf5( projection_fp, sparse=sparse )
-            if isinstance( self.projection['components'], ss.csr_matrix ):
-                self.projection['components'] = self.projection['components'].toarray()
+            if isinstance( self.projection['vectors'], ss.csr_matrix ):
+                self.projection['vectors'] = self.projection['vectors'].toarray()
             return self.projection
         if hasattr( self, 'projection' ) and not overwrite:
             if verbose:
@@ -1152,30 +1153,30 @@ class Atlas( object ):
 
         # Set up for component calculation
         if existing is not None:
-            assert component_concepts is None, "Cannot pass component " \
+            assert feature_names is None, "Cannot pass component " \
                 + "concepts in addition to an existing projection."
-            component_concepts = list( existing['component_concepts'] )
-            components_list = list( existing['components'] )
+            feature_names = list( existing['feature_names'] )
+            vectors_list = list( existing['vectors'] )
             projected_publications = list( existing['publications'] )
             pub_date = list( existing['publication_dates'] )
             entry_date = list( existing['entry_dates'] )
         else:
-            components_list = []
+            vectors_list = []
             projected_publications = []
             pub_date = []
             entry_date = []
 
-        # Loop through and calculate components
+        # Loop through and calculate vectors
         for key, item in tqdm( self.data.items() ):
 
             # Don't reproject existing publications
             if key in projected_publications:
                 continue
 
-            comp_i, component_concepts = item.concept_projection(
-                component_concepts,
+            vector_i, feature_names = item.vectorize(
+                feature_names,
             )
-            components_list.append( comp_i )
+            vectors_list.append( vector_i )
             projected_publications.append( key )
             pub_date.append( item.publication_date )
             try:
@@ -1183,34 +1184,34 @@ class Atlas( object ):
             except AttributeError:
                 entry_date.append( 'NaT' )
 
-        # Format components
+        # Format vectors
         shape = (
             len( projected_publications ),
-            len( component_concepts )
+            len( feature_names )
         )
-        components = np.zeros( shape )
-        for i, component in enumerate( components_list ):
-            components[i,:len(component)] = component
+        vectors = np.zeros( shape )
+        for i, component in enumerate( vectors_list ):
+            vectors[i,:len(component)] = component
 
-        # Normalized components
-        norm = np.linalg.norm( components, axis=1 )
+        # Normalized vectors
+        norm = np.linalg.norm( vectors, axis=1 )
 
         # Store
         self.projection = verdict.Dict( {
-            'components': components,
+            'vectors': vectors,
             'norms': norm,
-            'component_concepts': np.array( component_concepts ).astype( str ),
+            'feature_names': np.array( feature_names ).astype( str ),
             'publications': np.array( projected_publications ),
             'publication_dates': np.array( pub_date ),
             'entry_dates': np.array( entry_date ),
         } )
         if projection_fp != 'pass':
             if sparse:
-                self.projection['components'] = ss.csr_matrix( components )
+                self.projection['vectors'] = ss.csr_matrix( vectors )
             self.projection.to_hdf5( projection_fp, sparse=sparse )
             # Convert back...
             if sparse:
-                self.projection['components'] = components
+                self.projection['vectors'] = vectors
 
         if return_data:
             return self.projection

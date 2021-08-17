@@ -25,7 +25,7 @@ class TestCartographer( unittest.TestCase ):
         fp = './tests/data/example_atlas/projection.h5'
 
         data = verdict.Dict.from_hdf5( fp, sparse=True )
-        data['components'] = data['components'].toarray()
+        data['vectors'] = data['vectors'].toarray()
 
         # Time that normally breaks things
         data['publication_dates'][0] = '1677-01-01 00:00:00'
@@ -51,7 +51,7 @@ class TestInnerProduct( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.components[ind_v,:] * self.c.components[ind_h,:] ).sum()
+        expected = ( self.c.vectors[ind_v,:] * self.c.vectors[ind_h,:] ).sum()
 
         actual = self.c.inner_product(
             'Hafen2019',
@@ -69,7 +69,7 @@ class TestInnerProduct( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.components[ind_v,:] * self.c.components[ind_h,:] ).sum()
+        expected = ( self.c.vectors[ind_v,:] * self.c.vectors[ind_h,:] ).sum()
 
         actual = self.c.inner_product(
             'Hafen2019',
@@ -87,7 +87,7 @@ class TestInnerProduct( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.components[ind_v,:] * self.c.components[ind_h,:] ).sum()
+        expected = ( self.c.vectors[ind_v,:] * self.c.vectors[ind_h,:] ).sum()
 
         actual = self.c.inner_product_matrix
         npt.assert_allclose( actual[ind_h][ind_v], expected, rtol=0.05 )
@@ -123,7 +123,7 @@ class TestInnerProductPython( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.components.sum( axis=0 )**2. ).sum()
+        expected = ( self.c.vectors.sum( axis=0 )**2. ).sum()
 
         actual = self.c.inner_product( 'atlas', 'atlas' )
 
@@ -138,7 +138,7 @@ class TestInnerProductPython( unittest.TestCase ):
         # Identify the right publication
         ind = np.argmax( self.c.publications == 'Hafen2019' )
 
-        expected = ( self.c.components * self.c.components[ind,:] ).sum()
+        expected = ( self.c.vectors * self.c.vectors[ind,:] ).sum()
         actual = self.c.inner_product(
             'Hafen2019',
             'atlas',
@@ -148,9 +148,9 @@ class TestInnerProductPython( unittest.TestCase ):
         ip_atlas_atlas = self.c.inner_product( 'atlas', 'atlas' )
         ip_pub_pub = self.c.inner_product( 'Hafen2019', 'Hafen2019' )
         actual = actual / np.sqrt( ip_atlas_atlas * ip_pub_pub )
-        comp_norm = self.c.components / self.c.norms[:,np.newaxis]
+        comp_norm = self.c.vectors / self.c.norms[:,np.newaxis]
         expected = (
-            self.c.components / np.sqrt( ip_atlas_atlas ) * comp_norm[ind,:]
+            self.c.vectors / np.sqrt( ip_atlas_atlas ) * comp_norm[ind,:]
         ).sum()
         assert actual < 1.
         npt.assert_allclose( actual, expected, rtol=0.05 )
@@ -161,7 +161,7 @@ class TestInnerProductPython( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.components * self.c.components[8,:] ).sum()
+        expected = ( self.c.vectors * self.c.vectors[8,:] ).sum()
 
         actual = self.c.inner_product(
             'all',
@@ -195,7 +195,7 @@ class TestInnerProductPython( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.components[ind_v,:] * self.c.components[ind_h,:] ).sum()
+        expected = ( self.c.vectors[ind_v,:] * self.c.vectors[ind_h,:] ).sum()
 
         actual = self.c.inner_product(
             'Hafen2019',
@@ -213,7 +213,7 @@ class TestInnerProductPython( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.components[ind_v,:] * self.c.components[ind_h,:] ).sum()
+        expected = ( self.c.vectors[ind_v,:] * self.c.vectors[ind_h,:] ).sum()
 
         actual = self.c.inner_product(
             'Hafen2019',
@@ -245,8 +245,8 @@ class TestTextOverlap( unittest.TestCase ):
         ind_h = np.argmax( self.c.publications == 'Hafen2019' )
         ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
 
-        h = self.c.components[ind_h,:]
-        v = self.c.components[ind_v,:]
+        h = self.c.vectors[ind_h,:]
+        v = self.c.vectors[ind_v,:]
         shared = 0
         for i, h_i in enumerate( h ):
             if h_i > 0 and v[i] > 0:
@@ -284,8 +284,8 @@ class TestTextOverlap( unittest.TestCase ):
         ind_h = np.argmax( self.c.publications == 'Hafen2019' )
         ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
 
-        h = self.c.components[ind_h,:]
-        v = self.c.components[ind_v,:]
+        h = self.c.vectors[ind_h,:]
+        v = self.c.vectors[ind_v,:]
         shared = 0
         for i, h_i in enumerate( h ):
             if h_i > 0 and v[i] > 0:
@@ -353,7 +353,7 @@ class TestDistance( unittest.TestCase ):
         np.random.seed( 1234 )
 
         expected = np.sqrt( (
-            ( self.c.components_normed[ind_v,:] - self.c.components_normed[ind_h,:] )**2.
+            ( self.c.vectors_normed[ind_v,:] - self.c.vectors_normed[ind_h,:] )**2.
         ).sum() )
 
         actual = self.c.distance(
@@ -621,7 +621,7 @@ class TestTopographyMetric( unittest.TestCase ):
     def test_avoid_nans( self ):
 
         # Replace the first row with zeros to test if handled
-        self.c.components[0] = np.zeros( self.c.components[0].size )
+        self.c.vectors[0] = np.zeros( self.c.vectors[0].size )
 
         result = self.c.topography_metric( date_type='publication_dates' )
 
@@ -633,7 +633,7 @@ class TestTopographyMetric( unittest.TestCase ):
     def test_avoid_zeros( self ):
 
         # Replace the first row with zeros to test if handled
-        self.c.components[0] = np.zeros( self.c.components[0].size )
+        self.c.vectors[0] = np.zeros( self.c.vectors[0].size )
 
         result = self.c.topography_metric()
 
@@ -672,8 +672,8 @@ class TestTopographyMetric( unittest.TestCase ):
             date_type = 'publication_dates',
             kernel_size = 4,
         )
-        c_i = self.c.components_normed[3]
-        other = self.c.components_normed[np.array([4,5,6,7])]
+        c_i = self.c.vectors_normed[3]
+        other = self.c.vectors_normed[np.array([4,5,6,7])]
         diff = c_i - other
         diff_mags = np.linalg.norm( diff, axis=1 )
         result = ( diff/diff_mags[:,np.newaxis] ).sum( axis=0 )
@@ -700,8 +700,8 @@ class TestTopographyMetric( unittest.TestCase ):
             date_type = 'publication_dates',
             kernel_size = 4,
         )
-        c_i = self.c.components_normed[3]
-        other = self.c.components_normed[np.array([4,5,6,7])]
+        c_i = self.c.vectors_normed[3]
+        other = self.c.vectors_normed[np.array([4,5,6,7])]
         diff = c_i - other
         diff_mags = np.linalg.norm( diff, axis=1 )
         result = ( diff/diff_mags[:,np.newaxis] ).sum( axis=0 )

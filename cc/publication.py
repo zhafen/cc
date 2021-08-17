@@ -529,30 +529,30 @@ class Publication( object ):
 
     ########################################################################
 
-    def concept_projection( self, component_concepts=None, include_notes=True ):
+    def vectorize( self, feature_names=None, include_notes=True ):
         '''Project the abstract into concept space.
         In simplest form this can just be counting up the number of
         times each unique, stemmed noun, verb, or adjective shows up in the
         abstract.
 
         Args:
-            component_concepts (array-like of strs):
-                Basis concepts to project onto. Defaults to all concepts in
+            feature_names (array-like of strs):
+                Basis features to project onto. Defaults to all concepts in
                 the abstract.
 
             include_notes (bool):
                 If True include key_points and uncategorized in the concept projection.
 
         Returns:
-            components (np.ndarray of ints):
+            vector (np.ndarray of ints):
                 The value of the projection for each concept (by default the
                 number of times a word shows up in the abstract).
 
-            component_concepts (np.ndarray of strs):
-                The component concepts. If the component_concepts argument
+            feature_names (np.ndarray of strs):
+                The component concepts. If the feature_names argument
                 is None then all non-zero concepts in the abstract are used.
                 If not None then the union of the non-zero concepts and
-                the component_concepts arg.
+                the feature_names arg.
         '''
 
         sents = []
@@ -565,11 +565,11 @@ class Publication( object ):
 
         # When the abstract failed to retrieve
         def upon_failure():
-            if component_concepts is None:
+            if feature_names is None:
                 return [], None
             else:
-                values = np.zeros( len( component_concepts ) )
-                return values, component_concepts
+                values = np.zeros( len( feature_names ) )
+                return values, feature_names
 
         # Get the processed abstracts
         self.process_abstract()
@@ -587,7 +587,7 @@ class Publication( object ):
 
         if len( sents ) == 0: return upon_failure()
 
-        return relation.concept_projection( sents, component_concepts )
+        return relation.vectorize( sents, feature_names )
 
     ########################################################################
     # Comparing to other publications
