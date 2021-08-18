@@ -36,7 +36,6 @@ class Cartographer( object ):
         self.backend = backend
 
         if self.backend == 'c/c++':
-            # Sparse matrix
             ## Get the c executable
             cc_dir = os.path.dirname( os.path.dirname( __file__ ) )
             lib_glob = os.path.join( cc_dir, 'build', '*/cartography*.so' )
@@ -80,13 +79,13 @@ class Cartographer( object ):
     ########################################################################
 
     @property
-    def vectors_sp( self ):
+    def vectors_notsp( self ):
 
-        if not hasattr( self, '_vectors_sp' ):
+        if not hasattr( self, '_vectors_notsp' ):
 
-            self._vectors_sp = ss.csr_matrix( self.vectors )
+            self._vectors_notsp = self.vectors.toarray()
 
-        return self._vectors_sp
+        return self._vectors_notsp
 
     ########################################################################
 
@@ -95,9 +94,10 @@ class Cartographer( object ):
         usually due to no abstract.
         '''
 
-        is_nonzero = np.invert( np.isclose( self.vectors.sum( axis=1 ), 0. ) )
+        is_nonzero = np.invert( np.isclose( self.norms, 0. ) )
+        valid_inds = np.arange( self.publications.size )[is_nonzero]
         for attr in [ 'vectors', 'norms', 'publications', 'publication_dates', 'entry_dates' ]:
-            value = getattr( self, attr )[is_nonzero]
+            value = getattr( self, attr )[valid_inds]
             setattr( self, attr, value )
 
     ########################################################################
@@ -112,6 +112,7 @@ class Cartographer( object ):
 
             sparse (int):
                 Whether or not the components are saved as a sparse matrix.
+                Will convert to a sparse matrix after loading.
 
             backend (str):
                 What code to use for calculations?
@@ -123,32 +124,33 @@ class Cartographer( object ):
 
         data = verdict.Dict.from_hdf5( fp, sparse=sparse )
 
-        if sparse:
-            vectors_sp = copy.copy( data['vectors'] )
-            data['vectors'] = data['vectors'].toarray()
+        # Convert
+        if not sparse:
+            vectors_notsp = copy.copy( data['vectors'] )
+            data['vectors'] = ss.csr_matrix( data['vectors'] )
 
         c = Cartographer( backend=backend, **data )
 
-        if sparse:
-            c._vectors_sp = vectors_sp
+        if not sparse:
+            c._vectors_notsp = vectors_notsp
 
         return c
 
     ########################################################################
 
     @property
-    def vectors_normed( self ):
+    def vectors_notsp_normed( self ):
         '''Components normalized such that <P|P>=1 .
         '''
 
-        if not hasattr( self, '_vectors_normed' ):
+        if not hasattr( self, '_vectors_notsp_normed' ):
 
             # Divide by NaN is unimportant and handled
             with np.errstate(divide='ignore',invalid='ignore'):
 
-                self._vectors_normed = self.vectors / self.norms[:,np.newaxis]
+                self._vectors_notsp_normed = self.vectors_notsp / self.norms[:,np.newaxis]
 
-        return self._vectors_normed
+        return self._vectors_notsp_normed
 
     ########################################################################
 
@@ -273,12 +275,12 @@ class Cartographer( object ):
                 # Get the sparse rows
                 i_a = np.argmax( self.publications == key_a )
                 i_b = np.argmax( self.publications == key_b )
-                slice_a = slice(self.vectors_sp.indptr[i_a], self.vectors_sp.indptr[i_a+1])
-                slice_b = slice(self.vectors_sp.indptr[i_b], self.vectors_sp.indptr[i_b+1])
-                data_a = self.vectors_sp.data[slice_a]
-                data_b = self.vectors_sp.data[slice_b]
-                indices_a = self.vectors_sp.indices[slice_a]
-                indices_b = self.vectors_sp.indices[slice_b]
+                slice_a = slice(self.vectors.indptr[i_a], self.vectors.indptr[i_a+1])
+                slice_b = slice(self.vectors.indptr[i_b], self.vectors.indptr[i_b+1])
+                data_a = self.vectors.data[slice_a]
+                data_b = self.vectors.data[slice_b]
+                indices_a = self.vectors.indices[slice_a]
+                indices_b = self.vectors.indices[slice_b]
 
                 # Setup types
                 self.c_cartography.inner_product_sparse.restype = ctypes.c_int
@@ -322,9 +324,9 @@ class Cartographer( object ):
                 # Call
                 result = self.c_cartography.inner_product_row_all_sparse(
                     i_a,
-                    self.vectors_sp.data.astype( 'int64' ),
-                    self.vectors_sp.indices.astype( 'int64' ),
-                    self.vectors_sp.indptr.astype( 'int64' ),
+                    self.vectors.data.astype( 'int64' ),
+                    self.vectors.indices.astype( 'int64' ),
+                    self.vectors.indptr.astype( 'int64' ),
                     self.publications.size,
                 )
 
@@ -355,9 +357,9 @@ class Cartographer( object ):
 
             # Call
             result_pointer = self.c_cartography.inner_product_matrix(
-                self.vectors_sp.data.astype( 'int64' ),
-                self.vectors_sp.indices.astype( 'int64' ),
-                self.vectors_sp.indptr.astype( 'int64' ),
+                self.vectors.data.astype( 'int64' ),
+                self.vectors.indices.astype( 'int64' ),
+                self.vectors.indptr.astype( 'int64' ),
                 n_pubs,
             )
             self._inner_product_matrix = np.ctypeslib.as_array( result_pointer, ( n_pubs, n_pubs ) )
@@ -455,9 +457,9 @@ class Cartographer( object ):
 
         # Get the right components
         if normed:
-            components = self.vectors_normed
+            components = self.vectors_notsp_normed
         else:
-            components = self.vectors
+            components = self.vectors_notsp
 
         # For all compared to all
         if key_a == 'all' and key_b == 'all':
@@ -1142,8 +1144,8 @@ class Cartographer( object ):
                 Magnitude of the asymmetry metric.
         '''
 
-        p = self.vectors_normed[i]
-        other_p = self.vectors_normed[is_valid]
+        p = self.vectors_notsp_normed[i]
+        other_p = self.vectors_notsp_normed[is_valid]
 
         # Differences
         result = ( p - other_p ).sum( axis=0 )
@@ -1187,8 +1189,8 @@ class Cartographer( object ):
         cospsi = self.cospsi_matrix[i][valid_is]
         sorted_inds = np.argsort( cospsi )[::-1][:kernel_size]
         other_inds = self.inds[valid_is][sorted_inds]
-        p = self.vectors_normed[i]
-        used_p = self.vectors_normed[other_inds]
+        p = self.vectors_notsp_normed[i]
+        used_p = self.vectors_notsp_normed[other_inds]
 
         # Differences
         diff = p - used_p
@@ -1314,11 +1316,11 @@ class Cartographer( object ):
             highlighted_publications = []
         
         # Default rank is the concepts that contribute most to the projection
-        rank = self.vectors_normed.sum( axis=0 )
+        rank = self.vectors_notsp_normed.sum( axis=0 )
         sort_inds = np.argsort( rank )[::-1]
 
         # Get the sorted components
-        vec_norm_s_all = self.vectors_normed[:,sort_inds]
+        vec_norm_s_all = self.vectors_notsp_normed[:,sort_inds]
         vec_norm_s = vec_norm_s_all[:,:n_y]
         feat_s_all = self.feature_names[sort_inds]
         feat_s = feat_s_all[:n_y]

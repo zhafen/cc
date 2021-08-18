@@ -353,7 +353,7 @@ class TestDistance( unittest.TestCase ):
         np.random.seed( 1234 )
 
         expected = np.sqrt( (
-            ( self.c.vectors_normed[ind_v,:] - self.c.vectors_normed[ind_h,:] )**2.
+            ( self.c.vectors_notsp_normed[ind_v,:] - self.c.vectors_notsp_normed[ind_h,:] )**2.
         ).sum() )
 
         actual = self.c.distance(
