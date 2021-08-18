@@ -5,6 +5,7 @@ import numpy.testing as npt
 import os
 import pandas as pd
 import pytest
+import scipy.sparse as ss
 import shutil
 import unittest
 
@@ -1303,11 +1304,13 @@ class TestVectorize( unittest.TestCase ):
             # actual calculation
 
             # Loaded fiducial full calculation
-            vp_cache =  self.a.vectorize( projection_fp=self.alt_fp )
+            vp_cache = self.a.vectorize( projection_fp=self.alt_fp )
 
             mock_from_hdf5.assert_called_once()
 
         # Cached should equal full
+        if ss.issparse( vp['vectors'] ):
+            vp['vectors'] = vp['vectors'].toarray()
         npt.assert_allclose( vp['vectors'], vp_cache['vectors'] )
 
     ########################################################################
@@ -1324,8 +1327,8 @@ class TestVectorize( unittest.TestCase ):
             del a_partial.data[key]
 
         # Test
-        vp_partial = a_partial.vectorize()
-        vp = self.a.vectorize( existing=vp_partial, overwrite=True )
+        vp_partial = a_partial.vectorize( method='homebuilt', sparse=False )
+        vp = self.a.vectorize( existing=vp_partial, overwrite=True, method='homebuilt', sparse=False )
 
         # The dimensions of the vector projection
         expected_dim = (

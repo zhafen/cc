@@ -527,6 +527,10 @@ class Publication( object ):
 
         return points
 
+    def points_str( self, verbose=False ):
+
+        return ' '.join( self.points( verbose=verbose ) )
+
     ########################################################################
 
     def vectorize( self, feature_names=None, include_notes=True ):

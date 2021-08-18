@@ -11,6 +11,8 @@ import os
 import pandas as pd
 import re
 import scipy.sparse as ss
+import sklearn.feature_extraction.text as skl_text_features
+import sklearn.preprocessing as skl_preprocessing
 import warnings
 
 import matplotlib.pyplot as plt
@@ -1153,6 +1155,10 @@ class Atlas( object ):
 
         # Set up for component calculation
         if existing is not None:
+
+            if method == 'scikit-learn':
+                raise NotImplementedError( 'Cannot pass existing projection with scikit-learn method.' )
+
             assert feature_names is None, "Cannot pass component " \
                 + "concepts in addition to an existing projection."
             feature_names = list( existing['feature_names'] )
@@ -1166,35 +1172,63 @@ class Atlas( object ):
             pub_date = []
             entry_date = []
 
-        # Loop through and calculate vectors
-        for key, item in tqdm( self.data.items() ):
+        if method == 'scikit-learn':
 
-            # Don't reproject existing publications
-            if key in projected_publications:
-                continue
+            # Compile text
+            abstracts = []
+            for key, item in tqdm( self.data.items() ):
+                abstracts.append( item.points_str() )
+                projected_publications.append( key )
+                pub_date.append( item.publication_date )
+                try:
+                    entry_date.append( str( item.entry_date ) )
+                except AttributeError:
+                    entry_date.append( 'NaT' )
 
-            vector_i, feature_names = item.vectorize(
-                feature_names,
+            vectorizer = skl_text_features.CountVectorizer()
+            vectors = vectorizer.fit_transform( abstracts )
+            feature_names = vectorizer.get_feature_names()
+
+            # Calculate the norm
+            norm_squared_unformatted = vectors.multiply( vectors ).sum( axis=1 )
+            norm = np.sqrt( np.array( norm_squared_unformatted ).flatten() )
+
+            if not sparse:
+                vectors = vectors.toarray()
+
+        elif method == 'homebuilt':
+
+            # Loop through and calculate vectors
+            for key, item in tqdm( self.data.items() ):
+
+                # Don't reproject existing publications
+                if key in projected_publications:
+                    continue
+
+                vector_i, feature_names = item.vectorize(
+                    feature_names,
+                )
+                vectors_list.append( vector_i )
+                projected_publications.append( key )
+                pub_date.append( item.publication_date )
+                try:
+                    entry_date.append( str( item.entry_date ) )
+                except AttributeError:
+                    entry_date.append( 'NaT' )
+
+            # Format vectors
+            shape = (
+                len( projected_publications ),
+                len( feature_names )
             )
-            vectors_list.append( vector_i )
-            projected_publications.append( key )
-            pub_date.append( item.publication_date )
-            try:
-                entry_date.append( str( item.entry_date ) )
-            except AttributeError:
-                entry_date.append( 'NaT' )
+            vectors = np.zeros( shape )
+            for i, component in enumerate( vectors_list ):
+                vectors[i,:len(component)] = component
 
-        # Format vectors
-        shape = (
-            len( projected_publications ),
-            len( feature_names )
-        )
-        vectors = np.zeros( shape )
-        for i, component in enumerate( vectors_list ):
-            vectors[i,:len(component)] = component
-
-        # Normalized vectors
-        norm = np.linalg.norm( vectors, axis=1 )
+            # Normalized vectors
+            norm = np.linalg.norm( vectors, axis=1 )
+        else:
+            raise NameError( 'Unrecognized vectorize method, method={}'.format( method ) )
 
         # Store
         self.projection = verdict.Dict( {
@@ -1210,7 +1244,9 @@ class Atlas( object ):
                 self.projection['vectors'] = ss.csr_matrix( vectors )
             self.projection.to_hdf5( projection_fp, sparse=sparse )
             # Convert back...
-            if sparse:
+            if not sparse:
+                if ss.issparse( vectors ):
+                    vectors = vectors.toarray()
                 self.projection['vectors'] = vectors
 
         if return_data:
