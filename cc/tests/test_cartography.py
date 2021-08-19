@@ -123,7 +123,7 @@ class TestInnerProductPython( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.vectors.sum( axis=0 )**2. ).sum()
+        expected = ( self.c.vectors_notsp.sum( axis=0 )**2. ).sum()
 
         actual = self.c.inner_product( 'atlas', 'atlas' )
 
@@ -138,7 +138,7 @@ class TestInnerProductPython( unittest.TestCase ):
         # Identify the right publication
         ind = np.argmax( self.c.publications == 'Hafen2019' )
 
-        expected = ( self.c.vectors * self.c.vectors[ind,:] ).sum()
+        expected = ( self.c.vectors_notsp * self.c.vectors_notsp[ind,:] ).sum()
         actual = self.c.inner_product(
             'Hafen2019',
             'atlas',
@@ -148,9 +148,9 @@ class TestInnerProductPython( unittest.TestCase ):
         ip_atlas_atlas = self.c.inner_product( 'atlas', 'atlas' )
         ip_pub_pub = self.c.inner_product( 'Hafen2019', 'Hafen2019' )
         actual = actual / np.sqrt( ip_atlas_atlas * ip_pub_pub )
-        comp_norm = self.c.vectors / self.c.norms[:,np.newaxis]
+        comp_norm = self.c.vectors_notsp / self.c.norms[:,np.newaxis]
         expected = (
-            self.c.vectors / np.sqrt( ip_atlas_atlas ) * comp_norm[ind,:]
+            self.c.vectors_notsp / np.sqrt( ip_atlas_atlas ) * comp_norm[ind,:]
         ).sum()
         assert actual < 1.
         npt.assert_allclose( actual, expected, rtol=0.05 )
@@ -161,7 +161,7 @@ class TestInnerProductPython( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.vectors * self.c.vectors[8,:] ).sum()
+        expected = ( self.c.vectors_notsp * self.c.vectors_notsp[8,:] ).sum()
 
         actual = self.c.inner_product(
             'all',
@@ -195,7 +195,7 @@ class TestInnerProductPython( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.vectors[ind_v,:] * self.c.vectors[ind_h,:] ).sum()
+        expected = ( self.c.vectors_notsp[ind_v,:] * self.c.vectors_notsp[ind_h,:] ).sum()
 
         actual = self.c.inner_product(
             'Hafen2019',
@@ -213,7 +213,7 @@ class TestInnerProductPython( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.vectors[ind_v,:] * self.c.vectors[ind_h,:] ).sum()
+        expected = ( self.c.vectors_notsp[ind_v,:] * self.c.vectors_notsp[ind_h,:] ).sum()
 
         actual = self.c.inner_product(
             'Hafen2019',

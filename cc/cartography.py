@@ -228,7 +228,7 @@ class Cartographer( object ):
         # When a==b we can use the norms
         if key_a == key_b:
             if key_a == 'atlas':
-                return ( self.vectors.sum( axis=0 )**2. ).sum()
+                return ( self.vectors_notsp.sum( axis=0 )**2. ).sum()
             elif key_a == 'all':
                 return self.norms**2.
             else:
@@ -245,10 +245,10 @@ class Cartographer( object ):
                 # A single publication
                 if key in self.publications:
                     is_p = self.publications == key
-                    return self.vectors[is_p][0]
+                    return self.vectors_notsp[is_p][0]
                 # The entire atlas
                 elif key == 'atlas' or key == 'all':
-                    return self.vectors
+                    return self.vectors_notsp
                 else:
                     raise KeyError( 'Unhandled key, {}'.format( key ) )
 
