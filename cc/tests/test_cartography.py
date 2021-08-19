@@ -245,8 +245,8 @@ class TestTextOverlap( unittest.TestCase ):
         ind_h = np.argmax( self.c.publications == 'Hafen2019' )
         ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
 
-        h = self.c.vectors[ind_h,:]
-        v = self.c.vectors[ind_v,:]
+        h = self.c.vectors_notsp[ind_h,:]
+        v = self.c.vectors_notsp[ind_v,:]
         shared = 0
         for i, h_i in enumerate( h ):
             if h_i > 0 and v[i] > 0:
@@ -284,8 +284,8 @@ class TestTextOverlap( unittest.TestCase ):
         ind_h = np.argmax( self.c.publications == 'Hafen2019' )
         ind_v = np.argmax( self.c.publications == 'VandeVoort2018a' )
 
-        h = self.c.vectors[ind_h,:]
-        v = self.c.vectors[ind_v,:]
+        h = self.c.vectors_notsp[ind_h,:]
+        v = self.c.vectors_notsp[ind_v,:]
         shared = 0
         for i, h_i in enumerate( h ):
             if h_i > 0 and v[i] > 0:

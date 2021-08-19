@@ -540,10 +540,10 @@ class Cartographer( object ):
             # A single publication
             if key in self.publications:
                 is_p = self.publications == key
-                return self.vectors[is_p][0]
+                return self.vectors_notsp[is_p][0]
             # The entire atlas
             elif key == 'atlas' or key == 'all':
-                return self.vectors
+                return self.vectors_notsp
         a = interpret_key( key_a )
         b = interpret_key( key_b )
 
