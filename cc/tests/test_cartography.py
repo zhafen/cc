@@ -108,6 +108,21 @@ class TestInnerProduct( unittest.TestCase ):
         npt.assert_allclose( actual[ind_h][ind_v], expected, rtol=0.05 )
         npt.assert_allclose( actual[ind_v,ind_h], expected, rtol=0.05 )
 
+    ########################################################################
+
+    def test_cospsi_matrix_for_full_publication( self ):
+
+        # Identify the right publication
+        ind = 3
+        key = self.c.publications[ind]
+
+        np.random.seed( 1234 )
+
+        expected = self.c.cospsi( key, 'all' )
+
+        actual = self.c.cospsi_matrix[ind]
+        npt.assert_allclose( actual, expected, rtol=0.05 )
+
 ########################################################################
 
 class TestInnerProductPython( unittest.TestCase ):
@@ -543,7 +558,7 @@ class TestExplore( unittest.TestCase ):
         self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
 
         actual  = self.c.converged_kernel_size( 'Hafen2019' )
-        expected = np.array([ 1, 2, 2, 2, ])
+        expected = np.array([ 1, 3, 3, 3, ])
         npt.assert_allclose( expected, actual )
 
     ########################################################################
@@ -554,10 +569,10 @@ class TestExplore( unittest.TestCase ):
         self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
 
         actual = self.c.converged_kernel_size( 'all' )
-        expected = np.array([ 1, 2, 2, 2 ])
+        expected = np.array([ 1, 3, 3, 3, ])
         npt.assert_allclose( expected, actual[self.c.publications=='Hafen2019'][0] )
 
-        expected = np.array([ -1, -1, 2, 2, ])
+        expected = np.array([ -1, -1, 0, 6, ])
         npt.assert_allclose( expected, actual[self.c.publications=='VandeVoort2018a'][0] )
 
     ########################################################################
@@ -568,9 +583,9 @@ class TestExplore( unittest.TestCase ):
         self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
 
         actual, actual_cospsis = self.c.converged_kernel_size( 'Hafen2019', backend='python' )
-        expected = np.array([ 1, 2, 2, 2, ])
+        expected = np.array([ 1, 3, 3, 3, ])
         npt.assert_allclose( expected, actual )
-        expected_cospsis = np.array([ 0.6257132252113373, 0.53010468, 0.53010468, 0.53010468, ])
+        expected_cospsis = np.array([ 0.77806207, 0.70861396, 0.70861396, 0.70861396 ])
         npt.assert_allclose( expected_cospsis, actual_cospsis, rtol=1e-3 )
 
     ########################################################################
@@ -581,12 +596,12 @@ class TestExplore( unittest.TestCase ):
         self.c.update_history = np.array([ 2, 1, 1, 3, 3, 4, 1, 1, 0, 0 ])
 
         actual, actual_cospsis = self.c.converged_kernel_size( 'all', backend='python' )
-        expected = np.array([ 1, 2, 2, 2 ])
+        expected = np.array([ 1, 3, 3, 3, ])
         npt.assert_allclose( expected, actual[self.c.publications=='Hafen2019'][0] )
-        expected_cospsis = np.array([ 0.6257132252113373, 0.53010468, 0.53010468, 0.53010468, ])
+        expected_cospsis = np.array([ 0.77806207, 0.70861396, 0.70861396, 0.70861396 ])
         npt.assert_allclose( expected_cospsis, actual_cospsis[self.c.publications=='Hafen2019'][0], rtol=1e-3 )
 
-        expected = np.array([ -1, -1, 2, 2, ])
+        expected = np.array([ -1, -1, 0, 6, ])
         npt.assert_allclose( expected, actual[self.c.publications=='VandeVoort2018a'][0] )
 
     ########################################################################
@@ -621,7 +636,7 @@ class TestTopographyMetric( unittest.TestCase ):
     def test_avoid_nans( self ):
 
         # Replace the first row with zeros to test if handled
-        self.c.vectors[0] = np.zeros( self.c.vectors[0].size )
+        self.c.vectors_notsp[0] = np.zeros( self.c.vectors_notsp[0].size )
 
         result = self.c.topography_metric( date_type='publication_dates' )
 
@@ -633,7 +648,7 @@ class TestTopographyMetric( unittest.TestCase ):
     def test_avoid_zeros( self ):
 
         # Replace the first row with zeros to test if handled
-        self.c.vectors[0] = np.zeros( self.c.vectors[0].size )
+        self.c.vectors_notsp[0] = np.zeros( self.c.vectors_notsp[0].size )
 
         result = self.c.topography_metric()
 
@@ -672,8 +687,8 @@ class TestTopographyMetric( unittest.TestCase ):
             date_type = 'publication_dates',
             kernel_size = 4,
         )
-        c_i = self.c.vectors_normed[3]
-        other = self.c.vectors_normed[np.array([4,5,6,7])]
+        c_i = self.c.vectors_notsp_normed[3]
+        other = self.c.vectors_notsp_normed[np.array([6,1,2,5])]
         diff = c_i - other
         diff_mags = np.linalg.norm( diff, axis=1 )
         result = ( diff/diff_mags[:,np.newaxis] ).sum( axis=0 )
@@ -700,8 +715,8 @@ class TestTopographyMetric( unittest.TestCase ):
             date_type = 'publication_dates',
             kernel_size = 4,
         )
-        c_i = self.c.vectors_normed[3]
-        other = self.c.vectors_normed[np.array([4,5,6,7])]
+        c_i = self.c.vectors_notsp_normed[3]
+        other = self.c.vectors_notsp_normed[np.array([6,1,2,5])]
         diff = c_i - other
         diff_mags = np.linalg.norm( diff, axis=1 )
         result = ( diff/diff_mags[:,np.newaxis] ).sum( axis=0 )
