@@ -215,7 +215,7 @@ class Cartographer( object ):
                 set during initialization.
 
         Keyword Args:
-            Passed to self.concept_projection
+            Passed to self.vectorize
 
         Returns:
             The inner product of a and b
@@ -392,7 +392,7 @@ class Cartographer( object ):
                 Reference to the second object, same options as key_a.
 
         Keyword Args:
-            Passed to self.concept_projection
+            Passed to self.vectorize
 
         Returns:
             The cosine of a and b
@@ -447,7 +447,7 @@ class Cartographer( object ):
                 pi/2, the usual maximum difference between two publications.
 
         Keyword Args:
-            Passed to self.concept_projection
+            Passed to self.vectorize
 
         Returns:
             psi of a and b
@@ -515,7 +515,7 @@ class Cartographer( object ):
                         number of words in a and b.
 
         Keyword Args:
-            Passed to self.concept_projection
+            Passed to self.vectorize
 
         Returns:
             The amount of text overlap between a and b.
@@ -589,7 +589,7 @@ class Cartographer( object ):
                 Reference to the second object, same options as key_a.
 
         Keyword Args:
-            Passed to self.concept_projection
+            Passed to self.vectorize
 
         Returns:
             The amount of text overlap between a and b.
@@ -693,13 +693,14 @@ class Cartographer( object ):
 
                 # Recalculate and update parameters
                 print( '    Re-projecting publications...' )
-                cp = a.concept_projection(
+                vp = a.vectorize(
                     projection_fp = 'pass',
                     overwrite = True,
                     verbose = False,
                     existing = existing,
+                    method = 'homebuilt',
                 )
-                self.update_data( **cp )
+                self.update_data( **vp )
 
             # Find publications with highest cospsi relative to target publication
             print( '    Identifying similar publications...' )
@@ -814,13 +815,14 @@ class Cartographer( object ):
 
         # Recalculate and update parameters
         print( 'Re-projecting publications...' )
-        cp = a.concept_projection(
+        vp = a.vectorize(
             projection_fp = 'pass',
             overwrite = True,
             verbose = False,
             existing = existing,
+            method = 'homebuilt',
         )
-        self.update_data( **cp )
+        self.update_data( **vp )
 
         return a
 
