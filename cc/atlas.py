@@ -1193,6 +1193,10 @@ class Atlas( object ):
             norm_squared_unformatted = vectors.multiply( vectors ).sum( axis=1 )
             norm = np.sqrt( np.array( norm_squared_unformatted ).flatten() )
 
+            # Sort vector indices.
+            # Necessary for some of the c/c++ backend.
+            vectors.sort_indices()
+
             if not sparse:
                 vectors = vectors.toarray()
 

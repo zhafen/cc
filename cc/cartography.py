@@ -62,6 +62,12 @@ class Cartographer( object ):
         self.publication_dates = pd.to_datetime( publication_dates, errors='coerce' )
         self.entry_dates = pd.to_datetime( entry_dates, errors='coerce' )
 
+        # Ensure that vectors has, if compressed, sorted indices
+        if ss.issparse( vectors ):
+            if not vectors.has_sorted_indices:
+                warnings.warn( 'vectors are compressed but unsorted. Sorting...' )
+                vectors.sort_indices()
+
         if prune_zeros:
             self.prune_zero_entries()
 

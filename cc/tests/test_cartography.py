@@ -51,7 +51,7 @@ class TestInnerProduct( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.vectors[ind_v,:] * self.c.vectors[ind_h,:] ).sum()
+        expected = ( self.c.vectors[ind_v,:].multiply( self.c.vectors[ind_h,:] ) ).sum()
 
         actual = self.c.inner_product(
             'Hafen2019',
@@ -69,7 +69,7 @@ class TestInnerProduct( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.vectors[ind_v,:] * self.c.vectors[ind_h,:] ).sum()
+        expected = ( self.c.vectors[ind_v,:].multiply( self.c.vectors[ind_h,:] ) ).sum()
 
         actual = self.c.inner_product(
             'Hafen2019',
@@ -87,7 +87,7 @@ class TestInnerProduct( unittest.TestCase ):
 
         np.random.seed( 1234 )
 
-        expected = ( self.c.vectors[ind_v,:] * self.c.vectors[ind_h,:] ).sum()
+        expected = ( self.c.vectors[ind_v,:].multiply( self.c.vectors[ind_h,:] ) ).sum()
 
         actual = self.c.inner_product_matrix
         npt.assert_allclose( actual[ind_h][ind_v], expected, rtol=0.05 )

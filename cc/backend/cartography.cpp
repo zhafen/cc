@@ -295,7 +295,6 @@ int main () {
 	a.size = 4;
 	b.size = 5;
 
-	/**
 	long expected = -1 + 2 * 2 + 5 * 3;
 	cout << "Expected inner product is: "  << expected << endl;
 
@@ -303,6 +302,7 @@ int main () {
 	long ip = inner_product_sparse( data_a, indices_a, 4, data_b, indices_b, 5 );
 	cout << "Inner product is: "  << ip << endl;
 
+	/**
 	// Inner product for a component matrix
 	long data[9] = { 1, 2, 3, 5, -1, 2, 2, 5, 3 };
 	long indices[9] = { 0, 1, 4, 5, 0, 1, 3, 4, 17 };
@@ -334,6 +334,7 @@ int main () {
 	delete[] result_all;
 	*/
 
+	/**
 	// Subtraction and addition
 	sparse added, added_result;
 	long data_e[6] = { 0, 4, 2, 10, 3 };
@@ -362,6 +363,7 @@ int main () {
 		cout << added_result.indices[i] << " ";
 	}
 	cout << endl;
+	*/
 
 	/**
 	// Converged kernel

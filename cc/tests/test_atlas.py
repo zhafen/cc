@@ -1241,6 +1241,12 @@ class TestVectorize( unittest.TestCase ):
         unnormed_a = vp['vectors'].sum( axis=0 )
         assert np.nanmin( unnormed_a  ) > 0.
 
+        # The vector projection should be able to go back and forth from compressed to not
+        vectors_recomp = ss.csr_matrix( vp['vectors'].toarray() )
+        npt.assert_allclose( vp['vectors'].indptr, vectors_recomp.indptr )
+        npt.assert_allclose( vp['vectors'].data, vectors_recomp.data )
+        npt.assert_allclose( vp['vectors'].indices, vectors_recomp.indices )
+
     ########################################################################
 
     def test_vectorize_homebuilt( self ):
