@@ -1068,7 +1068,7 @@ class Atlas( object ):
         In simplest form this finds all shared, stemmed nouns, verbs, and
         adjectives between all publications and counts them.
 
-        After creation the concept projection is saved as a sparse matrix.
+        After creation the vectorized text is saved as a sparse matrix.
         For atlases consisting of tens of thousands of entries the difference
         between saving a sparse matrix or saving a traditional matrix is
         the difference between tens of MB or tens of GB.
@@ -1079,12 +1079,12 @@ class Atlas( object ):
                 all publications.
 
             projection_fp (str):
-                Location to save the concept projection at. Defaults to
+                Location to save the vectorized text at. Defaults to
                 $atlas_dir/projection.h5
                 If set to 'pass' then the projection is not saved.
 
             overwrite (bool):
-                If False then check for a cached concept projection.
+                If False then check for a cached vectorized text.
 
             existing (dict or None):
                 Dictionary of existing result to build the projection upon.
@@ -1124,7 +1124,7 @@ class Atlas( object ):
         '''
 
         if verbose:
-            print( 'Generating concept projection...' )
+            print( 'Generating vectorized text...' )
 
         # File location
         if projection_fp is None:
@@ -1136,12 +1136,12 @@ class Atlas( object ):
         # If cached or saved and not overwriting
         if os.path.isfile( projection_fp ) and not overwrite:
             if verbose:
-                print( 'Using saved concept projection...' )
+                print( 'Using saved vectorized text...' )
             if existing is not None:
                 warnings.warn(
-                    'Passing an existing concept projection and not ' \
-                    + 'overwriting. The concept projection will fail if the ' \
-                    + 'existing and new concept projection share a save ' \
+                    'Passing an existing vectorized text and not ' \
+                    + 'overwriting. The vectorized text will fail if the ' \
+                    + 'existing and new vectorized text share a save ' \
                     + 'location.'
                 )
             self.projection = verdict.Dict.from_hdf5( projection_fp, sparse=sparse )
@@ -1150,7 +1150,7 @@ class Atlas( object ):
             return self.projection
         if hasattr( self, 'projection' ) and not overwrite:
             if verbose:
-                print( 'Using cached concept projection...' )
+                print( 'Using cached vectorized text...' )
             return self.projection
 
         # Set up for component calculation

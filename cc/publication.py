@@ -545,7 +545,7 @@ class Publication( object ):
                 the abstract.
 
             include_notes (bool):
-                If True include key_points and uncategorized in the concept projection.
+                If True include key_points and uncategorized in the vectorized text.
 
         Returns:
             vector (np.ndarray of ints):
