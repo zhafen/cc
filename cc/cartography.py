@@ -130,6 +130,14 @@ class Cartographer( object ):
 
         data = verdict.Dict.from_hdf5( fp, sparse=sparse )
 
+        # If old format compatbility
+        if 'components' in data.keys():
+            data['vectors'] = copy.copy( data['components'] )
+            del data['components']
+        if 'component_concepts' in data.keys():
+            data['feature_names'] = copy.copy( data['component_concepts'] )
+            del data['component_concepts']
+
         # Convert
         if not sparse:
             vectors_notsp = copy.copy( data['vectors'] )

@@ -1124,7 +1124,7 @@ class Atlas( object ):
         '''
 
         if verbose:
-            print( 'Generating vectorized text...' )
+            print( 'Vectorizing text...' )
 
         # File location
         if projection_fp is None:
@@ -1145,8 +1145,20 @@ class Atlas( object ):
                     + 'location.'
                 )
             self.projection = verdict.Dict.from_hdf5( projection_fp, sparse=sparse )
-            if isinstance( self.projection['vectors'], ss.csr_matrix ):
-                self.projection['vectors'] = self.projection['vectors'].toarray()
+
+            # Old format compatbility
+            if 'components' in self.projection.keys():
+                self.projection['vectors'] = copy.copy( self.projection['components'] )
+                del self.projection['components']
+            if 'component_concepts' in self.projection.keys():
+                self.projection['feature_names'] = copy.copy( self.projection['component_concepts'] )
+                del self.projection['component_concepts']
+
+            if sparse:
+                self.projection['vectors'] = ss.csr_matrix( self.projection['vectors'] )
+            else:
+                if ss.issparse( self.projection['vectors'] ):
+                    self.projection['vectors'] = self.projection['vectors'].toarray()
             return self.projection
         if hasattr( self, 'projection' ) and not overwrite:
             if verbose:
