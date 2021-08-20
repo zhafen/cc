@@ -1019,6 +1019,40 @@ class Cartographer( object ):
 
     ########################################################################
 
+    def fringe_factor_metric(
+        self,
+        i,
+        valid_is,
+        kernel_size = 16,
+    ):
+        '''Estimate the asymmetry of a publication by calculating the difference
+        between that publication's projection and the other publications within
+        the kernel. Normalized to between 0 and 1.
+
+        Args:
+            i (int):
+                The index of the vector to calculate the asymmetry metric for.
+
+            valid_is ((n_other) np.ndarray of ints):
+                Indices of the other publication used when calculating the
+                metric.
+
+            kernel_size (int):
+                Number of nearest neighbors to calculate the asymmetry on.
+
+        Returns:
+            mag (float):
+                Magnitude of the asymmetry metric.
+        '''
+
+        return self.kernel_constant_asymmetry_metric(
+            i = i,
+            valid_is = valid_is,
+            kernel_size = kernel_size,
+        ) / kernel_size
+
+    ########################################################################
+
     def density_metric(
         self,
         i,
