@@ -43,18 +43,28 @@ class TestTransforms( unittest.TestCase ):
             fp,
         )
         
-        i = np.random.randint( c_standard.feature_names.size )
-        values = c_standard.vectors[:,i]
-        df = np.nonzero( values ).sum()
-        expected = 1. + np.log( ( 1. + c_standard.publications.size )/( 1. + df ) )
+        # Choose a random feature.
+        # Identify the publications that have nonzero values for that feature.
+        i = np.random.randint( len( c_standard.feature_names ) )
+        values = c_standard.vectors[:,i].toarray().flatten()
+        nonzero_inds = np.nonzero( values )[0]
+
+        # For the publications that have nonzero values, their value should be tf * idf, pre-normalization
+        expected = 1. + np.log( ( 1. + c_standard.publications.size )/( 1. + nonzero_inds.size ) )
+        expected = ( values * expected )[nonzero_inds]
 
         c = cartography.Cartographer.from_hdf5(
             fp,
             transform = 'tf-idf',
         )
-        actual = c.vectors[:,i] / values
+        actual = c.vectors[:,i].toarray().flatten()
 
-        npt.assert_allclose( expected, actual )
+        npt.assert_allclose( expected, actual[nonzero_inds] )
+
+        # Norms need to be recalculated after the transformation
+        j = np.random.randint( len( c_standard.publications ) )
+        expected = np.sqrt( ( c.vectors[j].multiply( c.vectors[j] ) ).sum() )
+        npt.assert_allclose( expected, c.norms[j] )
 
 ########################################################################
 

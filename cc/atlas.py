@@ -12,7 +12,6 @@ import pandas as pd
 import re
 import scipy.sparse as ss
 import sklearn.feature_extraction.text as skl_text_features
-import sklearn.preprocessing as skl_preprocessing
 import warnings
 
 import matplotlib.pyplot as plt

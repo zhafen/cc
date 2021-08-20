@@ -8,6 +8,7 @@ import pandas as pd
 import scipy.sparse as ss
 import scipy.spatial
 from scipy.spatial.distance import cdist
+import sklearn.feature_extraction.text as skl_text_features
 from tqdm import tqdm
 import warnings
 
@@ -45,7 +46,7 @@ class Cartographer( object ):
         self.update_data( **kwargs )
 
         if transform is not None:
-            self.transform( transform )
+            self.apply_transform( transform )
 
     @augment.store_parameters
     def update_data(
@@ -160,7 +161,7 @@ class Cartographer( object ):
     ########################################################################
 
     @classmethod
-    def from_hdf5( self, fp, sparse=True, backend='c/c++' ):
+    def from_hdf5( self, fp, sparse=True, backend='c/c++', transform=None ):
         '''Load the cartographer from a saved file.
 
         Args:
@@ -194,12 +195,44 @@ class Cartographer( object ):
             vectors_notsp = copy.copy( data['vectors'] )
             data['vectors'] = ss.csr_matrix( data['vectors'] )
 
-        c = Cartographer( backend=backend, **data )
+        c = Cartographer( backend=backend, transform=transform, **data )
 
         if not sparse:
             c._vectors_notsp = vectors_notsp
 
         return c
+
+    ########################################################################
+    # Core data manipulation
+    ########################################################################
+
+    def apply_transform( self, transform='tf-idf', **kwargs ):
+        '''Apply a transformation to the vectors.
+        This is useful for downweighting common words, for example.
+
+        Args:
+            transform:
+                The transform to apply. Currently only a tf-idf transform is available.
+
+        Kwargs:
+            Extra arguments passed to the sklearn transformer object.
+
+        Modifies:
+            self.vector
+            self.norms
+        '''
+
+        if transform == 'tf-idf':
+
+            # Apply to vectors
+            transformer = skl_text_features.TfidfTransformer( norm=None, **kwargs )
+            self.vectors = transformer.fit_transform( self.vectors )
+
+            # Recalc normalization
+            norm_squared_unformatted = self.vectors.multiply( self.vectors ).sum( axis=1 )
+            self.norms = np.sqrt( np.array( norm_squared_unformatted ).flatten() )
+        else:
+            raise NameError( 'Unrecognized transformation, transform={}'.format( transform ) )
 
     ########################################################################
     # Basic Analysis
