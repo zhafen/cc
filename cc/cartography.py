@@ -31,7 +31,7 @@ class Cartographer( object ):
                 Options are 'python', 'c/c++'.
     '''
 
-    def __init__( self, backend='c/c++', **kwargs ):
+    def __init__( self, backend='c/c++', transform=None, **kwargs ):
 
         self.backend = backend
 
@@ -43,6 +43,9 @@ class Cartographer( object ):
             self.c_cartography = ctypes.CDLL( lib_fp )
 
         self.update_data( **kwargs )
+
+        if transform is not None:
+            self.transform( transform )
 
     @augment.store_parameters
     def update_data(
@@ -72,6 +75,8 @@ class Cartographer( object ):
             self.prune_zero_entries()
 
     ########################################################################
+    # Core methods
+    ########################################################################
 
     @property
     def inds( self ):
@@ -95,6 +100,22 @@ class Cartographer( object ):
 
     ########################################################################
 
+    @property
+    def vectors_notsp_normed( self ):
+        '''Components normalized such that <P|P>=1 .
+        '''
+
+        if not hasattr( self, '_vectors_notsp_normed' ):
+
+            # Divide by NaN is unimportant and handled
+            with np.errstate(divide='ignore',invalid='ignore'):
+
+                self._vectors_notsp_normed = self.vectors_notsp / self.norms[:,np.newaxis]
+
+        return self._vectors_notsp_normed
+
+    ########################################################################
+
     def prune_zero_entries( self ):
         '''Toss out any entries which have no components,
         usually due to no abstract.
@@ -105,6 +126,36 @@ class Cartographer( object ):
         for attr in [ 'vectors', 'norms', 'publications', 'publication_dates', 'entry_dates' ]:
             value = getattr( self, attr )[valid_inds]
             setattr( self, attr, value )
+
+    ########################################################################
+
+    def get_age( self, date_type ):
+
+        time_elapsed = (                                                        
+            pd.to_datetime( 'now', ) -                                          
+            getattr( self, date_type).tz_localize(None)              
+        )                                                                       
+        time_elapsed_years = time_elapsed.total_seconds() / 3.154e7 
+
+        return time_elapsed_years
+
+    @property
+    def age_years( self ):
+
+        if not hasattr( self, '_age_years' ):
+
+            self._age_years = self.get_age( 'entry_dates' )
+
+        return self._age_years
+
+    @property
+    def publication_age_years( self ):
+
+        if not hasattr( self, '_publication_age_years' ):
+
+            self._publication_age_years = self.get_age( 'publication_dates' )
+
+        return self._publication_age_years
 
     ########################################################################
 
@@ -149,52 +200,6 @@ class Cartographer( object ):
             c._vectors_notsp = vectors_notsp
 
         return c
-
-    ########################################################################
-
-    @property
-    def vectors_notsp_normed( self ):
-        '''Components normalized such that <P|P>=1 .
-        '''
-
-        if not hasattr( self, '_vectors_notsp_normed' ):
-
-            # Divide by NaN is unimportant and handled
-            with np.errstate(divide='ignore',invalid='ignore'):
-
-                self._vectors_notsp_normed = self.vectors_notsp / self.norms[:,np.newaxis]
-
-        return self._vectors_notsp_normed
-
-    ########################################################################
-
-    def get_age( self, date_type ):
-
-        time_elapsed = (                                                        
-            pd.to_datetime( 'now', ) -                                          
-            getattr( self, date_type).tz_localize(None)              
-        )                                                                       
-        time_elapsed_years = time_elapsed.total_seconds() / 3.154e7 
-
-        return time_elapsed_years
-
-    @property
-    def age_years( self ):
-
-        if not hasattr( self, '_age_years' ):
-
-            self._age_years = self.get_age( 'entry_dates' )
-
-        return self._age_years
-
-    @property
-    def publication_age_years( self ):
-
-        if not hasattr( self, '_publication_age_years' ):
-
-            self._publication_age_years = self.get_age( 'publication_dates' )
-
-        return self._publication_age_years
 
     ########################################################################
     # Basic Analysis

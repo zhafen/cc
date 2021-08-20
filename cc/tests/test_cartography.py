@@ -34,6 +34,30 @@ class TestCartographer( unittest.TestCase ):
 
 ########################################################################
 
+class TestTransforms( unittest.TestCase ):
+
+    def test_tfidf( self ):
+
+        fp = './tests/data/example_atlas/projection.h5'
+        c_standard = cartography.Cartographer.from_hdf5(
+            fp,
+        )
+        
+        i = np.random.randint( c_standard.feature_names.size )
+        values = c_standard.vectors[:,i]
+        df = np.nonzero( values ).sum()
+        expected = 1. + np.log( ( 1. + c_standard.publications.size )/( 1. + df ) )
+
+        c = cartography.Cartographer.from_hdf5(
+            fp,
+            transform = 'tf-idf',
+        )
+        actual = c.vectors[:,i] / values
+
+        npt.assert_allclose( expected, actual )
+
+########################################################################
+
 class TestInnerProduct( unittest.TestCase ):
 
     def setUp( self ):
