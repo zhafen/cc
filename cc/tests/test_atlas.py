@@ -1317,6 +1317,8 @@ class TestVectorize( unittest.TestCase ):
         # Cached should equal full
         if ss.issparse( vp['vectors'] ):
             vp['vectors'] = vp['vectors'].toarray()
+        if ss.issparse( vp_cache['vectors'] ):
+            vp_cache['vectors'] = vp_cache['vectors'].toarray()
         npt.assert_allclose( vp['vectors'], vp_cache['vectors'] )
 
     ########################################################################
