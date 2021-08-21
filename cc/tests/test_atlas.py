@@ -1249,6 +1249,22 @@ class TestVectorize( unittest.TestCase ):
 
     ########################################################################
 
+    def test_vectorize_consistent_methods( self ):
+
+        # Make sure we don't count cached files
+        fp = './tests/data/example_atlas/projection.h5' 
+        if os.path.isfile( fp ):
+            os.remove( fp )
+
+        # Test
+        self.a.process_abstracts( identifier='from_citation' )
+        vp = self.a.vectorize( method='nouns-verbs-ads' )
+        vp_homebuilt = self.a.vectorize( method='homebuilt' )
+
+        npt.assert_allclose( vp['vectors'], vp_homebuilt['vectors'] )
+
+    ########################################################################
+
     def test_vectorize_homebuilt( self ):
 
         # Make sure we don't count cached files
