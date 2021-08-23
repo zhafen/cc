@@ -1054,7 +1054,7 @@ class Atlas( object ):
 
     def vectorize(
         self,
-        method = 'scikit-learn',
+        method = 'stemmed content words',
         feature_names = None,
         projection_fp = None,
         overwrite = False,
@@ -1200,6 +1200,7 @@ class Atlas( object ):
                 'stemmed content words': 'primary_stemmed_points_str',
             }
             # Compile text
+            print( '    Retrieving publication data...' )
             abstracts = []
             for key, item in tqdm( self.data.items() ):
                 abstracts.append( getattr( item, str_fn[method] )() )
@@ -1210,6 +1211,7 @@ class Atlas( object ):
                 except AttributeError:
                     entry_date.append( 'NaT' )
 
+            print( '    Calculating vectorization...' )
             vectorizer = skl_text_features.CountVectorizer()
             vectors = vectorizer.fit_transform( abstracts )
             feature_names = vectorizer.get_feature_names()

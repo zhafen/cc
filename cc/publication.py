@@ -323,6 +323,8 @@ class Publication( object ):
         # Try to obtain from a processed abstract
         if hasattr( self, 'abstract' ):
             if self.abstract is not None:
+                if isinstance( self.abstract, str ):
+                    return self.abstract
                 return self.abstract['str']
 
         # Or try using the abstract in the citation
@@ -541,6 +543,8 @@ class Publication( object ):
     def primary_stemmed_points_str( self, verbose=False, tag_mapping=None ):
 
         stemmed = self.stemmed_points( verbose=verbose, tag_mapping=tag_mapping )
+        if len( stemmed['primary_stemmed'] ) == 0:
+            return ''
         return ' '.join( np.hstack( stemmed['primary_stemmed'] ) )
 
     ########################################################################

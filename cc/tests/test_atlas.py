@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 import scipy.sparse as ss
 import shutil
+import string
 import unittest
 
 import cc.atlas as atlas
@@ -1221,7 +1222,7 @@ class TestVectorize( unittest.TestCase ):
             os.remove( fp )
 
         # Test
-        self.a.process_abstracts( identifier='from_citation' )
+        self.a.get_ads_data( identifier='from_citation' )
         vp = self.a.vectorize()
 
         # The dimensions of the vector projection
@@ -1249,7 +1250,7 @@ class TestVectorize( unittest.TestCase ):
 
     ########################################################################
 
-    def test_vectorize_consistent_methods( self ):
+    def test_vectorize_nonumbers_or_punctuation( self ):
 
         # Make sure we don't count cached files
         fp = './tests/data/example_atlas/projection.h5' 
@@ -1258,14 +1259,17 @@ class TestVectorize( unittest.TestCase ):
 
         # Test
         self.a.process_abstracts( identifier='from_citation' )
-        vp = self.a.vectorize( method='stemmed content words' )
-        vp_homebuilt = self.a.vectorize( method='homebuilt' )
+        vp = self.a.vectorize()
 
-        npt.assert_allclose( vp['vectors'].toarray(), vp_homebuilt['vectors'].toarray() )
+        numpun_chars = string.punctuation.replace( '-', '' ) + '0123456789'
+
+        for word in vp['feature_names']:
+            for char in numpun_chars:
+                assert not char in word
 
     ########################################################################
 
-    def test_vectorize_homebuilt( self ):
+    def test_vectorize_empty_abstract( self ):
 
         # Make sure we don't count cached files
         fp = './tests/data/example_atlas/projection.h5' 
@@ -1273,25 +1277,9 @@ class TestVectorize( unittest.TestCase ):
             os.remove( fp )
 
         # Test
-        self.a.process_abstracts( identifier='from_citation' )
-        vp = self.a.vectorize( method='homebuilt' )
-
-        # The dimensions of the vector projection
-        expected_dim = (
-            len( self.a.data ),
-            len( vp['feature_names'] )
-        )
-        assert vp['vectors'].shape == expected_dim
-
-        # Projected publications check
-        for i, v in enumerate( list( self.a.data.keys() ) ):
-            assert v == vp['publications'][i]
-
-        assert vp['publication_dates'][0] == self.a[vp['publications'][0]].publication_date
-
-        # There should be no component with entirely zeros
-        unnormed_a = vp['vectors'].sum( axis=0 )
-        assert np.nanmin( unnormed_a  ) > 0.
+        self.a.get_ads_data( identifier='from_citation' )
+        self.a.data['Hafen2019'].abstract = ''
+        self.a.vectorize()
 
     ########################################################################
 
@@ -1452,6 +1440,52 @@ class TestVectorize( unittest.TestCase ):
         fp = './tests/data/example_atlas/projection_unofficial.h5' 
         if os.path.isfile( fp ):
             os.remove( fp )
+
+    ########################################################################
+
+    def test_vectorize_consistent_methods( self ):
+
+        # Make sure we don't count cached files
+        fp = './tests/data/example_atlas/projection.h5' 
+        if os.path.isfile( fp ):
+            os.remove( fp )
+
+        # Test
+        self.a.get_ads_data( identifier='from_citation' )
+        vp = self.a.vectorize( method='stemmed content words' )
+        vp_homebuilt = self.a.vectorize( method='homebuilt' )
+
+        npt.assert_allclose( vp['vectors'].toarray(), vp_homebuilt['vectors'].toarray() )
+
+    ########################################################################
+
+    def test_vectorize_homebuilt( self ):
+
+        # Make sure we don't count cached files
+        fp = './tests/data/example_atlas/projection.h5' 
+        if os.path.isfile( fp ):
+            os.remove( fp )
+
+        # Test
+        self.a.process_abstracts( identifier='from_citation' )
+        vp = self.a.vectorize( method='homebuilt' )
+
+        # The dimensions of the vector projection
+        expected_dim = (
+            len( self.a.data ),
+            len( vp['feature_names'] )
+        )
+        assert vp['vectors'].shape == expected_dim
+
+        # Projected publications check
+        for i, v in enumerate( list( self.a.data.keys() ) ):
+            assert v == vp['publications'][i]
+
+        assert vp['publication_dates'][0] == self.a[vp['publications'][0]].publication_date
+
+        # There should be no component with entirely zeros
+        unnormed_a = vp['vectors'].sum( axis=0 )
+        assert np.nanmin( unnormed_a  ) > 0.
 
 ########################################################################
 

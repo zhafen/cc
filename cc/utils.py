@@ -4,6 +4,7 @@ import nltk
 from nltk.metrics import edit_distance
 import numpy as np
 import pandas as pd
+import string
 import tqdm
 
 import matplotlib
@@ -161,7 +162,7 @@ def stem( l, unique=True ):
 
 ########################################################################
 
-def tokenize_and_sort_text( text, tag_mapping=None ):
+def tokenize_and_sort_text( text, tag_mapping=None, ):
     '''Tokenize text into words, position tag them, and then sort
     according to tag tier.
 
@@ -188,6 +189,9 @@ def tokenize_and_sort_text( text, tag_mapping=None ):
     if tag_mapping is None:
         tag_mapping = config.nltk['tag_tier']
 
+    # Characters to remove are punctuation and numbers, except hyphens
+    numpun_chars = string.punctuation.replace( '-', '' ) + '0123456789'
+
     # Classify into primary and secondary tiers, i.e. effectively
     # nouns, verbs, and adjectives vs everything else.
     result['primary'] = []
@@ -199,7 +203,13 @@ def tokenize_and_sort_text( text, tag_mapping=None ):
         nltk2 = []
         for word, tag in sent:
             if tag in tag_mapping[1]:
-                nltk1.append( word )
+                for char in numpun_chars:
+                    if char in word:
+                        break
+                if char in word:
+                    nltk2.append( word )
+                else:
+                    nltk1.append( word )
             elif tag in tag_mapping[2]:
                 nltk2.append( word )
             else:
