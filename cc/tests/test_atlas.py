@@ -1258,10 +1258,10 @@ class TestVectorize( unittest.TestCase ):
 
         # Test
         self.a.process_abstracts( identifier='from_citation' )
-        vp = self.a.vectorize( method='nouns-verbs-ads' )
+        vp = self.a.vectorize( method='stemmed content words' )
         vp_homebuilt = self.a.vectorize( method='homebuilt' )
 
-        npt.assert_allclose( vp['vectors'], vp_homebuilt['vectors'] )
+        npt.assert_allclose( vp['vectors'].toarray(), vp_homebuilt['vectors'].toarray() )
 
     ########################################################################
 

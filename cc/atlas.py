@@ -1054,6 +1054,7 @@ class Atlas( object ):
 
     def vectorize(
         self,
+        method = 'scikit-learn',
         feature_names = None,
         projection_fp = None,
         overwrite = False,
@@ -1061,7 +1062,6 @@ class Atlas( object ):
         verbose = True,
         return_data = True,
         sparse = True,
-        method = 'scikit-learn',
     ):
         '''Project the abstract of each publication into concept space.
         In simplest form this finds all shared, stemmed nouns, verbs, and
@@ -1073,6 +1073,16 @@ class Atlas( object ):
         the difference between tens of MB or tens of GB.
 
         Args:
+            method (str):
+                What code to use to perform the vectorization. Options are...
+                    'stemmed content words':
+                        Use stemmed nouns, verbs, adjectives, and adverbs from each publication's
+                        abstract and notes. Vectorization done using scikit-learn.
+                    'scikit-learn':
+                        Default scikit-learn vectorization with no stemming.
+                    'homebuilt':
+                        Same as 'stemmed content words', but much slower.
+
             feature_names (array-like of strs):                                  
                 Basis concepts to project onto. Defaults to all concepts across
                 all publications.
@@ -1167,8 +1177,8 @@ class Atlas( object ):
         # Set up for component calculation
         if existing is not None:
 
-            if method == 'scikit-learn':
-                raise NotImplementedError( 'Cannot pass existing projection with scikit-learn method.' )
+            if method != 'homebuilt':
+                raise NotImplementedError( 'Cannot pass existing projection with scikit-learn-based vectorization.' )
 
             assert feature_names is None, "Cannot pass component " \
                 + "concepts in addition to an existing projection."
@@ -1183,12 +1193,16 @@ class Atlas( object ):
             pub_date = []
             entry_date = []
 
-        if method == 'scikit-learn':
+        if method in [ 'scikit-learn', 'stemmed content words' ]:
 
+            str_fn = {
+                'scikit-learn': 'points_str',
+                'stemmed content words': 'primary_stemmed_points_str',
+            }
             # Compile text
             abstracts = []
             for key, item in tqdm( self.data.items() ):
-                abstracts.append( item.points_str() )
+                abstracts.append( getattr( item, str_fn[method] )() )
                 projected_publications.append( key )
                 pub_date.append( item.publication_date )
                 try:

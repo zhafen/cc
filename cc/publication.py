@@ -531,6 +531,18 @@ class Publication( object ):
 
         return ' '.join( self.points( verbose=verbose ) )
 
+    def stemmed_points( self, verbose=False, tag_mapping=None ):
+
+        return utils.tokenize_and_sort_text(
+            self.points_str( verbose=verbose ),
+            tag_mapping = tag_mapping
+        )
+
+    def primary_stemmed_points_str( self, verbose=False, tag_mapping=None ):
+
+        stemmed = self.stemmed_points( verbose=verbose, tag_mapping=tag_mapping )
+        return ' '.join( np.hstack( stemmed['primary_stemmed'] ) )
+
     ########################################################################
 
     def vectorize( self, feature_names=None, include_notes=True ):
