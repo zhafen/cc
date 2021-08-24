@@ -1167,34 +1167,6 @@ class TestKeyConcepts( unittest.TestCase ):
 
 ########################################################################
 
-class TestSearchPublicationsKeyConcepts( unittest.TestCase ):
-
-    def setUp( self ):
-
-        self.a = atlas.Atlas( './tests/data/example_atlas' )
-
-    ########################################################################
-
-    def test_default( self ):
-
-        actual = self.a.concept_search(
-            'origins of the CGM',
-            return_paragraph = False,
-            word_per_concept = False,
-        )
-
-        h19_kps = self.a['Hafen2019'].notes['key_points']
-        h19a_kps = self.a['Hafen2019a'].notes['key_points']
-        expected = {
-            'Hafen2019': [ h19_kps[0], ],
-            'Hafen2019a': [ h19a_kps[-1], ],
-        }
-
-        for key, item in expected.items():
-            assert item == actual[key]
-
-########################################################################
-
 class TestVectorize( unittest.TestCase ):
 
     def setUp( self ):
