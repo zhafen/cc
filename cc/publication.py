@@ -366,6 +366,7 @@ class Publication( object ):
     def process_bibtex_annotations(
         self,
         bibtex_fp = None,
+        annotation_str = None,
         reload = False,
         word_per_concept = True,
     ):
@@ -391,29 +392,39 @@ class Publication( object ):
         if not reload and self.cached_bibtex_fp == bibtex_fp:
             return
 
-        try:
+        if annotation_str is None:
             # Load the data
-            if bibtex_fp is None:
-                annotation = self.citation['annote']
-            else:
+            if bibtex_fp is not None:
                 self.read_citation( bibtex_fp )
-                annotation = self.citation['annote']
 
-        # When no annotation is found
-        except KeyError:
-            self.cached_bibtex_fp = bibtex_fp
-            return
+            # Look for the annotation
+            not_found = True
+            for annote_key in [ 'annote', 'annotation' ]:
+                if annote_key in self.citation:
+                    annotation = self.citation[annote_key]
+                    not_found = False
+
+            # When no annotation is found
+            if not_found:
+                self.cached_bibtex_fp = bibtex_fp
+                return
+        else:
+            annotation = annotation_str
 
         # Process the annotation
         annote_lines = annotation.split( '\n' )
 
-        # Process the annotation
-        for line in annote_lines:
-            self.notes = self.process_annotation_line(
-            line,
-            self.notes,
-            word_per_concept
-        )
+        try:
+            # Process the annotation
+            for line in annote_lines:
+                self.notes = self.process_annotation_line(
+                line,
+                self.notes,
+                word_per_concept
+            )
+        except:
+            # DEBUG
+            import pdb; pdb.set_trace()
 
         self.cached_bibtex_fp = bibtex_fp
 
@@ -425,6 +436,7 @@ class Publication( object ):
         notes = None,
         word_per_concept = True,
         conditions = None,
+        forgiving = True,
     ):
         '''Process a line of annotation to extract more information.
 
@@ -447,43 +459,51 @@ class Publication( object ):
         if notes is None:
             notes = self.notes
 
-        # Empty lines
-        if line == '':
+        # For any failures we don't want it to screw things up
+        try:
+            # Empty lines
+            if line == '':
+                return notes
+
+                # Key lines
+            elif '[' in line and ']' in line:
+
+                # assert line.count( '[' ) == line.count( ']' )
+
+                # Parse and store key concepts
+                key_concepts = relation.parse_relation_for_key_concepts(
+                    line,
+                    word_per_concept
+                )
+                notes['key_concepts'].append( key_concepts )
+                notes['key_concepts'] = [
+                    list( set( key_concepts ) )
+                    for key_concepts in
+                    notes['key_concepts']
+                ]
+                notes['key_points'].append( line )
+            # For flags
+            elif line[0] == '!':
+                variable, value = line[1:].split( '=' )
+                notes[variable] = value
+            # Otherwise
+            else:
+                notes['uncategorized'].append( line )
+
+            # Include any conditions
+            # Many conditions are on a per-point basis, so this is not ideal,
+            # but it works until we actually plan on using them.
+            if conditions is not None:
+                if 'conditions' not in notes:
+                    notes['conditions'] = {}
+                notes['conditions'].update( conditions )
+
             return notes
-        # Key lines
-        elif '[' in line and ']' in line:
 
-            # assert line.count( '[' ) == line.count( ']' )
-
-            # Parse and store key concepts
-            key_concepts = relation.parse_relation_for_key_concepts(
-                line,
-                word_per_concept
-            )
-            notes['key_concepts'].append( key_concepts )
-            notes['key_concepts'] = [
-                list( set( key_concepts ) )
-                for key_concepts in
-                notes['key_concepts']
-            ]
-            notes['key_points'].append( line )
-        # For flags
-        elif line[0] == '!':
-            variable, value = line[1:].split( '=' )
-            notes[variable] = value
-        # Otherwise
-        else:
-            notes['uncategorized'].append( line )
-
-        # Include any conditions
-        # Many conditions are on a per-point basis, so this is not ideal,
-        # but it works until we actually plan on using them.
-        if conditions is not None:
-            if 'conditions' not in notes:
-                notes['conditions'] = {}
-            notes['conditions'].update( conditions )
-
-        return notes
+        except Exception as e:
+            if forgiving:
+                return notes
+            raise Exception( e )
 
     ########################################################################
 

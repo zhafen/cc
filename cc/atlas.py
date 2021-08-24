@@ -304,7 +304,7 @@ class Atlas( object ):
 
     ########################################################################
 
-    def import_bibtex( self, bibtex_fp, entries='all', verbose=True, ):
+    def import_bibtex( self, bibtex_fp, entries='all', process_annotations=True, verbose=True, ):
         '''Import publications from a BibTex file.
         
         Args:
@@ -346,6 +346,12 @@ class Atlas( object ):
                 p = publication.Publication( citation_key )
 
             p.citation = citation
+
+            if process_annotations:
+                for annote_key in [ 'annote', 'annotation' ]:
+                    if annote_key in p.citation:
+                        p.process_bibtex_annotations( annotation_str=p.citation[annote_key] )
+
             self.data[citation_key] = p
 
     ########################################################################
