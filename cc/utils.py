@@ -162,7 +162,7 @@ def stem( l, unique=True ):
 
 ########################################################################
 
-def tokenize_and_sort_text( text, tag_mapping=None, ):
+def tokenize_and_sort_text( text, tag_mapping=None, primary_alphabet_only=False ):
     '''Tokenize text into words, position tag them, and then sort
     according to tag tier.
 
@@ -172,6 +172,9 @@ def tokenize_and_sort_text( text, tag_mapping=None, ):
         tag_mapping (dict):
             How to sort the tags.
             If None uses the tag_tier in the config.
+
+        primary_alphabet_only (bool):
+            If True, demote any words with numerals or punctuation to secondary.
 
     Returns:
         result (dict)
@@ -203,11 +206,14 @@ def tokenize_and_sort_text( text, tag_mapping=None, ):
         nltk2 = []
         for word, tag in sent:
             if tag in tag_mapping[1]:
-                for char in numpun_chars:
+                if primary_alphabet_only:
+                    for char in numpun_chars:
+                        if char in word:
+                            break
                     if char in word:
-                        break
-                if char in word:
-                    nltk2.append( word )
+                        nltk2.append( word )
+                    else:
+                        nltk1.append( word )
                 else:
                     nltk1.append( word )
             elif tag in tag_mapping[2]:

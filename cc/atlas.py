@@ -1092,12 +1092,14 @@ class Atlas( object ):
                 self.projection['feature_names'] = copy.copy( self.projection['component_concepts'] )
                 del self.projection['component_concepts']
 
+            # Converting to/from sparse matrices
             if sparse:
                 self.projection['vectors'] = ss.csr_matrix( self.projection['vectors'] )
             else:
                 if ss.issparse( self.projection['vectors'] ):
                     self.projection['vectors'] = self.projection['vectors'].toarray()
             return self.projection
+
         if hasattr( self, 'projection' ) and not overwrite:
             if verbose:
                 print( 'Using cached vectorized text...' )
@@ -1141,7 +1143,7 @@ class Atlas( object ):
                     entry_date.append( 'NaT' )
 
             print( '    Calculating vectorization...' )
-            vectorizer = skl_text_features.CountVectorizer()
+            vectorizer = skl_text_features.CountVectorizer( token_pattern=r"(?u)\b[A-Za-z]+\b" )
             vectors = vectorizer.fit_transform( abstracts )
             feature_names = vectorizer.get_feature_names()
 
