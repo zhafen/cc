@@ -675,7 +675,7 @@ class Cartographer( object ):
     # Automated exploration, expansion, or otherwise updating
     ########################################################################
 
-    def expand( self, a, center=None, n_pubs_max=4000 ):
+    def expand( self, a, center=None, n_pubs_max=4000, n_sources_max=None ):
         '''Expand an atlas by retrieving all publications cited by the
         the publications in the given atlas, or that reference a
         publication in the given atlas.
@@ -691,6 +691,9 @@ class Cartographer( object ):
             n_pubs_max (int):
                 Maximum number of publications allowed in the expansion.
 
+            n_sources_max (int):
+                Maximum number of publications (already in the atlas) to draw references and citations from.
+
         Returns:
             a_exp (atlas.Atlas):
                 Expanded atlas. Has the same save location as a.
@@ -703,6 +706,9 @@ class Cartographer( object ):
             cospsi = self.cospsi( center, 'all' )
             sort_inds = np.argsort( cospsi )[::-1]
             expand_keys = self.publications[sort_inds]
+
+        if n_sources_max is not None:
+            expand_keys = expand_keys[:n_sources_max]
 
         # Make the bibcode list
         existing_keys = set( a.data.keys() )
