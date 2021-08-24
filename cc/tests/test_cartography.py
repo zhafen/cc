@@ -93,6 +93,13 @@ class TestInnerProduct( unittest.TestCase ):
         )
         npt.assert_allclose( actual, expected, rtol=0.05 )
 
+        actual = self.c.inner_product(
+            'Hafen2019',
+            'Hafen2019',
+        )
+        expected = self.c.norms[ind_h]**2.
+        npt.assert_allclose( actual, expected, rtol=0.05 )
+
     ########################################################################
 
     def test_inner_product_publication_all( self ):
