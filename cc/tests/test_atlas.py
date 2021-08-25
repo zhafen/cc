@@ -1003,6 +1003,18 @@ class TestAtlasData( unittest.TestCase ):
 
     ########################################################################
 
+    def test_process_abstracts_unofficial_not_overwritten( self ):
+
+        expected = 'This should not be overwritten.'
+        unpub = publication.UnofficialPublication( 'UnPub' )
+        unpub.process_abstract( expected )
+        self.a.data['UnPub'] = unpub
+        self.a.process_abstracts( identifier='from_citation' )
+
+        assert self.a['UnPub'].abstract_str() == expected
+
+    ########################################################################
+
     def test_load_data_hdf5( self ):
 
         # Create test data
@@ -1411,6 +1423,9 @@ class TestVectorize( unittest.TestCase ):
         # There should be no component with entirely zeros
         unnormed_a = vp['vectors'].sum( axis=0 )
         assert np.nanmin( unnormed_a  ) > 0.
+
+        # The projected vector shouldn't be zero
+        assert vp['vectors'][vp['publications']=='Prateek Sharma'].sum() > 0
 
         # Make sure we clean up
         fp = './tests/data/example_atlas/projection_unofficial.h5' 

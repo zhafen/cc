@@ -548,6 +548,27 @@ class TestExplore( unittest.TestCase ):
             assert 'arXiv' in key or 'tmp' in key
 
     ########################################################################
+    
+    def test_expand_unofficial_pub_as_center( self ):
+
+        assert False, "Not sure I want to do this."
+
+        self.a.add_unpub( 'UnPub' )
+
+        new_a = self.c.expand( self.a, center='UnPub', n_sources_max=2 )
+
+        # Check that the new atlas has the old data
+        for key, item in self.a.data.items():
+            assert new_a.data[key].abstract_str() != ''
+
+        # This is a publication that cites Hafen2020,
+        # the most similar publication to Hafen2019
+        assert '2020MNRAS.498.1668W' in new_a.data
+        # This is a publication cited by VandeVoort2018
+        # but not by more similar publications.
+        assert '2015PhRvD..92l3526C' not in new_a.data
+
+    ########################################################################
 
     def test_record_update_history( self ):
 

@@ -969,13 +969,11 @@ class Atlas( object ):
             # The indicator of a processed abstract is that
             # the abstract is a dictionary
             if hasattr( item, 'abstract' ):
-                if isinstance( item.abstract, verdict.Dict ):
+                if isinstance( item.abstract, verdict.Dict ) or isinstance( item.abstract, dict ):
                     continue
 
-            if hasattr( item, 'ads_data' ):
-                abstract_str = item.ads_data['abstract']
-            else:
-                abstract_str = ''
+            abstract_str = item.abstract_str()
+            if abstract_str == '':
                 n_err += 1
             item.process_abstract( abstract_str=abstract_str, overwrite=True )
 
