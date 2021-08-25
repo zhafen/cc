@@ -641,6 +641,87 @@ class Atlas( object ):
                 store_to_data( citation_key )
 
     ########################################################################
+    # Atlas Operations
+    ########################################################################
+
+    # def prune_duplicates( self, preferred=[], threshold=0.9, **vectorization_kwargs ):
+
+    #     self.prune_duplicates_via_citation( preferred=preferred )
+
+    #     self.prune_duplicates_via_similarity( threshold=threshold, **vectorization_kwargs )
+
+    def prune_duplicates( self, preferred=[] ):
+        '''Remove duplicate entries by comparing citation information.
+        '''
+
+        # Break publications into two categories sorted by preference to keep
+        remaining = list( set( self.data.keys() ) - set( preferred ) )
+
+        # Items to compare
+        comparison_columns = [
+            ( 'eprint', 'eprinttype' ),
+            ( 'doi', ),
+            ( 'url', ),
+            ( 'title', ),
+            ( 'journaltitle', 'volume', 'pages' ),
+        ]
+
+        # Make a pandas data frame to efficiently drop duplicates
+        to_compare = {}
+
+        # Loop through preferred, remaining
+        for keys in [ preferred, remaining ]:
+
+            # Loop through publications
+            for key in tqdm( keys ):
+
+                p = self.data[key]
+                if not hasattr( p, 'citation' ):
+                    continue
+
+                citation = p.citation 
+
+                # Loop through sets of columns to compare
+                for columns in comparison_columns:
+
+                    # Create if not existing
+                    if columns not in to_compare:
+                        to_compare[columns] = {}
+
+                    if 'citation_key' not in to_compare[columns]:
+                        to_compare[columns]['citation_key'] = []
+                    to_compare[columns]['citation_key'].append( key )
+
+                    # Loop through columns in a set
+                    for column in columns:
+                        if column not in to_compare[columns]:
+                            to_compare[columns][column] = []
+
+                        try:
+                            value = citation[column]
+                        except KeyError:
+                            value = 'empty'
+
+                        to_compare[columns][column].append( value )
+
+        # Find duplicates
+        duplicates = set()
+        for columns, columns_data in to_compare.items():
+
+            # Format
+            df = pd.DataFrame( data=columns_data )
+            df = df.set_index( 'citation_key' )
+
+            # Find duplicates to remove
+            duplicated = df.duplicated()
+            duplicated_keys = df.index.values[duplicated] 
+            duplicates = duplicates.union( set( duplicated_keys ) )
+
+        # Remove duplicates
+        for key in duplicates:
+            del self.data[key]
+
+    ########################################################################
     # Data Processing
     ########################################################################
 

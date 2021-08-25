@@ -1121,6 +1121,40 @@ class TestAtlasData( unittest.TestCase ):
                                 v_k ==
                                 d[key]['abstract']['nltk'][ikey][i][j][k]
                             )
+########################################################################
+
+class TestOperations( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.a = atlas.Atlas( './tests/data/example_atlas' )
+
+    ########################################################################
+
+    def test_prune_duplicates( self ):
+
+        expected = sorted( list( self.a.data.keys() ) )
+
+        self.a.process_abstracts( identifier='from_citation' )
+
+        # Make some duplicates
+        duplicate_names = [
+            'Hafen2019copy',
+            'Hafen2019copy_no_abstract',
+            # 'Hafen2019copy_no_citation',
+        ]
+        for key in duplicate_names:
+            self.a.data[key] = copy.deepcopy( self.a.data['Hafen2019'] )
+
+        # Edit duplicates
+        self.a.data['Hafen2019copy_no_abstract'].abstract = ''
+        # del self.a.data['Hafen2019copy_no_citation'].citation
+
+        self.a.prune_duplicates( preferred=expected )
+
+        actual = sorted( list( self.a.data.keys() ) ) 
+        for i, actual_i in enumerate( actual ):
+            assert actual_i == expected[i]
 
 ########################################################################
 
