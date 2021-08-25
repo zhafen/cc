@@ -627,6 +627,13 @@ class Atlas( object ):
     ########################################################################
 
     def update( self, other ):
+        '''Update with information from another atlas.
+        When duplicates are found, the other atlas' entries are preferred.
+
+        Modifies:
+            self.data
+                Adds new publications.
+        '''
 
         new_keys = list( other.data.keys() )
 
@@ -636,14 +643,27 @@ class Atlas( object ):
         # Perform pruning
         self.prune_duplicates( preferred=new_keys )
 
+    ########################################################################
+
+    # TODO: Delete?
     # def prune_duplicates( self, preferred=[], threshold=0.9, **vectorization_kwargs ):
 
     #     self.prune_duplicates_via_citation( preferred=preferred )
 
     #     self.prune_duplicates_via_similarity( threshold=threshold, **vectorization_kwargs )
 
+    ########################################################################
+
     def prune_duplicates( self, preferred=[] ):
         '''Remove duplicate entries by comparing citation information.
+
+        Args:
+            preferred (list of strs):
+                Which entries to prefer if duplicates are found.
+
+        Modifies:
+            self.data
+                Drops duplicate rows.
         '''
 
         # Break publications into two categories sorted by preference to keep
