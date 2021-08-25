@@ -1198,7 +1198,7 @@ class TestVectorize( unittest.TestCase ):
             os.remove( fp )
 
         # Test
-        self.a.get_ads_data( identifier='from_citation' )
+        self.a.process_abstracts( identifier='from_citation' )
         vp = self.a.vectorize()
 
         # The dimensions of the vector projection

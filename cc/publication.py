@@ -562,6 +562,9 @@ class Publication( object ):
 
     def primary_stemmed_points_str( self, verbose=False, tag_mapping=None ):
 
+        if hasattr( self, 'stemmed_content_words' ):
+            return self.stemmed_content_words
+
         stemmed = self.stemmed_points( verbose=verbose, tag_mapping=tag_mapping )
         if len( stemmed['primary_stemmed'] ) == 0:
             return ''
