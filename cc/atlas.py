@@ -441,6 +441,7 @@ class Atlas( object ):
             'notes',
             'unofficial_flag',
             'citation',
+            'stemmed_content_words',
         ],
         handle_jagged_arrs = 'row datasets',
         return_data = False,
@@ -944,7 +945,7 @@ class Atlas( object ):
 
     ########################################################################
 
-    def process_abstracts( self, *args, **kwargs ):
+    def process_abstracts( self, *args, process_stemmed_content_words=True, **kwargs ):
         '''Download and process the abstracts of all publications.
         Faster and with fewer API calls than for each paper individually.
 
@@ -966,7 +967,7 @@ class Atlas( object ):
 
             # We'll skip ones that are already processed.
             # The indicator of a processed abstract is that
-            # a Dictionary attribute
+            # the abstract is a dictionary
             if hasattr( item, 'abstract' ):
                 if isinstance( item.abstract, verdict.Dict ):
                     continue
@@ -977,6 +978,10 @@ class Atlas( object ):
                 abstract_str = ''
                 n_err += 1
             item.process_abstract( abstract_str=abstract_str, overwrite=True )
+
+            if process_stemmed_content_words:
+                item.stemmed_content_words = item.primary_stemmed_points_str()
+
         self.n_err_abs = n_err
 
     ########################################################################

@@ -946,7 +946,7 @@ class TestAtlasData( unittest.TestCase ):
 
     ########################################################################
 
-    def test_save_data_ads_abstract( self ):
+    def test_get_process_and_save_abstracts( self ):
 
         a_copy = copy.deepcopy( self.a )
 
@@ -996,6 +996,10 @@ class TestAtlasData( unittest.TestCase ):
                                 v_k ==
                                 d[key]['abstract']['nltk'][ikey][i][j][k]
                             )
+
+        # Check for the stemmed content words, a common vectorization input
+        for key, item in self.a.data.items():
+            assert item.primary_stemmed_points_str() == d[key]['stemmed_content_words']
 
     ########################################################################
 
@@ -1055,7 +1059,7 @@ class TestAtlasData( unittest.TestCase ):
 
     ########################################################################
 
-    def test_save_data_ads_abstract_hdf5( self ):
+    def test_get_process_and_save_abstracts_hdf5( self ):
 
         a_copy = copy.deepcopy( self.a )
 

@@ -565,6 +565,7 @@ class Publication( object ):
         stemmed = self.stemmed_points( verbose=verbose, tag_mapping=tag_mapping )
         if len( stemmed['primary_stemmed'] ) == 0:
             return ''
+
         return ' '.join( np.hstack( stemmed['primary_stemmed'] ) )
 
     ########################################################################

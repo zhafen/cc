@@ -621,7 +621,7 @@ class TestExplore( unittest.TestCase ):
         except AssertionError:
             expected = np.array([ 1, 3, 3, 3, ])
             npt.assert_allclose( expected, actual )
-            expected_cospsis = np.array([0.700389180476697, 0.4819047030867647, 0.4819047030867647, 0.4819047030867647])
+            expected_cospsis = np.array([0.607884, 0.47819 , 0.47819 , 0.47819 ])
             npt.assert_allclose( expected_cospsis, actual_cospsis, rtol=1e-3 )
 
     ########################################################################
@@ -645,7 +645,7 @@ class TestExplore( unittest.TestCase ):
         except AssertionError:
             expected = np.array([ 1, 3, 3, 3, ])
             npt.assert_allclose( expected, actual_i )
-            expected_cospsis = np.array([0.700389180476697, 0.4819047030867647, 0.4819047030867647, 0.4819047030867647])
+            expected_cospsis = np.array([0.607884, 0.47819 , 0.47819 , 0.47819 ])
             npt.assert_allclose( expected_cospsis, actual_cospsis_i, rtol=1e-3 )
 
         actual_i = actual[self.c.publications=='VandeVoort2018a'][0]
