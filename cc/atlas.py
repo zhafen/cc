@@ -282,25 +282,7 @@ class Atlas( object ):
         save_bibcodes_to_bibtex( bibcodes, bibtex_fp, )
         self.import_bibtex( bibtex_fp, verbose=False )
 
-        # Prune to remove duplicate references
-        keys_to_remove = []
-        for key in original_keys:
-            item = self.data[key]
-            for new_key, new_item in self.data.items():
-                if key == new_key:
-                    continue
-                if 'arxivid' not in item.citation:
-                    continue
-                if 'arxivid' not in new_item.citation:
-                    continue
-                if item.citation['arxivid'] == new_item.citation['arxivid']:
-                    keys_to_remove.append( new_key )
-        for key in keys_to_remove:
-            try:
-                del self.data[key]
-            except KeyError:
-                # Already removed, it's okay
-                continue
+        self.prune_duplicates( original_keys )
 
     ########################################################################
 
@@ -644,6 +626,16 @@ class Atlas( object ):
     # Atlas Operations
     ########################################################################
 
+    def update( self, other ):
+
+        new_keys = list( other.data.keys() )
+
+        # Perform the update
+        self.data._storage.update( other.data )
+
+        # Perform pruning
+        self.prune_duplicates( preferred=new_keys )
+
     # def prune_duplicates( self, preferred=[], threshold=0.9, **vectorization_kwargs ):
 
     #     self.prune_duplicates_via_citation( preferred=preferred )
@@ -659,7 +651,7 @@ class Atlas( object ):
 
         # Items to compare
         comparison_columns = [
-            ( 'eprint', 'eprinttype' ),
+            ( 'eprint', ),
             ( 'doi', ),
             ( 'url', ),
             ( 'title', ),
@@ -700,7 +692,7 @@ class Atlas( object ):
                         try:
                             value = citation[column]
                         except KeyError:
-                            value = 'empty'
+                            value = np.nan
 
                         to_compare[columns][column].append( value )
 
@@ -711,6 +703,9 @@ class Atlas( object ):
             # Format
             df = pd.DataFrame( data=columns_data )
             df = df.set_index( 'citation_key' )
+
+            # Drop all-empty rows
+            df = df.dropna( how='all' )
 
             # Find duplicates to remove
             duplicated = df.duplicated()
