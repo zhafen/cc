@@ -666,8 +666,11 @@ class Atlas( object ):
                 Drops duplicate rows.
         '''
 
+
         # Break publications into two categories sorted by preference to keep
-        remaining = list( set( self.data.keys() ) - set( preferred ) )
+        existing = set( self.data.keys() )
+        preferred = set( preferred ).intersection( existing )
+        remaining = list( existing - preferred )
 
         # Items to compare
         comparison_columns = [

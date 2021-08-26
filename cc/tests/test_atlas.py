@@ -1150,7 +1150,8 @@ class TestOperations( unittest.TestCase ):
         self.a.data['Hafen2019copy_no_abstract'].abstract = ''
         # del self.a.data['Hafen2019copy_no_citation'].citation
 
-        self.a.prune_duplicates( preferred=expected )
+        preferred = expected + [ 'Should not exist', ]
+        self.a.prune_duplicates( preferred=preferred )
 
         actual = sorted( list( self.a.data.keys() ) ) 
         for i, actual_i in enumerate( actual ):
