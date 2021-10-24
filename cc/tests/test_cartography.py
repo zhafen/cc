@@ -884,3 +884,40 @@ class TestRealisticProjection( unittest.TestCase ):
 
         # Just make sure we can call this
         self.c.inner_product_matrix
+
+########################################################################
+
+class TestMap( unittest.TestCase ):
+
+    def setUp( self ):
+
+        fp = './tests/data/example_atlas/projection.h5'
+        self.c = cartography.Cartographer.from_hdf5( fp )
+
+    ########################################################################
+
+    def test_map( self ):
+
+        coords, inds, pairs = self.c.map( 'Hafen2019' )
+        publications = self.c.publications[inds]
+
+        # These are the coords everything is centered on
+        assert self.c.publications[inds[0]] == 'Hafen2019'
+        assert self.c.publications[inds[1]] == 'Hafen2019a'
+        npt.assert_allclose(
+            np.linalg.norm( coords[inds[1]] - coords[inds[0]] ),
+            self.c.psi( 'Hafen2019', 'Hafen2019a', scaling=1. )
+        )
+
+        for i, j in pairs:
+            d_ij = np.linalg.norm( coords[i] - coords[j] )
+            psi_ij = self.c.psi( self.c.publications[i], self.c.publications[j], scaling=1. )
+            npt.assert_allclose( d_ij, psi_ij, )
+        # n_accurate = 0
+        # for m, i in enumerate( inds ):
+
+        #     d_ij = np.linalg.norm( coords - coords[i], axis=1 )
+        #     psi_ij = [ self.c.psi( publications[m], _, scaling=1. )[0] for _ in self.c.publications ]
+        #     n_accurate += np.isclose( d_ij, psi_ij  ).sum()
+
+        # assert n_accurate == len( pairs )

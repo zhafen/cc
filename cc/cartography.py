@@ -846,7 +846,6 @@ class Cartographer( object ):
                 # Sorting input
                 cospsi = self.cospsi( key, 'all' )
                 sort_inds = np.argsort( cospsi )[::-1]
-                # sorted_cospsi = cospsi[sort_inds]
                 sorted_history = self.update_history[sort_inds]
 
                 # Setup types
@@ -869,7 +868,6 @@ class Cartographer( object ):
 
             else:
                 sort_inds = np.argsort( self.cospsi_matrix )[:,::-1]
-                # sorted_cospsi_matrix = np.array([ cospsi_row[sort_inds[i]] for i, cospsi_row in enumerate( self.cospsi_matrix ) ])
                 sorted_history_flat = self.update_history[sort_inds].flatten()
 
                 # Setup types
@@ -1165,6 +1163,73 @@ class Cartographer( object ):
 
     ########################################################################
     # Mapping
+    ########################################################################
+
+    def map(
+        self,
+        center,
+    ):
+
+        # Setup relation to central publication
+        i_center = self.inds[center == self.publications][0]
+        cospsi_0is = self.cospsi_matrix[i_center]
+        sort_inds = np.argsort( cospsi_0is )[::-1]
+
+        # Get distances
+        d_matrix = np.arccos( self.cospsi_matrix )
+        d_0is = d_matrix[i_center][sort_inds]
+
+        # Setup center of map
+        coords = np.full( ( len( sort_inds ), 2 ), fill_value=np.nan )
+        coords[i_center,:] = np.array([
+            [ 0., 0., ],
+        ])
+        coords[sort_inds[1],:] = np.array([
+            [ d_0is[1], 0. ]
+        ])
+        mapped_inds = np.full( len( sort_inds ), fill_value=-9999, dtype=int )
+        mapped_inds[0] = i_center
+        mapped_inds[1] = sort_inds[1]
+        pairs = [
+            ( sort_inds[0], sort_inds[1] ),
+        ]
+
+        for m, i in enumerate( tqdm( sort_inds[2:] ) ):
+
+            # Identify publications to connect to (publication j, publication k)
+            # Link to the central publication, and the most similar publication
+            k = i_center
+            available_inds = mapped_inds[1:m+2]
+            d_ijs = d_matrix[i][available_inds]
+            j = available_inds[np.argmin( d_ijs )]
+
+            # Get distances
+            d_ij = d_matrix[i,j]
+            d_ik = d_matrix[i,k]
+            d_jk = d_matrix[j,k]
+
+            # Calculate directions parallel and perpendicular to r_jk (vector between j and k)
+            r_jk = coords[k] - coords[j]
+            parallel_hat = r_jk / np.linalg.norm( r_jk )
+            perpendicular_hat = np.array([ -parallel_hat[1], parallel_hat[0] ])
+
+            # Calculate angle of publication i relative to r_jk
+            costhetaj = ( d_ik**2. + d_jk**2. - d_ij**2. ) / ( 2. * d_ik * d_jk )
+
+            # Place coord i
+            r_ki = d_ik * costhetaj * parallel_hat + d_ik * np.sqrt( 1. - costhetaj**2. ) * perpendicular_hat
+            coords[i] = coords[j] + r_ki
+
+            # Append other info
+            pairs += [ ( i, j ), ( i, k ) ]
+            mapped_inds[m+2] = i
+
+        coords = np.array( coords )
+        mapped_inds = np.array( mapped_inds )
+        pairs = np.array( pairs, dtype=int )
+
+        return coords, mapped_inds, pairs
+
     ########################################################################
 
     def concept_rank_map(
