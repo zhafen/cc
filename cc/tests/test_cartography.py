@@ -903,6 +903,32 @@ class TestMap( unittest.TestCase ):
         # These are the coords everything is centered on
         assert self.c.publications[inds[0]] == 'Hafen2019'
         assert self.c.publications[inds[1]] == 'Hafen2019a'
+        psi_center = np.nanmedian( np.arccos( self.c.cospsi_matrix ) )
+        npt.assert_allclose(
+            np.linalg.norm( coords[inds[1]] - coords[inds[0]] ),
+            np.exp( self.c.psi( 'Hafen2019', 'Hafen2019a', scaling=1. ) - psi_center )
+        )
+
+        # Check pairwise distances
+        d_ij = []
+        psi_ij = []
+        for i, j in pairs:
+            d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
+            psi_ij.append( self.c.psi( self.c.publications[i], self.c.publications[j], scaling=1. )[0] )
+        npt.assert_allclose( d_ij, np.exp( psi_ij - psi_center ), )
+
+        # Check right number of distances
+        assert len( pairs ) == ( len( self.c.publications ) - 2 ) * 2 + 1
+
+    ########################################################################
+
+    def test_map_no_distance_transformation( self ):
+
+        coords, inds, pairs = self.c.map( 'Hafen2019', distance_transformation='arc length' )
+
+        # These are the coords everything is centered on
+        assert self.c.publications[inds[0]] == 'Hafen2019'
+        assert self.c.publications[inds[1]] == 'Hafen2019a'
         npt.assert_allclose(
             np.linalg.norm( coords[inds[1]] - coords[inds[0]] ),
             self.c.psi( 'Hafen2019', 'Hafen2019a', scaling=1. )
@@ -923,7 +949,7 @@ class TestMap( unittest.TestCase ):
 
     def test_map_no_max_links( self ):
 
-        coords, inds, pairs = self.c.map( 'Hafen2019', max_links=None )
+        coords, inds, pairs = self.c.map( 'Hafen2019', max_links=None, distance_transformation='arc length' )
 
         # These are the coords everything is centered on
         assert self.c.publications[inds[0]] == 'Hafen2019'

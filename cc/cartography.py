@@ -1168,6 +1168,7 @@ class Cartographer( object ):
     def map(
         self,
         center,
+        distance_transformation = 'exponential',
         max_links = 6,
     ):
 
@@ -1178,6 +1179,14 @@ class Cartographer( object ):
 
         # Get distances
         d_matrix = np.arccos( self.cospsi_matrix )
+        # s = r * psi = 1 * psi, so arc length is psi
+        if distance_transformation == 'arc length':
+            pass
+        elif distance_transformation == 'exponential':
+            psi_center = np.nanmedian( d_matrix )
+            d_matrix = np.exp( d_matrix - psi_center )
+        else:
+            raise KeyError( 'Unrecognized distance_transformation, {}'.format( distance_transformation ) )
         d_0is = d_matrix[i_center][sort_inds]
 
         # Setup center of map
