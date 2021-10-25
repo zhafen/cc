@@ -904,9 +904,10 @@ class TestMap( unittest.TestCase ):
         assert self.c.publications[inds[0]] == 'Hafen2019'
         assert self.c.publications[inds[1]] == 'Hafen2019a'
         psi_center = np.nanmedian( np.arccos( self.c.cospsi_matrix ) )
+        psi_std = np.nanstd( np.arccos( self.c.cospsi_matrix ) )
         npt.assert_allclose(
             np.linalg.norm( coords[inds[1]] - coords[inds[0]] ),
-            np.exp( self.c.psi( 'Hafen2019', 'Hafen2019a', scaling=1. ) - psi_center )
+            np.exp( ( self.c.psi( 'Hafen2019', 'Hafen2019a', scaling=1. ) - psi_center ) / psi_std )
         )
 
         # Check pairwise distances
@@ -915,7 +916,7 @@ class TestMap( unittest.TestCase ):
         for i, j in pairs:
             d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
             psi_ij.append( self.c.psi( self.c.publications[i], self.c.publications[j], scaling=1. )[0] )
-        npt.assert_allclose( d_ij, np.exp( psi_ij - psi_center ), )
+        npt.assert_allclose( d_ij, np.exp( ( psi_ij - psi_center ) / psi_std ), )
 
         # Check right number of distances
         assert len( pairs ) == ( len( self.c.publications ) - 2 ) * 2 + 1

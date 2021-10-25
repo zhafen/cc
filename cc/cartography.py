@@ -1183,8 +1183,9 @@ class Cartographer( object ):
         if distance_transformation == 'arc length':
             pass
         elif distance_transformation == 'exponential':
-            psi_center = np.nanmedian( d_matrix )
-            d_matrix = np.exp( d_matrix - psi_center )
+            d_med = np.nanmedian( d_matrix )
+            d_std = np.nanstd( d_matrix )
+            d_matrix = np.exp( ( d_matrix - d_med ) / d_std )
         else:
             raise KeyError( 'Unrecognized distance_transformation, {}'.format( distance_transformation ) )
         d_0is = d_matrix[i_center][sort_inds]
