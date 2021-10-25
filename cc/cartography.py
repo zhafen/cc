@@ -1168,6 +1168,7 @@ class Cartographer( object ):
     def map(
         self,
         center,
+        max_links = 6,
     ):
 
         # Setup relation to central publication
@@ -1193,38 +1194,83 @@ class Cartographer( object ):
         pairs = [
             ( sort_inds[0], sort_inds[1] ),
         ]
+        n_linked = np.zeros( len( sort_inds ), dtype=int )
+        n_linked[i_center] += 1
+        n_linked[sort_inds[1]] += 1
 
         for m, i in enumerate( tqdm( sort_inds[2:] ) ):
 
-            # Identify publications to connect to (publication j, publication k)
-            # Link to the central publication, and the most similar publication
-            k = i_center
+            # Select publications available for linking to
             available_inds = mapped_inds[1:m+2]
             d_ijs = d_matrix[i][available_inds]
-            j = available_inds[np.argmin( d_ijs )]
+            sort_inds_i = available_inds[np.argsort( d_ijs )]
+            if max_links is not None:
+                sort_inds_0 = sort_inds[n_linked[sort_inds] < max_links]
+                sort_inds_i = sort_inds_i[n_linked[sort_inds_i] < max_links]
+            else:
+                sort_inds_0 = sort_inds
 
-            # Get distances
-            d_ij = d_matrix[i,j]
-            d_ik = d_matrix[i,k]
-            d_jk = d_matrix[j,k]
+            # Identify publications to connect to (publication j, publication k)
+            # Link to the most similar publications already plotted
+            m_k = 0
+            m_j = 0
+            while True:
+                k = sort_inds_0[m_k]
+                j = sort_inds_i[m_j]
 
-            assert d_ij + d_ik > d_jk
+                # Avoid duplicates
+                if k == j:
+                    m_j += 1
+                    continue
+
+                # Get distances
+                d_ij = d_matrix[i,j]
+                d_ik = d_matrix[i,k]
+                # Important to use actual distance here,
+                # because distance between j and k may not be preserved
+                r_kj = coords[j] - coords[k]
+                d_jk = np.linalg.norm( r_kj )
+
+                if d_ij + d_ik > d_jk:
+                    break
+
+                # Loop over different js first, then different ks
+                if m_j < len( sort_inds_i ) - 1:
+                    m_j += 1
+                else:
+                    m_k += 1
+                    m_j = 0
 
             # Calculate directions parallel and perpendicular to r_kj (vector between j and k)
-            r_kj = coords[j] - coords[k]
-            parallel_hat = r_kj / np.linalg.norm( r_kj )
+            parallel_hat = r_kj / d_jk
             perpendicular_hat = np.array([ -parallel_hat[1], parallel_hat[0] ])
 
             # Calculate angle of publication i relative to r_kj
             costhetak = ( d_ik**2. + d_jk**2. - d_ij**2. ) / ( 2. * d_ik * d_jk )
 
-            # Place coord i
-            r_ki = d_ik * costhetak * parallel_hat + d_ik * np.sqrt( 1. - costhetak**2. ) * perpendicular_hat
-            coords[i] = coords[k] + r_ki
+            # coord i components
+            r_ki_llel = d_ik * costhetak * parallel_hat 
+            r_ki_perp = d_ik * np.sqrt( 1. - costhetak**2. ) * perpendicular_hat
+            coords_i_a = coords[k] + r_ki_llel + r_ki_perp
+            coords_i_b = coords[k] + r_ki_llel - r_ki_perp
+
+            # Identify which of the two intersections to use
+            # We use the intersection that's least crowded,
+            # defined as the one with the smaller sum of inverse squares
+            def intersection_evaluation( coords_i ):
+                d_i = np.linalg.norm( coords[available_inds] - coords_i, axis=1 )
+                return ( d_i**-2. ).sum()
+            if intersection_evaluation( coords_i_a ) < intersection_evaluation( coords_i_b ):
+                coords[i] = coords_i_a
+            else:
+                coords[i] = coords_i_b
 
             # Append other info
             pairs += [ ( i, j ), ( i, k ) ]
             mapped_inds[m+2] = i
+            n_linked[i] += 2
+            n_linked[j] += 1
+            n_linked[k] += 1
 
         coords = np.array( coords )
         mapped_inds = np.array( mapped_inds )
