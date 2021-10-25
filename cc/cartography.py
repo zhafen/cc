@@ -1210,16 +1210,13 @@ class Cartographer( object ):
 
             assert d_ij + d_ik > d_jk
 
-            # Calculate directions parallel and perpendicular to r_jk (vector between j and k)
-            r_jk = coords[k] - coords[j]
-            parallel_hat = r_jk / np.linalg.norm( r_jk )
+            # Calculate directions parallel and perpendicular to r_kj (vector between j and k)
+            r_kj = coords[j] - coords[k]
+            parallel_hat = r_kj / np.linalg.norm( r_kj )
             perpendicular_hat = np.array([ -parallel_hat[1], parallel_hat[0] ])
 
-            # Calculate angle of publication i relative to r_jk
+            # Calculate angle of publication i relative to r_kj
             costhetak = ( d_ik**2. + d_jk**2. - d_ij**2. ) / ( 2. * d_ik * d_jk )
-            # For some reason costheta needs to be multiplied by -1 here.
-            # Plz debug
-            costhetak *= -1.
 
             # Place coord i
             r_ki = d_ik * costhetak * parallel_hat + d_ik * np.sqrt( 1. - costhetak**2. ) * perpendicular_hat
