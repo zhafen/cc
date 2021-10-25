@@ -899,7 +899,6 @@ class TestMap( unittest.TestCase ):
     def test_map( self ):
 
         coords, inds, pairs = self.c.map( 'Hafen2019' )
-        publications = self.c.publications[inds]
 
         # These are the coords everything is centered on
         assert self.c.publications[inds[0]] == 'Hafen2019'
@@ -909,15 +908,13 @@ class TestMap( unittest.TestCase ):
             self.c.psi( 'Hafen2019', 'Hafen2019a', scaling=1. )
         )
 
+        # Check pairwise distances
+        d_ij = []
+        psi_ij = []
         for i, j in pairs:
-            d_ij = np.linalg.norm( coords[i] - coords[j] )
-            psi_ij = self.c.psi( self.c.publications[i], self.c.publications[j], scaling=1. )
-            npt.assert_allclose( d_ij, psi_ij, )
-        # n_accurate = 0
-        # for m, i in enumerate( inds ):
+            d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
+            psi_ij.append( self.c.psi( self.c.publications[i], self.c.publications[j], scaling=1. )[0] )
+        npt.assert_allclose( d_ij, psi_ij, )
 
-        #     d_ij = np.linalg.norm( coords - coords[i], axis=1 )
-        #     psi_ij = [ self.c.psi( publications[m], _, scaling=1. )[0] for _ in self.c.publications ]
-        #     n_accurate += np.isclose( d_ij, psi_ij  ).sum()
-
-        # assert n_accurate == len( pairs )
+        # Check right number of distances
+        assert len( pairs ) == ( len( self.c.publications ) - 2 ) * 2 + 1
