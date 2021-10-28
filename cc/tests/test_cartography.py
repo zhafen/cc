@@ -896,7 +896,6 @@ class TestMap( unittest.TestCase ):
 
     ########################################################################
 
-    def test_map( self ):
 
         coords, inds, pairs = self.c.map( 'Hafen2019' )
 
@@ -909,6 +908,8 @@ class TestMap( unittest.TestCase ):
             np.linalg.norm( coords[inds[1]] - coords[inds[0]] ),
             np.exp( ( self.c.psi( 'Hafen2019', 'Hafen2019a', scaling=1. ) - psi_center ) / psi_std )
         )
+
+        assert np.isnan( coords ).sum() == 0
 
         # Check pairwise distances
         d_ij = []
@@ -935,6 +936,8 @@ class TestMap( unittest.TestCase ):
             self.c.psi( 'Hafen2019', 'Hafen2019a', scaling=1. )
         )
 
+        assert np.isnan( coords ).sum() == 0
+
         # Check pairwise distances
         d_ij = []
         psi_ij = []
@@ -948,11 +951,11 @@ class TestMap( unittest.TestCase ):
 
     ########################################################################
 
-    def test_map_no_max_links( self ):
+    def test_map_max_links( self ):
 
         coords, inds, pairs = self.c.map( 
             'Hafen2019',
-            max_links = None,
+            max_links = 6,
             distance_transformation = 'arc length'
         )
 
@@ -982,14 +985,22 @@ class TestMap( unittest.TestCase ):
 
         # Modify distances
         self.c.cospsi_matrix
-        self.c._cospsi_matrix[8,9] = 0.0001
-        self.c._cospsi_matrix[9,8] = 0.0001
-
-        coords, inds, pairs = self.c.map( 'Hafen2019' )
+        fill_row = np.full( len( self.c.publications ), 0.0001, )
+        fill_row[8] = 1. # Same publication
+        fill_row[9] = 0.01 # Closest publication
+        self.c._cospsi_matrix[8,:] = fill_row
+        self.c._cospsi_matrix[:,8] = fill_row
 
         # These are the coords everything is centered on
         psi_center = np.nanmedian( np.arccos( self.c.cospsi_matrix ) )
         psi_std = np.nanstd( np.arccos( self.c.cospsi_matrix ) )
+        d_matrix = np.exp(
+            ( np.arccos( self.c.cospsi_matrix ) - psi_center ) / psi_std
+        )
+
+        coords, inds, pairs = self.c.map( 'Hafen2019', )
+
+        assert np.isnan( coords ).sum() == 0
 
         # Check pairwise distances
         d_ij = []

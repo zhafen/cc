@@ -1172,7 +1172,7 @@ class Cartographer( object ):
         self,
         center,
         distance_transformation = 'exponential',
-        max_links = 6,
+        max_links = None,
     ):
         '''Generate a map of the publications.
         When projecting from an N-dimensional space to a two dimensional space, we can only preserve
@@ -1202,7 +1202,6 @@ class Cartographer( object ):
 
         # Get distances
         d_matrix = np.arccos( self.cospsi_matrix )
-        # s = r * psi = 1 * psi, so arc length is psi
         if distance_transformation == 'arc length':
             pass
         elif distance_transformation == 'exponential':
@@ -1236,20 +1235,30 @@ class Cartographer( object ):
             # Select publications available for linking to
             available_inds = mapped_inds[1:m+2]
             d_ijs = d_matrix[i][available_inds]
-            sort_inds_i = available_inds[np.argsort( d_ijs )]
+            sort_inds_for_j = available_inds[np.argsort( d_ijs )]
             if max_links is not None:
-                sort_inds_0 = sort_inds[n_linked[sort_inds] < max_links]
-                sort_inds_i = sort_inds_i[n_linked[sort_inds_i] < max_links]
+                sort_inds_for_j = sort_inds_for_j[n_linked[sort_inds_for_j] < max_links]
+                sort_inds_for_k = sort_inds[n_linked[sort_inds] < max_links]
             else:
-                sort_inds_0 = sort_inds
+                sort_inds_for_k = sort_inds
 
             # Identify publications to connect to (publication j, publication k)
             # Link to the most similar publications already plotted
             m_k = 0
             m_j = 0
             while True:
-                k = sort_inds_0[m_k]
-                j = sort_inds_i[m_j]
+
+                # Check for validity before continuing
+                if m_j >= len( sort_inds_for_j ):
+                    m_k += 1
+                    m_j = 0
+                    continue
+                if m_k >= len( sort_inds_for_k ):
+                    two_valid_pairs = False
+                    break
+
+                j = sort_inds_for_j[m_j]
+                k = sort_inds_for_k[m_k]
 
                 # Avoid duplicates
                 if k == j:
@@ -1265,45 +1274,64 @@ class Cartographer( object ):
                 d_jk = np.linalg.norm( r_kj )
 
                 if d_ij + d_ik > d_jk:
+                    two_valid_pairs = True
                     break
 
                 # Loop over different js first, then different ks
-                if m_j < len( sort_inds_i ) - 1:
-                    m_j += 1
+                m_j += 1
+
+            # Most common case, where we can find a way to preserve two distances
+            if two_valid_pairs:
+
+                # Calculate directions parallel and perpendicular to r_kj (vector between j and k)
+                parallel_hat = r_kj / d_jk
+                perpendicular_hat = np.array([ -parallel_hat[1], parallel_hat[0] ])
+
+                # Calculate angle of publication i relative to r_kj
+                costhetak = ( d_ik**2. + d_jk**2. - d_ij**2. ) / ( 2. * d_ik * d_jk )
+
+                # coord i components
+                r_ki_llel = d_ik * costhetak * parallel_hat 
+                r_ki_perp = d_ik * np.sqrt( 1. - costhetak**2. ) * perpendicular_hat
+                coords_i_a = coords[k] + r_ki_llel + r_ki_perp
+                coords_i_b = coords[k] + r_ki_llel - r_ki_perp
+
+                # Identify which of the two intersections to use
+                # We use the intersection that's least crowded,
+                # defined as the one with the smaller sum of inverse squares
+                def intersection_evaluation( coords_i ):
+                    d_i = np.linalg.norm( coords[available_inds] - coords_i, axis=1 )
+                    return ( d_i**-2. ).sum()
+                if intersection_evaluation( coords_i_a ) < intersection_evaluation( coords_i_b ):
+                    coords[i] = coords_i_a
                 else:
-                    m_k += 1
-                    m_j = 0
+                    coords[i] = coords_i_b
 
-            # Calculate directions parallel and perpendicular to r_kj (vector between j and k)
-            parallel_hat = r_kj / d_jk
-            perpendicular_hat = np.array([ -parallel_hat[1], parallel_hat[0] ])
+                # Append other info
+                pairs += [ ( i, j ), ( i, k ) ]
+                mapped_inds[m+2] = i
+                n_linked[i] += 2
+                n_linked[j] += 1
+                n_linked[k] += 1
 
-            # Calculate angle of publication i relative to r_kj
-            costhetak = ( d_ik**2. + d_jk**2. - d_ij**2. ) / ( 2. * d_ik * d_jk )
-
-            # coord i components
-            r_ki_llel = d_ik * costhetak * parallel_hat 
-            r_ki_perp = d_ik * np.sqrt( 1. - costhetak**2. ) * perpendicular_hat
-            coords_i_a = coords[k] + r_ki_llel + r_ki_perp
-            coords_i_b = coords[k] + r_ki_llel - r_ki_perp
-
-            # Identify which of the two intersections to use
-            # We use the intersection that's least crowded,
-            # defined as the one with the smaller sum of inverse squares
-            def intersection_evaluation( coords_i ):
-                d_i = np.linalg.norm( coords[available_inds] - coords_i, axis=1 )
-                return ( d_i**-2. ).sum()
-            if intersection_evaluation( coords_i_a ) < intersection_evaluation( coords_i_b ):
-                coords[i] = coords_i_a
+            # Backup case, where we can only preserve one distance
             else:
-                coords[i] = coords_i_b
+                k = sort_inds_for_k[0]
+                d_ik = d_matrix[i,k]
+                
+                # Choose a random location
+                x = np.random.uniform( -1, 1 )
+                y = np.random.uniform( -1, 1 )
+                r_ik_hat = np.array([ x, y ])
+                r_ik_hat /= np.linalg.norm( r_ik_hat )
+                r_ik = d_ik * r_ik_hat
+                coords[i] = coords[k] + r_ik
 
-            # Append other info
-            pairs += [ ( i, j ), ( i, k ) ]
-            mapped_inds[m+2] = i
-            n_linked[i] += 2
-            n_linked[j] += 1
-            n_linked[k] += 1
+                # Append other info
+                pairs.append( ( i, k ) )
+                mapped_inds[m+2] = i
+                n_linked[i] += 1
+                n_linked[k] += 1
 
         coords = np.array( coords )
         mapped_inds = np.array( mapped_inds )
@@ -1347,8 +1375,8 @@ class Cartographer( object ):
                     ha = 'center',
                 )
 
-        ax.set_xlim( coords[:,0].min() / 1.1, coords[:,0].max() * 1.1 )
-        ax.set_ylim( coords[:,1].min() / 1.1, coords[:,1].max() * 1.1 )
+        ax.set_xlim( np.nanmin( coords[:,0] ) / 1.1, np.nanmax( coords[:,0] ) * 1.1 )
+        ax.set_ylim( np.nanmin( coords[:,1] ) / 1.1, np.nanmax( coords[:,1] ) * 1.1 )
         ax.set_aspect( 'equal' )
 
         ax.tick_params( 
