@@ -1198,6 +1198,9 @@ class Cartographer( object ):
 
             save_filepath (str):
                 Location to save the data at, if given.
+
+            overwrite (bool):
+                If True, overwrite any saved data, otherwise use existing data.
         '''
         
         # Retrieve saved data, if any
