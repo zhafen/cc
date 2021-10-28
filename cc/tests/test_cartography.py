@@ -896,6 +896,7 @@ class TestMap( unittest.TestCase ):
 
     ########################################################################
 
+    def test_map( self ):
 
         coords, inds, pairs = self.c.map( 'Hafen2019' )
 
@@ -998,7 +999,7 @@ class TestMap( unittest.TestCase ):
             ( np.arccos( self.c.cospsi_matrix ) - psi_center ) / psi_std
         )
 
-        coords, inds, pairs = self.c.map( 'Hafen2019', )
+        coords, inds, pairs = self.c.map( 'Hafen2019', max_links=None )
 
         assert np.isnan( coords ).sum() == 0
 
@@ -1012,6 +1013,38 @@ class TestMap( unittest.TestCase ):
 
         # Check right number of distances
         assert len( pairs ) == ( len( self.c.publications ) - 2 ) * 2 + 1
+
+    ########################################################################
+
+    def test_works_for_large_distances_max_links( self ):
+        '''When d_ij > d_ik + d_jk.'''
+
+        # Modify distances
+        self.c.cospsi_matrix
+        fill_row = np.full( len( self.c.publications ), 0.0001, )
+        fill_row[8] = 1. # Same publication
+        fill_row[9] = 0.01 # Closest publication
+        self.c._cospsi_matrix[8,:] = fill_row
+        self.c._cospsi_matrix[:,8] = fill_row
+
+        # These are the coords everything is centered on
+        psi_center = np.nanmedian( np.arccos( self.c.cospsi_matrix ) )
+        psi_std = np.nanstd( np.arccos( self.c.cospsi_matrix ) )
+        d_matrix = np.exp(
+            ( np.arccos( self.c.cospsi_matrix ) - psi_center ) / psi_std
+        )
+
+        coords, inds, pairs = self.c.map( 'Hafen2019', max_links=2 )
+
+        assert np.isnan( coords ).sum() == 0
+
+        # Check pairwise distances
+        d_ij = []
+        psi_ij = []
+        for i, j in pairs:
+            d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
+            psi_ij.append( np.arccos( self.c.cospsi_matrix[i,j] ) )
+        npt.assert_allclose( d_ij, np.exp( ( psi_ij - psi_center ) / psi_std ), )
 
     ########################################################################
 

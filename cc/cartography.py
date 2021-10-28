@@ -1233,20 +1233,38 @@ class Cartographer( object ):
         for m, i in enumerate( tqdm( sort_inds[2:] ) ):
 
             # Select publications available for linking to
-            available_inds = mapped_inds[1:m+2]
-            d_ijs = d_matrix[i][available_inds]
-            sort_inds_for_j = available_inds[np.argsort( d_ijs )]
+            # js are selected from most similar publications
+            available_inds_j = mapped_inds[1:m+2]
+            d_ijs = d_matrix[i][available_inds_j]
+            sort_inds_for_j = available_inds_j[np.argsort( d_ijs )]
+            # ks are selected from most similar publications to the center
+            available_inds_k = mapped_inds[:m+2]
+            d_from_centers = d_matrix[i_center][available_inds_k]
+            sort_inds_for_k = available_inds_k[np.argsort(d_from_centers)]
+
+            # Omit publications linked too much
             if max_links is not None:
+
+                if ( n_linked[sort_inds_for_k] != max_links ).sum() == 0:
+                    warnings.warn(
+                        'No available publications to link to.' + \
+                        'Increasing number of max links allowed from {} to {}'.format( max_links, max_links+1 )
+                    )
+                    max_links += 1
+
                 sort_inds_for_j = sort_inds_for_j[n_linked[sort_inds_for_j] < max_links]
-                sort_inds_for_k = sort_inds[n_linked[sort_inds] < max_links]
-            else:
-                sort_inds_for_k = sort_inds
+                sort_inds_for_k = sort_inds_for_k[n_linked[sort_inds_for_k] < max_links]
 
             # Identify publications to connect to (publication j, publication k)
             # Link to the most similar publications already plotted
             m_k = 0
             m_j = 0
-            while True:
+            valid_pairs_may_exist = (
+                ( len( sort_inds_for_j ) > 0 ) &
+                ( len( sort_inds_for_k ) > 0 )
+            )
+            two_valid_pairs = False
+            while valid_pairs_may_exist:
 
                 # Check for validity before continuing
                 if m_j >= len( sort_inds_for_j ):
@@ -1254,7 +1272,6 @@ class Cartographer( object ):
                     m_j = 0
                     continue
                 if m_k >= len( sort_inds_for_k ):
-                    two_valid_pairs = False
                     break
 
                 j = sort_inds_for_j[m_j]
@@ -1300,7 +1317,7 @@ class Cartographer( object ):
                 # We use the intersection that's least crowded,
                 # defined as the one with the smaller sum of inverse squares
                 def intersection_evaluation( coords_i ):
-                    d_i = np.linalg.norm( coords[available_inds] - coords_i, axis=1 )
+                    d_i = np.linalg.norm( coords[available_inds_k] - coords_i, axis=1 )
                     return ( d_i**-2. ).sum()
                 if intersection_evaluation( coords_i_a ) < intersection_evaluation( coords_i_b ):
                     coords[i] = coords_i_a
