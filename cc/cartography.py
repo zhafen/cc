@@ -1173,6 +1173,7 @@ class Cartographer( object ):
         center,
         distance_transformation = 'exponential',
         max_links = None,
+        save_filepath = None,
     ):
         '''Generate a map of the publications.
         When projecting from an N-dimensional space to a two dimensional space, we can only preserve
@@ -1193,6 +1194,9 @@ class Cartographer( object ):
             max_links (int or None):
                 Maximum number of times an individual publication can be linked to, including
                 the central publication. Changes the appearance of the map.
+
+            save_filepath (str):
+                Location to save the data at, if given.
         '''
 
         # Setup relation to central publication
@@ -1354,6 +1358,15 @@ class Cartographer( object ):
         mapped_inds = np.array( mapped_inds )
         pairs = np.array( pairs, dtype=int )
 
+        if save_filepath is not None:
+            save_data = verdict.Dict.from_hdf5( save_filepath, create_nonexistent=True )
+            save_data[center] = {
+                'coordinates': coords,
+                'ordered indices': mapped_inds,
+                'pairs': pairs,
+            }
+            save_data.to_hdf5( save_filepath )
+
         return coords, mapped_inds, pairs
 
     ########################################################################
@@ -1392,8 +1405,10 @@ class Cartographer( object ):
                     ha = 'center',
                 )
 
-        ax.set_xlim( np.nanmin( coords[:,0] ) / 1.1, np.nanmax( coords[:,0] ) * 1.1 )
-        ax.set_ylim( np.nanmin( coords[:,1] ) / 1.1, np.nanmax( coords[:,1] ) * 1.1 )
+        min = np.nanmin( coords )
+        max = np.nanmax( coords )
+        ax.set_xlim( min - 0.1 * np.abs( min ), max + 0.1 * np.abs( max ) )
+        ax.set_ylim( min - 0.1 * np.abs( min ), max + 0.1 * np.abs( max ) )
         ax.set_aspect( 'equal' )
 
         ax.tick_params( 

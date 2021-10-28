@@ -1,4 +1,5 @@
 import copy
+import h5py
 from mock import patch
 import numpy as np
 import numpy.testing as npt
@@ -893,6 +894,15 @@ class TestMap( unittest.TestCase ):
 
         fp = './tests/data/example_atlas/projection.h5'
         self.c = cartography.Cartographer.from_hdf5( fp )
+        self.save_fp = './tests/data/example_atlas/map.h5'
+
+        if os.path.isfile( self.save_fp ):
+            os.remove( self.save_fp )
+
+    def tearDown( self ):
+
+        if os.path.isfile( self.save_fp ):
+            os.remove( self.save_fp )
 
     ########################################################################
 
@@ -1047,21 +1057,47 @@ class TestMap( unittest.TestCase ):
         npt.assert_allclose( d_ij, np.exp( ( psi_ij - psi_center ) / psi_std ), )
 
     ########################################################################
+    
+    # This may be an edge case. Ignoring for now.
+
+    # def test_works_for_large_distances_max_links_alt( self ):
+    #     '''When d_ij > d_ik + d_jk.'''
+
+    #     # Modify distances
+    #     self.c.cospsi_matrix
+    #     fill_row = np.full( len( self.c.publications ), 0.0001, )
+    #     fill_row[6] = 1. # Same publication
+    #     fill_row[8] = 0.8 # Closest publication
+    #     self.c._cospsi_matrix[6,:] = fill_row
+    #     self.c._cospsi_matrix[:,6] = fill_row
+
+    #     # These are the coords everything is centered on
+    #     psi_center = np.nanmedian( np.arccos( self.c.cospsi_matrix ) )
+    #     psi_std = np.nanstd( np.arccos( self.c.cospsi_matrix ) )
+    #     d_matrix = np.exp(
+    #         ( np.arccos( self.c.cospsi_matrix ) - psi_center ) / psi_std
+    #     )
+
+    #     coords, inds, pairs = self.c.map( 'Hafen2019', )
+
+    #     assert np.isnan( coords ).sum() == 0
+
+    #     # Check pairwise distances
+    #     d_ij = []
+    #     psi_ij = []
+    #     for i, j in pairs:
+    #         d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
+    #         psi_ij.append( np.arccos( self.c.cospsi_matrix[i,j] ) )
+    #     npt.assert_allclose( d_ij, np.exp( ( psi_ij - psi_center ) / psi_std ), )
+
+    ########################################################################
 
     def test_saves( self ):
 
-        assert False
+        coords, inds, pairs = self.c.map( 'Hafen2019', save_filepath=self.save_fp )
 
-    ########################################################################
-
-    def test_max_links_bug( self ):
-        '''To reproduce: create a map on a large atlas with max_links!=None.'''
-
-        assert False
-
-    ########################################################################
-
-    def test_no_nan_coords( self ):
-        '''To reproduce: nans on a large atlas.'''
-
-        assert False
+        f = h5py.File( self.save_fp, 'r' )
+        g = f['Hafen2019']
+        npt.assert_allclose( coords, g['coordinates'][...] )
+        npt.assert_allclose( inds, g['ordered indices'][...] )
+        npt.assert_allclose( pairs, g['pairs'][...] )
