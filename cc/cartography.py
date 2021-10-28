@@ -1174,6 +1174,7 @@ class Cartographer( object ):
         distance_transformation = 'exponential',
         max_links = None,
         save_filepath = None,
+        overwrite = False,
     ):
         '''Generate a map of the publications.
         When projecting from an N-dimensional space to a two dimensional space, we can only preserve
@@ -1198,6 +1199,12 @@ class Cartographer( object ):
             save_filepath (str):
                 Location to save the data at, if given.
         '''
+        
+        # Retrieve saved data, if any
+        if save_filepath is not None:
+            save_data = verdict.Dict.from_hdf5( save_filepath, create_nonexistent=True )
+            if not overwrite and center in save_data:
+                return save_data['coordinates'], save_data['ordered indices'], save_data['pair']
 
         # Setup relation to central publication
         i_center = self.inds[center == self.publications][0]
@@ -1359,7 +1366,6 @@ class Cartographer( object ):
         pairs = np.array( pairs, dtype=int )
 
         if save_filepath is not None:
-            save_data = verdict.Dict.from_hdf5( save_filepath, create_nonexistent=True )
             save_data[center] = {
                 'coordinates': coords,
                 'ordered indices': mapped_inds,
