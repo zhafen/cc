@@ -950,7 +950,11 @@ class TestMap( unittest.TestCase ):
 
     def test_map_no_max_links( self ):
 
-        coords, inds, pairs = self.c.map( 'Hafen2019', max_links=None, distance_transformation='arc length' )
+        coords, inds, pairs = self.c.map( 
+            'Hafen2019',
+            max_links = None,
+            distance_transformation = 'arc length'
+        )
 
         # These are the coords everything is centered on
         assert self.c.publications[inds[0]] == 'Hafen2019'
@@ -970,3 +974,50 @@ class TestMap( unittest.TestCase ):
 
         # Check right number of distances
         assert len( pairs ) == ( len( self.c.publications ) - 2 ) * 2 + 1
+
+    ########################################################################
+
+    def test_works_for_large_distances( self ):
+        '''When d_ij > d_ik + d_jk.'''
+
+        # Modify distances
+        self.c.cospsi_matrix
+        self.c._cospsi_matrix[8,9] = 0.0001
+        self.c._cospsi_matrix[9,8] = 0.0001
+
+        coords, inds, pairs = self.c.map( 'Hafen2019' )
+
+        # These are the coords everything is centered on
+        psi_center = np.nanmedian( np.arccos( self.c.cospsi_matrix ) )
+        psi_std = np.nanstd( np.arccos( self.c.cospsi_matrix ) )
+
+        # Check pairwise distances
+        d_ij = []
+        psi_ij = []
+        for i, j in pairs:
+            d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
+            psi_ij.append( np.arccos( self.c.cospsi_matrix[i,j] ) )
+        npt.assert_allclose( d_ij, np.exp( ( psi_ij - psi_center ) / psi_std ), )
+
+        # Check right number of distances
+        assert len( pairs ) == ( len( self.c.publications ) - 2 ) * 2 + 1
+
+    ########################################################################
+
+    def test_saves( self ):
+
+        assert False
+
+    ########################################################################
+
+    def test_max_links_bug( self ):
+        '''To reproduce: create a map on a large atlas with max_links!=None.'''
+
+        assert False
+
+    ########################################################################
+
+    def test_no_nan_coords( self ):
+        '''To reproduce: nans on a large atlas.'''
+
+        assert False

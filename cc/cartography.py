@@ -12,6 +12,9 @@ import sklearn.feature_extraction.text as skl_text_features
 from tqdm import tqdm
 import warnings
 
+import matplotlib
+import matplotlib.pyplot as plt
+
 import plotly
 import plotly.graph_objects as go
 import palettable
@@ -1171,6 +1174,26 @@ class Cartographer( object ):
         distance_transformation = 'exponential',
         max_links = 6,
     ):
+        '''Generate a map of the publications.
+        When projecting from an N-dimensional space to a two dimensional space, we can only preserve
+        two of the distances per publication. The default for the map preserves the distance between
+        publication i and the central publication, and publication i and the most similar publication.
+
+        Args:
+            center (str):
+                Citation key for the central publication.
+
+            distance_transformation (str):
+                What are the distances between particles? Options:
+                'arc length':
+                    arccos( cospsi ), since vectors are normalized to a sphere of radius 1.
+                'exponential':
+                    exp( ( psi_ij - [median psi] ) / [std psi] )
+
+            max_links (int or None):
+                Maximum number of times an individual publication can be linked to, including
+                the central publication. Changes the appearance of the map.
+        '''
 
         # Setup relation to central publication
         i_center = self.inds[center == self.publications][0]
@@ -1287,6 +1310,79 @@ class Cartographer( object ):
         pairs = np.array( pairs, dtype=int )
 
         return coords, mapped_inds, pairs
+
+    ########################################################################
+
+    def plot_map(
+        self,
+        center,
+        scatter = True,
+        labels = False,
+        **kwargs
+    ):
+
+        # Get map projection
+        data = self.map( center, **kwargs )
+        coords, inds, pairs = data
+
+        fig = plt.figure()
+        ax = plt.gca()
+
+        if scatter:
+            ax.scatter(
+                coords[:,0],
+                coords[:,1],
+            )
+
+        if labels:
+            for i, coord in enumerate( coords ):
+
+                ax.annotate(
+                    text = self.publications[i],
+                    xy = coord,
+                    xycoords = 'data',
+                    xytext = ( 0, 0 ),
+                    textcoords = 'offset points',
+                    va = 'center',
+                    ha = 'center',
+                )
+
+        ax.set_xlim( coords[:,0].min() / 1.1, coords[:,0].max() * 1.1 )
+        ax.set_ylim( coords[:,1].min() / 1.1, coords[:,1].max() * 1.1 )
+        ax.set_aspect( 'equal' )
+
+        ax.tick_params( 
+            which='both',
+            top=False,
+            bottom=False,
+            left=False,
+            right=False,
+            labeltop=False,
+            labelbottom=False,
+            labelleft=False,
+            labelright=False,
+        )
+
+        # # Plotly Plot
+        # xs = coords[:,0]
+        # ys = coords[:,1]
+        # labels = self.publications
+        # fig = go.Figure(
+        #     data=go.Scatter(
+        #         x = xs,
+        #         y = ys,
+        #         mode = 'markers',
+        #         text = labels,
+        #         # marker = dict(
+        #         #     color = colors,
+        #         #     colorscale = colorscale,
+        #         #     size = size,
+        #         # )
+        #     ),
+        #     layout = go.Layout( width=800, height=800),
+        # )
+
+        return fig, data
 
     ########################################################################
 
