@@ -2,6 +2,7 @@ import copy
 import ctypes
 import glob
 import inspect
+import numba
 import numpy as np
 import os
 import pandas as pd
@@ -1175,6 +1176,7 @@ class Cartographer( object ):
         max_links = None,
         save_filepath = None,
         overwrite = False,
+        use_numba = True,
     ):
         '''Generate a map of the publications.
         When projecting from an N-dimensional space to a two dimensional space, we can only preserve
@@ -1201,6 +1203,9 @@ class Cartographer( object ):
 
             overwrite (bool):
                 If True, overwrite any saved data, otherwise use existing data.
+
+            use_numba (bool):
+                If True, use numba for the calculation.
         '''
         
         # Retrieve saved data, if any
@@ -1226,147 +1231,177 @@ class Cartographer( object ):
             raise KeyError( 'Unrecognized distance_transformation, {}'.format( distance_transformation ) )
         d_0is = d_matrix[i_center][sort_inds]
 
-        # Setup center of map
+        # Setup data structures
         coords = np.full( ( len( sort_inds ), 2 ), fill_value=np.nan )
+        mapped_inds = np.full( len( sort_inds ), fill_value=-9999, dtype=int )
+        pairs = np.full( ( len( sort_inds ), 2 ), fill_value=-9999, dtype=int )
+        n_linked = np.zeros( len( sort_inds ), dtype=int )
+
+        # Input central data
         coords[i_center,:] = np.array([
             [ 0., 0., ],
         ])
         coords[sort_inds[1],:] = np.array([
             [ d_0is[1], 0. ]
         ])
-        mapped_inds = np.full( len( sort_inds ), fill_value=-9999, dtype=int )
         mapped_inds[0] = i_center
         mapped_inds[1] = sort_inds[1]
-        pairs = [
-            ( sort_inds[0], sort_inds[1] ),
-        ]
-        n_linked = np.zeros( len( sort_inds ), dtype=int )
+        pairs[sort_inds[1],0] = i_center
         n_linked[i_center] += 1
         n_linked[sort_inds[1]] += 1
 
-        for m, i in enumerate( tqdm( sort_inds[2:] ) ):
+        def generate_map(
+            sort_inds,
+            coords,
+            mapped_inds,
+            pairs,
+            n_linked,
+            d_matrix,
+            max_links,
+        ):
 
-            # Select publications available for linking to
-            # js are selected from most similar publications
-            available_inds_j = mapped_inds[1:m+2]
-            d_ijs = d_matrix[i][available_inds_j]
-            sort_inds_for_j = available_inds_j[np.argsort( d_ijs )]
-            # ks are selected from most similar publications to the center
-            available_inds_k = mapped_inds[:m+2]
-            d_from_centers = d_matrix[i_center][available_inds_k]
-            sort_inds_for_k = available_inds_k[np.argsort(d_from_centers)]
+            for m, i in enumerate( sort_inds[2:] ):
 
-            # Omit publications linked too much
-            if max_links is not None:
+                # Select publications available for linking to
+                # js are selected from most similar publications
+                available_inds_j = mapped_inds[1:m+2]
+                d_ijs = d_matrix[i][available_inds_j]
+                sort_inds_for_j = available_inds_j[np.argsort( d_ijs )]
+                # ks are selected from most similar publications to the center
+                available_inds_k = mapped_inds[:m+2]
+                d_from_centers = d_matrix[i_center][available_inds_k]
+                sort_inds_for_k = available_inds_k[np.argsort(d_from_centers)]
 
-                if ( n_linked[sort_inds_for_k] != max_links ).sum() == 0:
-                    warnings.warn(
-                        'No available publications to link to.' + \
-                        'Increasing number of max links allowed from {} to {}'.format( max_links, max_links+1 )
-                    )
-                    max_links += 1
+                # Omit publications linked too much
+                if max_links != -1:
 
-                sort_inds_for_j = sort_inds_for_j[n_linked[sort_inds_for_j] < max_links]
-                sort_inds_for_k = sort_inds_for_k[n_linked[sort_inds_for_k] < max_links]
+                    n_linked_k = n_linked[sort_inds_for_k]
+                    if np.sum( n_linked_k ) == max_links * len( n_linked_k ):
+                        print(
+                            'No available publications to link to.' + \
+                            'Increasing number of max links allowed from ' + \
+                            str( max_links ) + ' to ' + str( max_links + 1 )
+                        )
+                        max_links += 1
 
-            # Identify publications to connect to (publication j, publication k)
-            # Link to the most similar publications already plotted
-            m_k = 0
-            m_j = 0
-            valid_pairs_may_exist = (
-                ( len( sort_inds_for_j ) > 0 ) &
-                ( len( sort_inds_for_k ) > 0 )
-            )
-            two_valid_pairs = False
-            while valid_pairs_may_exist:
+                    sort_inds_for_j = sort_inds_for_j[n_linked[sort_inds_for_j] < max_links]
+                    sort_inds_for_k = sort_inds_for_k[n_linked_k < max_links]
 
-                # Check for validity before continuing
-                if m_j >= len( sort_inds_for_j ):
-                    m_k += 1
-                    m_j = 0
-                    continue
-                if m_k >= len( sort_inds_for_k ):
-                    break
+                # Identify publications to connect to (publication j, publication k)
+                # Link to the most similar publications already plotted
+                m_k = 0
+                m_j = 0
+                valid_pairs_may_exist = (
+                    ( len( sort_inds_for_j ) > 0 ) &
+                    ( len( sort_inds_for_k ) > 0 )
+                )
+                two_valid_pairs = False
+                while valid_pairs_may_exist:
 
-                j = sort_inds_for_j[m_j]
-                k = sort_inds_for_k[m_k]
+                    # Check for validity before continuing
+                    if m_j >= len( sort_inds_for_j ):
+                        m_k += 1
+                        m_j = 0
+                        continue
+                    if m_k >= len( sort_inds_for_k ):
+                        break
 
-                # Avoid duplicates
-                if k == j:
+                    j = sort_inds_for_j[m_j]
+                    k = sort_inds_for_k[m_k]
+
+                    # Avoid duplicates
+                    if k == j:
+                        m_j += 1
+                        continue
+
+                    # Get distances
+                    d_ij = d_matrix[i,j]
+                    d_ik = d_matrix[i,k]
+                    # Important to use actual distance here,
+                    # because distance between j and k may not be preserved
+                    r_kj = coords[j] - coords[k]
+                    d_jk = np.sqrt( ( r_kj**2. ).sum() )
+
+                    if d_ij + d_ik > d_jk:
+                        two_valid_pairs = True
+                        break
+
+                    # Loop over different js first, then different ks
                     m_j += 1
-                    continue
 
-                # Get distances
-                d_ij = d_matrix[i,j]
-                d_ik = d_matrix[i,k]
-                # Important to use actual distance here,
-                # because distance between j and k may not be preserved
-                r_kj = coords[j] - coords[k]
-                d_jk = np.linalg.norm( r_kj )
+                # Most common case, where we can find a way to preserve two distances
+                if two_valid_pairs:
 
-                if d_ij + d_ik > d_jk:
-                    two_valid_pairs = True
-                    break
+                    # Calculate directions parallel and perpendicular to r_kj (vector between j and k)
+                    parallel_hat = r_kj / d_jk
+                    perpendicular_hat = np.array([ -parallel_hat[1], parallel_hat[0] ])
 
-                # Loop over different js first, then different ks
-                m_j += 1
+                    # Calculate angle of publication i relative to r_kj
+                    costhetak = ( d_ik**2. + d_jk**2. - d_ij**2. ) / ( 2. * d_ik * d_jk )
 
-            # Most common case, where we can find a way to preserve two distances
-            if two_valid_pairs:
+                    # coord i components
+                    r_ki_llel = d_ik * costhetak * parallel_hat 
+                    r_ki_perp = d_ik * np.sqrt( 1. - costhetak**2. ) * perpendicular_hat
+                    coords_i_a = coords[k] + r_ki_llel + r_ki_perp
+                    coords_i_b = coords[k] + r_ki_llel - r_ki_perp
 
-                # Calculate directions parallel and perpendicular to r_kj (vector between j and k)
-                parallel_hat = r_kj / d_jk
-                perpendicular_hat = np.array([ -parallel_hat[1], parallel_hat[0] ])
+                    # Identify which of the two intersections to use
+                    # We use the intersection that's least crowded,
+                    # defined as the one with the smaller sum of inverse squares
+                    def intersection_evaluation( coords_i ):
+                        d_i = np.sqrt( np.sum( ( coords[available_inds_k] - coords_i )**2., axis=1 ) )
+                        return ( d_i**-2. ).sum()
+                    if intersection_evaluation( coords_i_a ) < intersection_evaluation( coords_i_b ):
+                        coords[i] = coords_i_a
+                    else:
+                        coords[i] = coords_i_b
 
-                # Calculate angle of publication i relative to r_kj
-                costhetak = ( d_ik**2. + d_jk**2. - d_ij**2. ) / ( 2. * d_ik * d_jk )
+                    # Append other info
+                    pairs[i,:] = np.array([ j, k ])
+                    mapped_inds[m+2] = i
+                    n_linked[i] += 2
+                    n_linked[j] += 1
+                    n_linked[k] += 1
 
-                # coord i components
-                r_ki_llel = d_ik * costhetak * parallel_hat 
-                r_ki_perp = d_ik * np.sqrt( 1. - costhetak**2. ) * perpendicular_hat
-                coords_i_a = coords[k] + r_ki_llel + r_ki_perp
-                coords_i_b = coords[k] + r_ki_llel - r_ki_perp
-
-                # Identify which of the two intersections to use
-                # We use the intersection that's least crowded,
-                # defined as the one with the smaller sum of inverse squares
-                def intersection_evaluation( coords_i ):
-                    d_i = np.linalg.norm( coords[available_inds_k] - coords_i, axis=1 )
-                    return ( d_i**-2. ).sum()
-                if intersection_evaluation( coords_i_a ) < intersection_evaluation( coords_i_b ):
-                    coords[i] = coords_i_a
+                # Backup case, where we can only preserve one distance
                 else:
-                    coords[i] = coords_i_b
+                    k = sort_inds_for_k[0]
+                    d_ik = d_matrix[i,k]
+                    
+                    # Choose a random location
+                    x = np.random.uniform( -1, 1 )
+                    y = np.random.uniform( -1, 1 )
+                    r_ik_hat = np.array([ x, y ])
+                    r_ik_hat /= np.linalg.norm( r_ik_hat )
+                    r_ik = d_ik * r_ik_hat
+                    coords[i] = coords[k] + r_ik
 
-                # Append other info
-                pairs += [ ( i, j ), ( i, k ) ]
-                mapped_inds[m+2] = i
-                n_linked[i] += 2
-                n_linked[j] += 1
-                n_linked[k] += 1
+                    # Append other info
+                    pairs[i,0] = k
+                    mapped_inds[m+2] = i
+                    n_linked[i] += 1
+                    n_linked[k] += 1
 
-            # Backup case, where we can only preserve one distance
-            else:
-                k = sort_inds_for_k[0]
-                d_ik = d_matrix[i,k]
-                
-                # Choose a random location
-                x = np.random.uniform( -1, 1 )
-                y = np.random.uniform( -1, 1 )
-                r_ik_hat = np.array([ x, y ])
-                r_ik_hat /= np.linalg.norm( r_ik_hat )
-                r_ik = d_ik * r_ik_hat
-                coords[i] = coords[k] + r_ik
+            return coords, mapped_inds, pairs
 
-                # Append other info
-                pairs.append( ( i, k ) )
-                mapped_inds[m+2] = i
-                n_linked[i] += 1
-                n_linked[k] += 1
+        # Format for function
+        if max_links is None:
+            max_links = -1
 
-        coords = np.array( coords )
-        mapped_inds = np.array( mapped_inds )
-        pairs = np.array( pairs, dtype=int )
+        if use_numba:
+            map_fn = numba.njit( generate_map )
+        else:
+            map_fn = generate_map
+
+        coords, mapped_inds, pairs = map_fn(
+            sort_inds,
+            coords,
+            mapped_inds,
+            pairs,
+            n_linked,
+            d_matrix,
+            max_links,
+        )
 
         if save_filepath is not None:
             save_data[center] = {

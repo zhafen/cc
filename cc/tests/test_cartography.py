@@ -899,6 +899,8 @@ class TestMap( unittest.TestCase ):
         if os.path.isfile( self.save_fp ):
             os.remove( self.save_fp )
 
+    ########################################################################
+
     def tearDown( self ):
 
         if os.path.isfile( self.save_fp ):
@@ -925,13 +927,16 @@ class TestMap( unittest.TestCase ):
         # Check pairwise distances
         d_ij = []
         psi_ij = []
-        for i, j in pairs:
-            d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
-            psi_ij.append( self.c.psi( self.c.publications[i], self.c.publications[j], scaling=1. )[0] )
+        for i, inside_inds in enumerate( pairs ):
+            for j in inside_inds:
+                if j < 0:
+                    continue
+                d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
+                psi_ij.append( self.c.psi( self.c.publications[i], self.c.publications[j], scaling=1. )[0] )
         npt.assert_allclose( d_ij, np.exp( ( psi_ij - psi_center ) / psi_std ), )
 
         # Check right number of distances
-        assert len( pairs ) == ( len( self.c.publications ) - 2 ) * 2 + 1
+        assert len( psi_ij ) == ( len( self.c.publications ) - 2 ) * 2 + 1
 
     ########################################################################
 
@@ -952,13 +957,16 @@ class TestMap( unittest.TestCase ):
         # Check pairwise distances
         d_ij = []
         psi_ij = []
-        for i, j in pairs:
-            d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
-            psi_ij.append( self.c.psi( self.c.publications[i], self.c.publications[j], scaling=1. )[0] )
+        for i, inside_inds in enumerate( pairs ):
+            for j in inside_inds:
+                if j < 0:
+                    continue
+                d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
+                psi_ij.append( self.c.psi( self.c.publications[i], self.c.publications[j], scaling=1. )[0] )
         npt.assert_allclose( d_ij, psi_ij, )
 
         # Check right number of distances
-        assert len( pairs ) == ( len( self.c.publications ) - 2 ) * 2 + 1
+        assert len( psi_ij ) == ( len( self.c.publications ) - 2 ) * 2 + 1
 
     ########################################################################
 
@@ -981,13 +989,16 @@ class TestMap( unittest.TestCase ):
         # Check pairwise distances
         d_ij = []
         psi_ij = []
-        for i, j in pairs:
-            d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
-            psi_ij.append( self.c.psi( self.c.publications[i], self.c.publications[j], scaling=1. )[0] )
+        for i, inside_inds in enumerate( pairs ):
+            for j in inside_inds:
+                if j < 0:
+                    continue
+                d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
+                psi_ij.append( self.c.psi( self.c.publications[i], self.c.publications[j], scaling=1. )[0] )
         npt.assert_allclose( d_ij, psi_ij, )
 
         # Check right number of distances
-        assert len( pairs ) == ( len( self.c.publications ) - 2 ) * 2 + 1
+        assert len( psi_ij ) == ( len( self.c.publications ) - 2 ) * 2 + 1
 
     ########################################################################
 
@@ -1016,13 +1027,16 @@ class TestMap( unittest.TestCase ):
         # Check pairwise distances
         d_ij = []
         psi_ij = []
-        for i, j in pairs:
-            d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
-            psi_ij.append( np.arccos( self.c.cospsi_matrix[i,j] ) )
+        for i, inside_inds in enumerate( pairs ):
+            for j in inside_inds:
+                if j < 0:
+                    continue
+                d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
+                psi_ij.append( np.arccos( self.c.cospsi_matrix[i,j] ) )
         npt.assert_allclose( d_ij, np.exp( ( psi_ij - psi_center ) / psi_std ), )
 
         # Check right number of distances
-        assert len( pairs ) == ( len( self.c.publications ) - 2 ) * 2 + 1
+        assert len( psi_ij ) == ( len( self.c.publications ) - 2 ) * 2 + 1
 
     ########################################################################
 
@@ -1051,9 +1065,12 @@ class TestMap( unittest.TestCase ):
         # Check pairwise distances
         d_ij = []
         psi_ij = []
-        for i, j in pairs:
-            d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
-            psi_ij.append( np.arccos( self.c.cospsi_matrix[i,j] ) )
+        for i, inside_inds in enumerate( pairs ):
+            for j in inside_inds:
+                if j < 0:
+                    continue
+                d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
+                psi_ij.append( np.arccos( self.c.cospsi_matrix[i,j] ) )
         npt.assert_allclose( d_ij, np.exp( ( psi_ij - psi_center ) / psi_std ), )
 
     ########################################################################
