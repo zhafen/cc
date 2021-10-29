@@ -1118,3 +1118,32 @@ class TestMap( unittest.TestCase ):
         npt.assert_allclose( coords, g['coordinates'][...] )
         npt.assert_allclose( inds, g['ordered indices'][...] )
         npt.assert_allclose( pairs, g['pairs'][...] )
+
+    ########################################################################
+
+    def test_answer( self ):
+
+        coords, inds, pairs = self.c.map( 'Hafen2019' )
+
+        answer_fp = './tests/data/example_atlas/answer_map.h5'
+        f = h5py.File( answer_fp, 'r' )
+        g = f['Hafen2019']
+        npt.assert_allclose( coords, g['coordinates'][...] )
+        npt.assert_allclose( inds, g['ordered indices'][...] )
+        npt.assert_allclose( pairs, g['pairs'][...] )
+
+########################################################################
+########################################################################
+
+def generate_map_answer():
+    '''Generate answer for map answer test.'''
+
+    fp = './tests/data/example_atlas/projection.h5'
+    c = cartography.Cartographer.from_hdf5( fp )
+    save_fp = './tests/data/example_atlas/answer_map.h5'
+
+    coords, inds, pairs = c.map( 'Hafen2019', save_filepath=save_fp, overwrite=True )
+
+if __name__ == '__main__':
+
+    generate_map_answer()
