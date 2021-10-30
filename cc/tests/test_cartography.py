@@ -1123,7 +1123,7 @@ class TestMap( unittest.TestCase ):
 
     def test_answer( self ):
 
-        coords, inds, pairs = self.c.map( 'Hafen2019' )
+        coords, inds, pairs = self.c.map( 'Hafen2019', use_numba=False )
 
         answer_fp = './tests/data/example_atlas/answer_map.h5'
         f = h5py.File( answer_fp, 'r' )

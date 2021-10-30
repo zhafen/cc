@@ -1211,8 +1211,9 @@ class Cartographer( object ):
         # Retrieve saved data, if any
         if save_filepath is not None:
             save_data = verdict.Dict.from_hdf5( save_filepath, create_nonexistent=True )
-            if not overwrite and center in save_data:
-                return save_data['coordinates'], save_data['ordered indices'], save_data['pair']
+            if not overwrite and ( center in save_data ):
+                group = save_data[center]
+                return group['coordinates'], group['ordered indices'], group['pairs']
 
         # Setup relation to central publication
         i_center = self.inds[center == self.publications][0]
@@ -1229,23 +1230,32 @@ class Cartographer( object ):
             d_matrix = np.exp( ( d_matrix - d_med ) / d_std )
         else:
             raise KeyError( 'Unrecognized distance_transformation, {}'.format( distance_transformation ) )
-        d_0is = d_matrix[i_center][sort_inds]
+        # Set diagonals to 0
+        n_p = len( self.publications )
+        d_matrix[np.arange(n_p),np.arange(n_p)] = 0.
+
+        # Build sorted indices matrix
+        sort_inds_matrix = np.full( d_matrix.shape, -9999 )
+        print( 'Sorting....' )
+        for m, i in enumerate( tqdm( sort_inds ) ):
+            if m < 2:
+                continue
+            d_for_sorting = d_matrix[i][sort_inds[:m]]
+            sort_inds_matrix[i][:m] = sort_inds[:m][np.argsort( d_for_sorting )]
 
         # Setup data structures
-        coords = np.full( ( len( sort_inds ), 2 ), fill_value=np.nan )
-        mapped_inds = np.full( len( sort_inds ), fill_value=-9999, dtype=int )
-        pairs = np.full( ( len( sort_inds ), 2 ), fill_value=-9999, dtype=int )
-        n_linked = np.zeros( len( sort_inds ), dtype=int )
+        coords = np.full( ( n_p, 2 ), fill_value=np.nan )
+        # mapped_inds = np.full( len( sort_inds ), fill_value=-9999, dtype=int )
+        pairs = np.full( ( n_p, 2 ), fill_value=-9999, dtype=int )
+        n_linked = np.zeros( n_p, dtype=int )
 
         # Input central data
         coords[i_center,:] = np.array([
             [ 0., 0., ],
         ])
         coords[sort_inds[1],:] = np.array([
-            [ d_0is[1], 0. ]
+            [ d_matrix[i_center][sort_inds[1]], 0. ]
         ])
-        mapped_inds[0] = i_center
-        mapped_inds[1] = sort_inds[1]
         pairs[sort_inds[1],0] = i_center
         n_linked[i_center] += 1
         n_linked[sort_inds[1]] += 1
@@ -1253,24 +1263,25 @@ class Cartographer( object ):
         def generate_map(
             sort_inds,
             coords,
-            mapped_inds,
+            sort_inds_matrix,
             pairs,
             n_linked,
             d_matrix,
             max_links,
         ):
 
-            for m, i in enumerate( sort_inds[2:] ):
+            if use_numba:
+                generator = enumerate( sort_inds[2:] )
+            else:
+                generator = enumerate( tqdm( sort_inds[2:] ) )
 
-                # Select publications available for linking to
-                # js are selected from most similar publications
-                available_inds_j = mapped_inds[1:m+2]
-                d_ijs = d_matrix[i][available_inds_j]
-                sort_inds_for_j = available_inds_j[np.argsort( d_ijs )]
-                # ks are selected from most similar publications to the center
-                available_inds_k = mapped_inds[:m+2]
-                d_from_centers = d_matrix[i_center][available_inds_k]
-                sort_inds_for_k = available_inds_k[np.argsort(d_from_centers)]
+            for m, i in generator:
+
+                # Because we start at sort_inds[2]
+                m_i = m + 2
+
+                sort_inds_for_j = sort_inds_matrix[i,:m_i]
+                sort_inds_for_k = sort_inds[:m_i]
 
                 # Omit publications linked too much
                 if max_links != -1:
@@ -1287,47 +1298,33 @@ class Cartographer( object ):
                     sort_inds_for_j = sort_inds_for_j[n_linked[sort_inds_for_j] < max_links]
                     sort_inds_for_k = sort_inds_for_k[n_linked_k < max_links]
 
-                # Identify publications to connect to (publication j, publication k)
-                # Link to the most similar publications already plotted
-                m_k = 0
-                m_j = 0
                 valid_pairs_may_exist = (
                     ( len( sort_inds_for_j ) > 0 ) &
                     ( len( sort_inds_for_k ) > 0 )
                 )
                 two_valid_pairs = False
-                while valid_pairs_may_exist:
+                if valid_pairs_may_exist:
+                    for m_k, k in enumerate( sort_inds_for_k ):
+                        for m_j, j in enumerate( sort_inds_for_j ):
 
-                    # Check for validity before continuing
-                    if m_j >= len( sort_inds_for_j ):
-                        m_k += 1
-                        m_j = 0
-                        continue
-                    if m_k >= len( sort_inds_for_k ):
-                        break
+                            # Skip duplicates
+                            if j == k:
+                                continue
 
-                    j = sort_inds_for_j[m_j]
-                    k = sort_inds_for_k[m_k]
+                            # Get distances
+                            d_ij = d_matrix[i,j]
+                            d_ik = d_matrix[i,k]
+                            # Important to use actual distance here,
+                            # because distance between j and k may not be preserved
+                            r_kj = coords[j] - coords[k]
+                            d_jk = np.sqrt( ( r_kj**2. ).sum() )
 
-                    # Avoid duplicates
-                    if k == j:
-                        m_j += 1
-                        continue
+                            if d_ij + d_ik > d_jk:
+                                two_valid_pairs = True
+                                break
 
-                    # Get distances
-                    d_ij = d_matrix[i,j]
-                    d_ik = d_matrix[i,k]
-                    # Important to use actual distance here,
-                    # because distance between j and k may not be preserved
-                    r_kj = coords[j] - coords[k]
-                    d_jk = np.sqrt( ( r_kj**2. ).sum() )
-
-                    if d_ij + d_ik > d_jk:
-                        two_valid_pairs = True
-                        break
-
-                    # Loop over different js first, then different ks
-                    m_j += 1
+                        if two_valid_pairs:
+                            break
 
                 # Most common case, where we can find a way to preserve two distances
                 if two_valid_pairs:
@@ -1349,7 +1346,7 @@ class Cartographer( object ):
                     # We use the intersection that's least crowded,
                     # defined as the one with the smaller sum of inverse squares
                     def intersection_evaluation( coords_i ):
-                        d_i = np.sqrt( np.sum( ( coords[available_inds_k] - coords_i )**2., axis=1 ) )
+                        d_i = np.sqrt( np.sum( ( coords[sort_inds[:m_i]] - coords_i )**2., axis=1 ) )
                         return ( d_i**-2. ).sum()
                     if intersection_evaluation( coords_i_a ) < intersection_evaluation( coords_i_b ):
                         coords[i] = coords_i_a
@@ -1358,7 +1355,7 @@ class Cartographer( object ):
 
                     # Append other info
                     pairs[i,:] = np.array([ j, k ])
-                    mapped_inds[m+2] = i
+                    # mapped_inds[m_i] = i
                     n_linked[i] += 2
                     n_linked[j] += 1
                     n_linked[k] += 1
@@ -1378,11 +1375,11 @@ class Cartographer( object ):
 
                     # Append other info
                     pairs[i,0] = k
-                    mapped_inds[m+2] = i
+                    # mapped_inds[m_i] = i
                     n_linked[i] += 1
                     n_linked[k] += 1
 
-            return coords, mapped_inds, pairs
+            return coords, sort_inds, pairs
 
         # Format for function
         if max_links is None:
@@ -1396,7 +1393,7 @@ class Cartographer( object ):
         coords, mapped_inds, pairs = map_fn(
             sort_inds,
             coords,
-            mapped_inds,
+            sort_inds_matrix,
             pairs,
             n_linked,
             d_matrix,
@@ -1418,8 +1415,11 @@ class Cartographer( object ):
     def plot_map(
         self,
         center,
+        ax = None,
         scatter = True,
+        scatter_kwargs = {},
         labels = False,
+        labels_kwargs = {},
         **kwargs
     ):
 
@@ -1427,26 +1427,34 @@ class Cartographer( object ):
         data = self.map( center, **kwargs )
         coords, inds, pairs = data
 
-        fig = plt.figure()
-        ax = plt.gca()
+        if ax is None:
+            fig = plt.figure()
+            ax = plt.gca()
 
         if scatter:
             ax.scatter(
                 coords[:,0],
                 coords[:,1],
+                **scatter_kwargs,
             )
 
         if labels:
-            for i, coord in enumerate( coords ):
+            for m_i, i in enumerate( inds ):
 
-                ax.annotate(
-                    text = self.publications[i],
-                    xy = coord,
+                coord = coords[i]
+
+                labels_kwargs_used = dict(
                     xycoords = 'data',
-                    xytext = ( 0, 0 ),
+                    xytext = ( 5, 5 ),
                     textcoords = 'offset points',
-                    va = 'center',
-                    ha = 'center',
+                    va = 'bottom',
+                    ha = 'left',
+                )
+                labels_kwargs_used.update( labels_kwargs )
+                ax.annotate(
+                    text = '{}: {}'.format( m_i, self.publications[i] ),
+                    xy = coord,
+                    **labels_kwargs_used
                 )
 
         min = np.nanmin( coords )
@@ -1486,7 +1494,7 @@ class Cartographer( object ):
         #     layout = go.Layout( width=800, height=800),
         # )
 
-        return fig, data
+        return ax, data
 
     ########################################################################
 
