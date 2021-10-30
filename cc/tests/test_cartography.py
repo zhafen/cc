@@ -5,6 +5,7 @@ import numpy as np
 import numpy.testing as npt
 import os
 import pytest
+import scipy.sparse as ss
 import shutil
 import unittest
 import verdict
@@ -32,6 +33,38 @@ class TestCartographer( unittest.TestCase ):
         data['publication_dates'][0] = '1677-01-01 00:00:00'
 
         return cartography.Cartographer( **data )
+        
+    ########################################################################
+
+    def test_prune_duplicates( self ):
+
+        fp = './tests/data/example_atlas/projection.h5'
+
+        data = verdict.Dict.from_hdf5( fp, sparse=True )
+        data['vectors'] = data['vectors'].toarray()
+
+        # Make duplicate
+        n_original = len( data['publications'] )
+        i_copy = 8
+        for key in [ 'publications', 'entry_dates', 'norms', 'publication_dates', 'vectors' ]:
+            if key == 'publications':
+                data[key] = np.append( data[key], 'duplicate' )
+            elif key == 'vectors':
+                data[key] = np.append( data[key], [ data[key][i_copy], ], axis=0 )
+            else:
+                data[key] = np.append( data[key], data[key][i_copy] )
+            assert data[key].shape[0] == n_original + 1
+        assert 'duplicate' in data['publications']
+
+        data['vectors'] = ss.csr_matrix( data['vectors'] )
+
+        # Function to test
+        c = cartography.Cartographer( prune_duplicates=True, **data )
+
+        # Check
+        assert 'duplicate' not in c.publications
+        for key in [ 'publications', 'entry_dates', 'norms', 'publication_dates', 'vectors' ]:
+            assert getattr( c, key ).shape[0] == n_original
 
 ########################################################################
 
@@ -1131,6 +1164,41 @@ class TestMap( unittest.TestCase ):
         npt.assert_allclose( coords, g['coordinates'][...] )
         npt.assert_allclose( inds, g['ordered indices'][...] )
         npt.assert_allclose( pairs, g['pairs'][...] )
+
+    ########################################################################
+
+    def test_map_realistic( self ):
+
+        fp = './tests/data/realistic_atlas/projection_for_testing.h5'
+        c = cartography.Cartographer.from_hdf5( fp )
+
+        coords, inds, pairs = c.map( 'Hafen2019', max_searched=100 )
+
+        # These are the coords everything is centered on
+        assert c.publications[inds[0]] == 'Hafen2019'
+        assert c.publications[inds[1]] == 'Hafen2019a'
+        psi_center = np.nanmedian( np.arccos( c.cospsi_matrix ) )
+        psi_std = np.nanstd( np.arccos( c.cospsi_matrix ) )
+        npt.assert_allclose(
+            np.linalg.norm( coords[inds[1]] - coords[inds[0]] ),
+            np.exp( ( c.psi( 'Hafen2019', 'Hafen2019a', scaling=1. ) - psi_center ) / psi_std )
+        )
+
+        assert np.isnan( coords ).sum() == 0
+
+        # Check pairwise distances
+        d_ij = []
+        psi_ij = []
+        for i, inside_inds in enumerate( pairs ):
+            for j in inside_inds:
+                if j < 0:
+                    continue
+                d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
+                psi_ij.append( c.psi( c.publications[i], c.publications[j], scaling=1. )[0] )
+        npt.assert_allclose( d_ij, np.exp( ( psi_ij - psi_center ) / psi_std ), )
+
+        # Check right number of distances
+        assert len( psi_ij ) == ( len( c.publications ) - 2 ) * 2 + 1
 
 ########################################################################
 ########################################################################

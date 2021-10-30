@@ -62,6 +62,7 @@ class Cartographer( object ):
         publication_dates,
         entry_dates,
         prune_zeros = True,
+        prune_duplicates = True,
     ):
         '''Update the data used for calculations.
         '''
@@ -78,6 +79,9 @@ class Cartographer( object ):
 
         if prune_zeros:
             self.prune_zero_entries()
+
+        if prune_duplicates:
+            self.prune_duplicate_entries()
 
     ########################################################################
     # Core methods
@@ -99,7 +103,10 @@ class Cartographer( object ):
 
         if not hasattr( self, '_vectors_notsp' ):
 
-            self._vectors_notsp = self.vectors.toarray()
+            try:
+                self._vectors_notsp = self.vectors.toarray()
+            except AttributeError:
+                self._vectors_notsp = self.vectors
 
         return self._vectors_notsp
 
@@ -128,6 +135,17 @@ class Cartographer( object ):
 
         is_nonzero = np.invert( np.isclose( self.norms, 0. ) )
         valid_inds = np.arange( self.publications.size )[is_nonzero]
+        for attr in [ 'vectors', 'norms', 'publications', 'publication_dates', 'entry_dates' ]:
+            value = getattr( self, attr )[valid_inds]
+            setattr( self, attr, value )
+
+    ########################################################################
+
+    def prune_duplicate_entries( self ):
+        '''Toss out duplicate entries.'''
+
+        unique_inds = np.unique( self.vectors_notsp, axis=0, return_index=True )[1]
+        valid_inds = np.sort( unique_inds )
         for attr in [ 'vectors', 'norms', 'publications', 'publication_dates', 'entry_dates' ]:
             value = getattr( self, attr )[valid_inds]
             setattr( self, attr, value )
@@ -1174,6 +1192,7 @@ class Cartographer( object ):
         center,
         distance_transformation = 'exponential',
         max_links = None,
+        max_searched = None,
         save_filepath = None,
         overwrite = False,
         use_numba = True,
@@ -1264,6 +1283,8 @@ class Cartographer( object ):
         # Format for function
         if max_links is None:
             max_links = -1
+        if max_searched is None:
+            max_searched = -1
 
         if use_numba:
             map_fn = numba.njit( generate_map )
@@ -1278,6 +1299,7 @@ class Cartographer( object ):
             n_linked,
             d_matrix,
             max_links,
+            max_searched,
         )
 
         if save_filepath is not None:
@@ -1514,20 +1536,35 @@ def generate_map(
     n_linked,
     d_matrix,
     max_links,
+    max_searched,
 ):
 
-    # try:
-    #     generator = enumerate( tqdm( sort_inds[2:] ) )
-    # except:
-    #     generator = enumerate( sort_inds[2:] )
+    # Progres
+    percentile_mult = 10
+    n_print = 100 // percentile_mult + 1
+    n = len( sort_inds[2:] )
+    print_progress = n > n_print
+    if print_progress:
+        percentile_int = n // percentile_mult
 
     for m, i in enumerate( sort_inds[2:] ):
+
+        if print_progress:
+            if m % percentile_int == 0:
+                print( str( ( m * 100 ) // n ) + '%' )
 
         # Because we start at sort_inds[2]
         m_i = m + 2
 
         sort_inds_for_j = sort_inds_matrix[i,:m_i]
         sort_inds_for_k = sort_inds[:m_i]
+
+        # Shorten, if necessary
+        if max_searched != -1:
+            if len( sort_inds_for_j ) > max_searched:
+                sort_inds_for_j = sort_inds_for_j[:max_searched]
+            if len( sort_inds_for_k ) > max_searched:
+                sort_inds_for_k = sort_inds_for_k[:max_searched]
 
         # Omit publications linked too much
         if max_links != -1:
@@ -1563,7 +1600,7 @@ def generate_map(
                     # Important to use actual distance here,
                     # because distance between j and k may not be preserved
                     r_kj = coords[j] - coords[k]
-                    d_jk = np.sqrt( r_kj[0]**2. + r_kj[1]**2. )
+                    d_jk = ( r_kj[0]**2. + r_kj[1]**2. )**0.5
 
                     if d_ij + d_ik > d_jk:
                         two_valid_pairs = True
@@ -1584,7 +1621,7 @@ def generate_map(
 
             # coord i components
             r_ki_llel = d_ik * costhetak * parallel_hat 
-            r_ki_perp = d_ik * np.sqrt( 1. - costhetak**2. ) * perpendicular_hat
+            r_ki_perp = d_ik * ( 1. - costhetak**2. )**0.5 * perpendicular_hat
             coords_i_a = coords[k] + r_ki_llel + r_ki_perp
             coords_i_b = coords[k] + r_ki_llel - r_ki_perp
 
@@ -1597,28 +1634,17 @@ def generate_map(
                     if ( l != j ) and ( l != k ):
                         break
                 r_il_a = coords_i_a - coords[l]
-                d_il_a = np.sqrt( r_il_a[0]**2. + r_il_a[1]**2. )
+                d_il_a = ( r_il_a[0]**2. + r_il_a[1]**2. )**0.5
                 r_il_b = coords_i_b - coords[l]
-                d_il_b = np.sqrt( r_il_b[0]**2. + r_il_b[1]**2. )
+                d_il_b = ( r_il_b[0]**2. + r_il_b[1]**2. )**0.5
 
                 if d_il_a > d_il_b:
                     coords[i] = coords_i_a
                 else:
                     coords[i] = coords_i_b
 
-            # # We use the intersection that's least crowded,
-            # # defined as the one with the smaller sum of inverse squares
-            # def intersection_evaluation( coords_i ):
-            #     d_i = np.sqrt( np.sum( ( coords[sort_inds[:m_i]] - coords_i )**2., axis=1 ) )
-            #     return ( d_i**-2. ).sum()
-            # if intersection_evaluation( coords_i_a ) < intersection_evaluation( coords_i_b ):
-            #     coords[i] = coords_i_a
-            # else:
-            #     coords[i] = coords_i_b
-
             # Append other info
             pairs[i,:] = np.array([ j, k ])
-            # mapped_inds[m_i] = i
             n_linked[i] += 2
             n_linked[j] += 1
             n_linked[k] += 1
@@ -1631,14 +1657,12 @@ def generate_map(
             # Choose a random location
             x = np.random.uniform( -1, 1 )
             y = np.random.uniform( -1, 1 )
-            r_ik_hat = np.array([ x, y ])
-            r_ik_hat /= np.linalg.norm( r_ik_hat )
+            r_ik_hat = np.array([ x, y ]) / ( x**2. + y**2. )**0.5
             r_ik = d_ik * r_ik_hat
             coords[i] = coords[k] + r_ik
 
             # Append other info
             pairs[i,0] = k
-            # mapped_inds[m_i] = i
             n_linked[i] += 1
             n_linked[k] += 1
 
