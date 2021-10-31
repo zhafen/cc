@@ -1172,33 +1172,30 @@ class TestMap( unittest.TestCase ):
         fp = './tests/data/realistic_atlas/projection_for_testing.h5'
         c = cartography.Cartographer.from_hdf5( fp )
 
-        coords, inds, pairs = c.map( 'Hafen2019', max_searched=100 )
-
-        # These are the coords everything is centered on
-        assert c.publications[inds[0]] == 'Hafen2019'
-        assert c.publications[inds[1]] == 'Hafen2019a'
-        psi_center = np.nanmedian( np.arccos( c.cospsi_matrix ) )
-        psi_std = np.nanstd( np.arccos( c.cospsi_matrix ) )
-        npt.assert_allclose(
-            np.linalg.norm( coords[inds[1]] - coords[inds[0]] ),
-            np.exp( ( c.psi( 'Hafen2019', 'Hafen2019a', scaling=1. ) - psi_center ) / psi_std )
+        coords, inds, pairs = c.map(
+            'Hafen2019',
+            max_searched = 100,
         )
 
         assert np.isnan( coords ).sum() == 0
 
+        # Distance matrix
+        psi_center = np.nanmedian( np.arccos( c.cospsi_matrix ) )
+        psi_std = np.nanstd( np.arccos( c.cospsi_matrix ) )
+        d_matrix = np.exp(
+            ( np.arccos( c.cospsi_matrix ) - psi_center ) / psi_std
+        )
+
         # Check pairwise distances
         d_ij = []
-        psi_ij = []
+        d_ij_expected = []
         for i, inside_inds in enumerate( pairs ):
             for j in inside_inds:
                 if j < 0:
                     continue
                 d_ij.append( np.linalg.norm( coords[i] - coords[j] ) )
-                psi_ij.append( c.psi( c.publications[i], c.publications[j], scaling=1. )[0] )
-        npt.assert_allclose( d_ij, np.exp( ( psi_ij - psi_center ) / psi_std ), )
-
-        # Check right number of distances
-        assert len( psi_ij ) == ( len( c.publications ) - 2 ) * 2 + 1
+                d_ij_expected.append( d_matrix[i,j] )
+        npt.assert_allclose( d_ij, d_ij_expected, atol=1e-6 )
 
 ########################################################################
 ########################################################################

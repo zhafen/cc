@@ -1602,7 +1602,12 @@ def generate_map(
                     r_kj = coords[j] - coords[k]
                     d_jk = ( r_kj[0]**2. + r_kj[1]**2. )**0.5
 
-                    if d_ij + d_ik > d_jk:
+                    # Conditions needed for deprojection
+                    # Requires points can be reached
+                    valid_ij = d_ik + d_jk > d_ij
+                    valid_ik = d_ij + d_jk > d_ik
+                    valid_jk = d_ij + d_ik > d_jk
+                    if valid_ij & valid_ik & valid_jk:
                         two_valid_pairs = True
                         break
 
@@ -1653,13 +1658,26 @@ def generate_map(
         else:
             k = sort_inds_for_k[0]
             d_ik = d_matrix[i,k]
-            
-            # Choose a random location
-            x = np.random.uniform( -1, 1 )
-            y = np.random.uniform( -1, 1 )
-            r_ik_hat = np.array([ x, y ]) / ( x**2. + y**2. )**0.5
-            r_ik = d_ik * r_ik_hat
-            coords[i] = coords[k] + r_ik
+
+            # Find the least similar publication
+            # and place the publication opposite
+            found_least_similar = False
+            for l in sort_inds_for_j[::-1]:
+                if  l != k:
+                    found_least_similar = True
+                    break
+            # Place the publication opposite the least similar
+            if found_least_similar:
+                r_lk_hat = coords[l] - coords[k]
+                r_lk_hat /= ( r_lk_hat[0]**2. + r_lk_hat[1]**2. )**0.5
+                coords[i] = coords[k] - d_ik * r_lk_hat
+            # Otherwise, choose a random location
+            else:
+                x = np.random.uniform( -1, 1 )
+                y = np.random.uniform( -1, 1 )
+                r_ik_hat = np.array([ x, y ]) / ( x**2. + y**2. )**0.5
+                r_ik = d_ik * r_ik_hat
+                coords[i] = coords[k] + r_ik
 
             # Append other info
             pairs[i,0] = k
