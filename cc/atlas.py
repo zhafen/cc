@@ -666,7 +666,6 @@ class Atlas( object ):
                 Drops duplicate rows.
         '''
 
-
         # Break publications into two categories sorted by preference to keep
         existing = set( self.data.keys() )
         preferred = set( preferred ).intersection( existing )

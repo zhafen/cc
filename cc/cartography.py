@@ -14,6 +14,7 @@ from tqdm import tqdm
 import warnings
 
 import matplotlib
+import matplotlib.colors
 import matplotlib.pyplot as plt
 
 import plotly
@@ -236,7 +237,7 @@ class Cartographer( object ):
             transform:
                 The transform to apply. Currently only a tf-idf transform is available.
 
-        Kwargs:
+        Keyword Args:
             Extra arguments passed to the sklearn transformer object.
 
         Modifies:
@@ -1191,6 +1192,8 @@ class Cartographer( object ):
         self,
         center,
         distance_transformation = 'exponential',
+        median_psi = None,
+        std_psi = None,
         max_links = None,
         max_searched = None,
         save_filepath = None,
@@ -1244,9 +1247,11 @@ class Cartographer( object ):
         if distance_transformation == 'arc length':
             pass
         elif distance_transformation == 'exponential':
-            d_med = np.nanmedian( d_matrix )
-            d_std = np.nanstd( d_matrix )
-            d_matrix = np.exp( ( d_matrix - d_med ) / d_std )
+            if median_psi is None:
+                median_psi = np.nanmedian( d_matrix )
+            if std_psi is None:
+                std_psi = np.nanstd( d_matrix )
+            d_matrix = np.exp( ( d_matrix - median_psi ) / std_psi )
         else:
             raise KeyError( 'Unrecognized distance_transformation, {}'.format( distance_transformation ) )
         # Set diagonals to 0
@@ -1287,9 +1292,9 @@ class Cartographer( object ):
             max_searched = -1
 
         if use_numba:
-            map_fn = numba.njit( generate_map )
+            map_fn = numba.njit( _generate_map )
         else:
-            map_fn = generate_map
+            map_fn = _generate_map
 
         coords, mapped_inds, pairs = map_fn(
             sort_inds,
@@ -1317,17 +1322,29 @@ class Cartographer( object ):
     def plot_map(
         self,
         center,
+        data = None,
         ax = None,
+        range = None,
         scatter = True,
         scatter_kwargs = {},
+        links = False,
+        links_kwargs = {},
+        histogram = False,
+        histogram_kwargs = {},
         labels = False,
         labels_kwargs = {},
         **kwargs
     ):
 
         # Get map projection
-        data = self.map( center, **kwargs )
+        if data is None:
+            data = self.map( center, **kwargs )
         coords, inds, pairs = data
+
+        if range is None:
+            min = np.nanmin( coords )
+            max = np.nanmax( coords )
+            range = [ min - 0.1 * np.abs( min ) - 0.1, max + 0.1 * np.abs( max ) + 0.1  ]
 
         if ax is None:
             fig = plt.figure()
@@ -1338,6 +1355,37 @@ class Cartographer( object ):
                 coords[:,0],
                 coords[:,1],
                 **scatter_kwargs,
+            )
+
+        if links:
+            for i, pairs_i in enumerate( pairs ):
+                for j in pairs_i:
+
+                    if j < 0:
+                        continue
+
+                    links_kwargs_used = dict(
+                        color = 'k',
+                        zorder = -10,
+                    )
+                    links_kwargs_used.update( links_kwargs )
+
+                    ax.plot(
+                        [ coords[i,0], coords[j,0] ],
+                        [ coords[i,1], coords[j,1] ],
+                        **links_kwargs_used
+                    )
+
+        if histogram:
+            hist_kwargs_used = dict(
+                bins = np.linspace( range[0], range[1], 64 ),
+                norm = matplotlib.colors.LogNorm(),
+            )
+            hist_kwargs_used.update( histogram_kwargs )
+            ax.hist2d(
+                coords[:,0],
+                coords[:,1],
+                **hist_kwargs_used,
             )
 
         if labels:
@@ -1359,10 +1407,8 @@ class Cartographer( object ):
                     **labels_kwargs_used
                 )
 
-        min = np.nanmin( coords )
-        max = np.nanmax( coords )
-        ax.set_xlim( min - 0.1 * np.abs( min ), max + 0.1 * np.abs( max ) )
-        ax.set_ylim( min - 0.1 * np.abs( min ), max + 0.1 * np.abs( max ) )
+        ax.set_xlim( range )
+        ax.set_ylim( range )
         ax.set_aspect( 'equal' )
 
         ax.tick_params( 
@@ -1528,7 +1574,7 @@ class Cartographer( object ):
 
         return fig
 
-def generate_map(
+def _generate_map(
     sort_inds,
     coords,
     sort_inds_matrix,
@@ -1538,6 +1584,7 @@ def generate_map(
     max_links,
     max_searched,
 ):
+    '''Internal function used for generating maps.'''
 
     # Progres
     percentile_mult = 10
@@ -1551,7 +1598,7 @@ def generate_map(
 
         if print_progress:
             if m % percentile_int == 0:
-                print( str( ( m * 100 ) // n ) + '%' )
+                print( str( ( m * 100 ) // n + 1 ) + '%' )
 
         # Because we start at sort_inds[2]
         m_i = m + 2
