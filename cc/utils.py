@@ -4,12 +4,15 @@ import nltk
 from nltk.metrics import edit_distance
 import numpy as np
 import pandas as pd
+import scipy
 import string
 import tqdm
 
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
+from shapely.geometry import Polygon
+from descartes.patch import PolygonPatch
 
 import verdict
 
@@ -573,3 +576,145 @@ def multicolor_text(
                 units = 'dots',
             )
 
+
+########################################################################
+
+def plot_voronoi(
+    points,
+    labels = None,
+    plot_cells = True,
+    ax = None,
+    offset_magnitude = 5,
+    qhull_options = 'Qbb Qc Qz',
+    xlim = None,
+    ylim = None,
+    **annotate_kwargs
+):
+    
+    if ax is None:
+        fig = plt.figure()
+        ax = plt.gca()
+        
+    if xlim is None:
+        xmin = points[:,0].min()
+        xmax = points[:,0].max()
+        xwidth = xmax - xmin
+        xlim = [ xmin - 0.1 * xwidth, xmax + 0.1 * xwidth ]
+    if ylim is None:
+        ymin = points[:,1].min()
+        ymax = points[:,1].max()
+        ywidth = ymax - ymin
+        ylim = [ ymin - 0.1 * ywidth, ymax + 0.1 * ywidth ]
+        
+    ax.set_xlim( xlim )
+    ax.set_ylim( ylim )
+    ax.set_aspect( 'equal' )
+
+    vor = scipy.spatial.Voronoi( points, qhull_options=qhull_options )
+    
+    ptp_bound = vor.points.ptp( axis=0 )
+    center = vor.points.mean( axis=0 )
+
+    for i, point in enumerate( points ):
+        
+        # Get data for this point
+        i_region = vor.point_region[i]
+        region = np.array( vor.regions[i_region] )
+        is_neg = region == -1
+        is_on_edge = is_neg.sum() > 0
+        region = region[np.invert(is_neg)]
+        vertices = vor.vertices[region]
+        
+        # Add additional points to the vertices for the regions
+        # that are on the edge. This is taken from scipy's source code for the most part.
+        if is_on_edge:
+            add_vertices = []
+            for j, pointidx in enumerate( vor.ridge_points ):
+                simplex = np.array( vor.ridge_vertices[j] )
+                if ( i in pointidx ) and ( -1 in vor.ridge_vertices[j] ):
+
+                    ii = simplex[simplex >= 0][0]  # finite end Voronoi vertex
+
+                    t = vor.points[pointidx[1]] - vor.points[pointidx[0]]  # tangent
+                    t /= np.linalg.norm(t)
+                    n = np.array([-t[1], t[0]])  # normal
+
+                    midpoint = vor.points[pointidx].mean(axis=0)
+                    direction = np.sign(np.dot(midpoint - center, n)) * n
+                    if (vor.furthest_site):
+                        direction = -direction
+                    far_point = vor.vertices[ii] + direction * ptp_bound.max()
+
+                    add_vertices.append( far_point )
+            vertices = np.concatenate( [ vertices, add_vertices ], axis=0 )
+            
+        # Construct a shapely polygon for the region
+        region_polygon = Polygon( vertices ).convex_hull
+        
+        # Plot the cell
+        if plot_cells:
+            patch = PolygonPatch(
+                region_polygon,
+                facecolor = 'none',
+                edgecolor = 'k',
+            )
+            ax.add_patch( patch )
+            
+        # Add a label, trying a few orientations
+        if labels is not None:
+            has = [ 'left', 'center', 'right' ]
+            vas = [ 'bottom', 'center', 'top' ]
+            offsets = offset_magnitude * np.array([ 1, 0, -1 ])
+            break_out = False
+            for iii in [ 0, 1, 2 ]:
+                for jjj in [ 0, 1, 2 ]:
+                    used_kwargs = dict(
+                        xycoords = 'data',
+                        xytext = ( offsets[iii], offsets[jjj] ),
+                        textcoords = 'offset points',
+                        ha = has[iii],
+                        va = vas[jjj],
+                    )
+                    used_kwargs.update( annotate_kwargs )
+                    text = ax.annotate(
+                        text = labels[i],
+                        xy = point,
+                        **used_kwargs
+                    )
+
+                    # Create a polygon for the label
+                    bbox_text = text.get_window_extent( ax.figure.canvas.get_renderer() )
+                    display_to_data = ax.transData.inverted()
+                    text_data_corners = display_to_data.transform( bbox_text.corners() )
+                    text_data_corners = text_data_corners[[0,1,3,2],:] # Reformat
+                    text_polygon = Polygon( text_data_corners )
+                    
+                    text.set_visible( False )
+                    
+                    # We'll never fit it in if it's just too large
+                    if text_polygon.area > region_polygon.area:
+                        break_out = True
+                        break
+                        
+                    # If it doesn't fit in the region try again
+                    if not region_polygon.contains( text_polygon ):
+                        continue
+                        
+                    # If it doesn't fit in the bounds try again
+                    if text_polygon.bounds[0] < xlim[0]:
+                        continue
+                    if text_polygon.bounds[1] < ylim[0]:
+                        continue
+                    if text_polygon.bounds[2] > xlim[1]:
+                        continue
+                    if text_polygon.bounds[3] > ylim[1]:
+                        continue
+
+                    # If we find a good option stop iterating
+                    text.set_visible( True )
+                    break_out = True
+                    break
+                if break_out:
+                    break
+
+    return ax, vor

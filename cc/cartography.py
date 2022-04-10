@@ -25,6 +25,7 @@ import augment
 import verdict
 
 from . import atlas
+from . import utils
 
 ########################################################################
 
@@ -1324,7 +1325,8 @@ class Cartographer( object ):
         center,
         data = None,
         ax = None,
-        range = None,
+        xlim = None,
+        ylim = None,
         scatter = True,
         scatter_kwargs = {},
         links = False,
@@ -1332,7 +1334,11 @@ class Cartographer( object ):
         histogram = False,
         histogram_kwargs = {},
         labels = False,
+        labels_placer_voronoi = True,
+        labels_formatter = None,
         labels_kwargs = {},
+        voronoi = False,
+        voronoi_kwargs = {},
         **kwargs
     ):
 
@@ -1341,20 +1347,31 @@ class Cartographer( object ):
             data = self.map( center, **kwargs )
         coords, inds, pairs = data
 
-        if range is None:
-            min = np.nanmin( coords )
-            max = np.nanmax( coords )
-            range = [ min - 0.1 * np.abs( min ) - 0.1, max + 0.1 * np.abs( max ) + 0.1  ]
-
         if ax is None:
             fig = plt.figure()
             ax = plt.gca()
 
+        # Setup limits
+        if xlim is None:
+            xmin = coords[:,0].min()
+            xmax = coords[:,0].max()
+            xwidth = xmax - xmin
+            xlim = [ xmin - 0.1 * xwidth, xmax + 0.1 * xwidth ]
+        if ylim is None:
+            ymin = coords[:,1].min()
+            ymax = coords[:,1].max()
+            ywidth = ymax - ymin
+            ylim = [ ymin - 0.1 * ywidth, ymax + 0.1 * ywidth ]
+
         if scatter:
+            scatter_kwargs_used = {
+                'color': 'k',
+            }
+            scatter_kwargs_used.update( scatter_kwargs )
             ax.scatter(
                 coords[:,0],
                 coords[:,1],
-                **scatter_kwargs,
+                **scatter_kwargs_used,
             )
 
         if links:
@@ -1367,6 +1384,7 @@ class Cartographer( object ):
                     links_kwargs_used = dict(
                         color = 'k',
                         zorder = -10,
+                        alpha = 0.2,
                     )
                     links_kwargs_used.update( links_kwargs )
 
@@ -1389,6 +1407,17 @@ class Cartographer( object ):
             )
 
         if labels:
+            def default_labels_formatter( ii, m_ii, c ):
+                return '{}: {}'.format( m_ii, c.publications[ii] )
+            if labels_formatter is None:
+                labels_formatter = default_labels_formatter
+            labels_list = [
+                labels_formatter( i, m_i, self ) for m_i, i in enumerate( inds )
+            ]
+        else:
+            labels_list = None
+
+        if labels and not labels_placer_voronoi:
             for m_i, i in enumerate( inds ):
 
                 coord = coords[i]
@@ -1402,14 +1431,27 @@ class Cartographer( object ):
                 )
                 labels_kwargs_used.update( labels_kwargs )
                 ax.annotate(
-                    text = '{}: {}'.format( m_i, self.publications[i] ),
+                    text = labels_list[i],
                     xy = coord,
                     **labels_kwargs_used
                 )
 
-        ax.set_xlim( range )
-        ax.set_ylim( range )
-        ax.set_aspect( 'equal' )
+        if voronoi or ( labels and labels_placer_voronoi ):
+            if labels_placer_voronoi:
+                voronoi_kwargs.update( labels_kwargs )
+            ax, vor = utils.plot_voronoi(
+                coords[inds],
+                labels = labels_list,
+                plot_cells = voronoi,
+                xlim = xlim,
+                ylim = ylim,
+                ax = ax,
+                **voronoi_kwargs
+            )
+        else:
+            ax.set_xlim( xlim )
+            ax.set_ylim( ylim )
+            ax.set_aspect( 'equal' )
 
         ax.tick_params( 
             which='both',
