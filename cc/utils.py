@@ -252,14 +252,23 @@ def citation_to_ads_call( citation ):
     '''
 
     q = ''
+
+    # Check if we should use arXiv to identify
     if 'eprint' in citation:
+        use_arxiv = True
         # When we can, check that the eprint is of the correct type
         if 'eprinttype' in citation:
-            assert citation['eprinttype'] == 'arxiv', \
-                'eprinttype={} eprint={}'.format(
-                citation['eprinttype'],
-                citation['eprint']
-            )
+            use_arxiv = citation['eprinttype'] == 'arxiv'
+            # if not use_arxiv:
+            #     warnings.warn(
+            #         'non-arxiv eprint, eprinttype={} eprint={}'.format(
+            #         citation['eprinttype'],
+            #         citation['eprint']
+            #     )
+    else:
+        use_arxiv = False
+
+    if use_arxiv:
 
         ident = 'arxiv'
         id = citation['eprint']
