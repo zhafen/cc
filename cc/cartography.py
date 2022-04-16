@@ -1334,12 +1334,12 @@ class Cartographer( object ):
         links_kwargs = {},
         histogram = False,
         histogram_kwargs = {},
+        voronoi = False,
+        voronoi_kwargs = {},
         labels = False,
         labels_placer_voronoi = True,
         labels_formatter = None,
         labels_kwargs = {},
-        voronoi = False,
-        voronoi_kwargs = {},
         **kwargs
     ):
 
@@ -1363,6 +1363,11 @@ class Cartographer( object ):
             ymax = coords[:,1].max()
             ywidth = ymax - ymin
             ylim = [ ymin - 0.1 * ywidth, ymax + 0.1 * ywidth ]
+        def is_inside( x, y ):
+            inside_x = ( x > xlim[0] ) & ( x < xlim[1] )
+            inside_y = ( y > ylim[0] ) & ( y < ylim[1] )
+            inside = inside_x & inside_y
+            return inside
 
         if scatter:
             scatter_kwargs_used = {
@@ -1380,6 +1385,12 @@ class Cartographer( object ):
                 for j in pairs_i:
 
                     if j < 0:
+                        continue
+
+                    # Only plot those in bounds...
+                    if not is_inside( *coords[i,:] ):
+                        continue
+                    if not is_inside( *coords[j,:] ):
                         continue
 
                     links_kwargs_used = dict(
@@ -1440,19 +1451,22 @@ class Cartographer( object ):
                     **labels_kwargs_used
                 )
 
-        if voronoi or ( labels and labels_placer_voronoi ):
-            if labels_placer_voronoi:
-                voronoi_kwargs.update( labels_kwargs )
+        voronoi_labels = ( labels and labels_placer_voronoi )
+        if voronoi or voronoi_labels:
 
             # Only plot those that are visible (reduce expenses majorly)
             x, y = coords[inds].transpose()
-            inside_x = ( x > xlim[0] ) & ( x < xlim[1] )
-            inside_y = ( y > ylim[0] ) & ( y < ylim[1] )
-            inside = inside_x & inside_y
+            inside = is_inside( x, y )
+
+            if voronoi_labels:
+                voronoi_labels_list = np.array( labels_list )[inside]
+                voronoi_kwargs.update( labels_kwargs )
+            else:
+                voronoi_labels_list = None
 
             ax, vor = utils.plot_voronoi(
                 coords[inds][inside],
-                labels = np.array( labels_list )[inside],
+                labels = voronoi_labels_list,
                 plot_cells = voronoi,
                 xlim = xlim,
                 ylim = ylim,
