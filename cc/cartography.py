@@ -1327,6 +1327,7 @@ class Cartographer( object ):
         ax = None,
         xlim = None,
         ylim = None,
+        clean_plot = True,
         scatter = True,
         scatter_kwargs = {},
         links = False,
@@ -1396,7 +1397,10 @@ class Cartographer( object ):
 
         if histogram:
             hist_kwargs_used = dict(
-                bins = np.linspace( range[0], range[1], 64 ),
+                bins = [
+                    np.linspace( xlim[0], xlim[1], 64 ),
+                    np.linspace( ylim[0], ylim[1], 64 ),
+                ],
                 norm = matplotlib.colors.LogNorm(),
             )
             hist_kwargs_used.update( histogram_kwargs )
@@ -1439,9 +1443,16 @@ class Cartographer( object ):
         if voronoi or ( labels and labels_placer_voronoi ):
             if labels_placer_voronoi:
                 voronoi_kwargs.update( labels_kwargs )
+
+            # Only plot those that are visible (reduce expenses majorly)
+            x, y = coords[inds].transpose()
+            inside_x = ( x > xlim[0] ) & ( x < xlim[1] )
+            inside_y = ( y > ylim[0] ) & ( y < ylim[1] )
+            inside = inside_x & inside_y
+
             ax, vor = utils.plot_voronoi(
-                coords[inds],
-                labels = labels_list,
+                coords[inds][inside],
+                labels = np.array( labels_list )[inside],
                 plot_cells = voronoi,
                 xlim = xlim,
                 ylim = ylim,
@@ -1453,17 +1464,18 @@ class Cartographer( object ):
             ax.set_ylim( ylim )
             ax.set_aspect( 'equal' )
 
-        ax.tick_params( 
-            which='both',
-            top=False,
-            bottom=False,
-            left=False,
-            right=False,
-            labeltop=False,
-            labelbottom=False,
-            labelleft=False,
-            labelright=False,
-        )
+        if clean_plot:
+            ax.tick_params( 
+                which='both',
+                top=False,
+                bottom=False,
+                left=False,
+                right=False,
+                labeltop=False,
+                labelbottom=False,
+                labelleft=False,
+                labelright=False,
+            )
 
         # # Plotly Plot
         # xs = coords[:,0]
