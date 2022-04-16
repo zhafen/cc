@@ -622,7 +622,7 @@ class TestRandomAtlas( unittest.TestCase ):
 
     def test_astro_only( self ):
 
-        a = atlas.Atlas.random_atlas( self.atlas_dir, 3, seed=12345, arxiv_class='astro-ph' )
+        a = atlas.Atlas.random_atlas( self.atlas_dir, 3, seed=1234, arxiv_class='astro-ph' )
         a.save_data()
 
         assert len( a.data ) == 3
