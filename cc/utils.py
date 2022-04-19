@@ -11,6 +11,7 @@ import tqdm
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
+import matplotlib.patheffects as path_effects
 from shapely.geometry import Polygon
 from descartes.patch import PolygonPatch
 
@@ -595,12 +596,14 @@ def plot_voronoi(
     colors = None,
     edgecolors = None,
     default_edgecolor = 'k',
+    hatching = None,
     plot_label_box = False,
     ax = None,
     offset_magnitude = 5,
     qhull_options = 'Qbb Qc Qz',
     xlim = None,
     ylim = None,
+    cell_kwargs = {},
     **annotate_kwargs
 ):
     
@@ -673,10 +676,13 @@ def plot_voronoi(
                 edgecolor = edgecolors[i]
             else:
                 edgecolor = default_edgecolor
+            if hatching is not None:
+                cell_kwargs['hatch'] = hatching[i]
             patch = PolygonPatch(
                 region_polygon,
                 facecolor = facecolor,
                 edgecolor = edgecolor,
+                **cell_kwargs
             )
             ax.add_patch( patch )
             
@@ -701,6 +707,10 @@ def plot_voronoi(
                         xy = point,
                         **used_kwargs
                     )
+                    text.set_path_effects([
+                        path_effects.Stroke( linewidth=text.get_fontsize() / 5., foreground='w' ),
+                        path_effects.Normal()
+                    ])
 
                     # Create a polygon for the label
                     bbox_text = text.get_window_extent( ax.figure.canvas.get_renderer() )
