@@ -592,6 +592,10 @@ def plot_voronoi(
     points,
     labels = None,
     plot_cells = True,
+    colors = None,
+    edgecolors = None,
+    default_edgecolor = 'k',
+    plot_label_box = False,
     ax = None,
     offset_magnitude = 5,
     qhull_options = 'Qbb Qc Qz',
@@ -617,14 +621,13 @@ def plot_voronoi(
         
     ax.set_xlim( xlim )
     ax.set_ylim( ylim )
-    ax.set_aspect( 'equal' )
 
     vor = scipy.spatial.Voronoi( points, qhull_options=qhull_options )
     
     ptp_bound = vor.points.ptp( axis=0 )
     center = vor.points.mean( axis=0 )
 
-    for i, point in enumerate( points ):
+    for i, point in enumerate( tqdm.tqdm( points ) ):
         
         # Get data for this point
         i_region = vor.point_region[i]
@@ -662,10 +665,18 @@ def plot_voronoi(
         
         # Plot the cell
         if plot_cells:
+            if colors is not None:
+                facecolor = colors[i]
+            else:
+                facecolor = 'none'
+            if edgecolors is not None:
+                edgecolor = edgecolors[i]
+            else:
+                edgecolor = default_edgecolor
             patch = PolygonPatch(
                 region_polygon,
-                facecolor = 'none',
-                edgecolor = 'k',
+                facecolor = facecolor,
+                edgecolor = edgecolor,
             )
             ax.add_patch( patch )
             
@@ -721,6 +732,13 @@ def plot_voronoi(
 
                     # If we find a good option stop iterating
                     text.set_visible( True )
+                    if plot_label_box:
+                        patch = PolygonPatch(
+                            text_polygon,
+                            facecolor = 'none',
+                            edgecolor = 'k',
+                        )
+                        ax.add_patch( patch )
                     break_out = True
                     break
                 if break_out:
