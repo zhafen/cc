@@ -1182,7 +1182,9 @@ class Cartographer( object ):
             return np.nan
 
         cospsi = self.cospsi_matrix[i][valid_is]
-        cospsi_max = np.sort( cospsi )[::-1][kernel_size]
+        cospsi_max = np.max( cospsi )
+        # Used to be done this way, not sure why I did
+        # cospsi_max = np.sort( cospsi )[::-1][kernel_size-1]
         return np.arccos( cospsi_max )
 
     ########################################################################
@@ -1363,9 +1365,12 @@ class Cartographer( object ):
             ymax = coords[:,1].max()
             ywidth = ymax - ymin
             ylim = [ ymin - 0.1 * ywidth, ymax + 0.1 * ywidth ]
-        def is_inside( x, y ):
-            inside_x = ( x > xlim[0] ) & ( x < xlim[1] )
-            inside_y = ( y > ylim[0] ) & ( y < ylim[1] )
+        def is_inside( x, y, f=0.5 ):
+            '''Omit points that are a multiple f of the width outside the limits.'''
+            xwidth = xlim[1] - xlim[0]
+            ywidth = ylim[1] - ylim[0]
+            inside_x = ( x > xlim[0] - f*xwidth ) & ( x < xlim[1] + f*xwidth )
+            inside_y = ( y > ylim[0] - f*ywidth ) & ( y < ylim[1] + f*ywidth )
             inside = inside_x & inside_y
             return inside
 
@@ -1388,9 +1393,9 @@ class Cartographer( object ):
                         continue
 
                     # Only plot those in bounds...
-                    if not is_inside( *coords[i,:] ):
+                    if not is_inside( coords[i,0], coords[i,1], f=0. ):
                         continue
-                    if not is_inside( *coords[j,:] ):
+                    if not is_inside( coords[j,0], coords[j,1], f=0. ):
                         continue
 
                     links_kwargs_used = dict(
@@ -1490,25 +1495,6 @@ class Cartographer( object ):
                 labelleft=False,
                 labelright=False,
             )
-
-        # # Plotly Plot
-        # xs = coords[:,0]
-        # ys = coords[:,1]
-        # labels = self.publications
-        # fig = go.Figure(
-        #     data=go.Scatter(
-        #         x = xs,
-        #         y = ys,
-        #         mode = 'markers',
-        #         text = labels,
-        #         # marker = dict(
-        #         #     color = colors,
-        #         #     colorscale = colorscale,
-        #         #     size = size,
-        #         # )
-        #     ),
-        #     layout = go.Layout( width=800, height=800),
-        # )
 
         return ax, data
 
