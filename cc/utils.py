@@ -595,7 +595,7 @@ def plot_voronoi(
     plot_cells = True,
     colors = None,
     edgecolors = None,
-    default_edgecolor = 'k',
+    default_edgecolor = 'none',
     hatching = None,
     plot_label_box = False,
     ax = None,
