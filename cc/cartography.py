@@ -1287,7 +1287,6 @@ class Cartographer( object ):
         n_linked[i_center] += 1
         n_linked[sort_inds[1]] += 1
 
-
         # Format for function
         if max_links is None:
             max_links = -1
@@ -1325,7 +1324,11 @@ class Cartographer( object ):
     def plot_map(
         self,
         center,
-        data = None,
+        coords = None,
+        inds = None,
+        pairs = None,
+        colors = None,
+        edgecolors = None,
         ax = None,
         xlim = None,
         ylim = None,
@@ -1345,10 +1348,11 @@ class Cartographer( object ):
         **kwargs
     ):
 
-        # Get map projection
-        if data is None:
-            data = self.map( center, **kwargs )
-        coords, inds, pairs = data
+        # Get needed data
+        if coords is None:
+            coords, inds, pairs = self.map( center, **kwargs )
+        if inds is None:
+            inds = np.arange( coords.shape[0] )
 
         if ax is None:
             fig = plt.figure()
@@ -1386,6 +1390,7 @@ class Cartographer( object ):
             )
 
         if links:
+            assert pairs is not None, 'pairs cannot be "None" when coords is not "None".'
             for i, pairs_i in enumerate( pairs ):
                 for j in pairs_i:
 
@@ -1431,8 +1436,9 @@ class Cartographer( object ):
                 return '{}: {}'.format( m_ii, c.publications[ii] )
             if labels_formatter is None:
                 labels_formatter = default_labels_formatter
+            m_is = np.argsort( inds )
             labels_list = [
-                labels_formatter( i, m_i, self ) for m_i, i in enumerate( inds )
+                labels_formatter( i, m_is[i], self ) for i in np.arange( inds.size )
             ]
         else:
             labels_list = None
@@ -1460,7 +1466,7 @@ class Cartographer( object ):
         if voronoi or voronoi_labels:
 
             # Only plot those that are visible (reduce expenses majorly)
-            x, y = coords[inds].transpose()
+            x, y = coords.transpose()
             inside = is_inside( x, y )
 
             if voronoi_labels:
@@ -1469,13 +1475,23 @@ class Cartographer( object ):
             else:
                 voronoi_labels_list = None
 
+            if colors is not None:
+                colors = colors[inside]
+            if edgecolors is not None:
+                if edgecolors == 'colors':
+                    edgecolors = colors
+                else:
+                    edgecolors = edgecolors[inside]
+
             ax, vor = utils.plot_voronoi(
-                coords[inds][inside],
+                coords[inside],
                 labels = voronoi_labels_list,
                 plot_cells = voronoi,
                 xlim = xlim,
                 ylim = ylim,
                 ax = ax,
+                colors = colors,
+                edgecolors = edgecolors,
                 **voronoi_kwargs
             )
         else:
@@ -1496,7 +1512,7 @@ class Cartographer( object ):
                 labelright=False,
             )
 
-        return ax, data
+        return ax, ( coords, inds, pairs )
 
     ########################################################################
 
@@ -1627,6 +1643,8 @@ class Cartographer( object ):
             return fig, (vec_norm_s_all, feat_s_all)
 
         return fig
+
+########################################################################
 
 def _generate_map(
     sort_inds,

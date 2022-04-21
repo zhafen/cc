@@ -594,8 +594,9 @@ def plot_voronoi(
     labels = None,
     plot_cells = True,
     colors = None,
+    color_default = 'none',
     edgecolors = None,
-    default_edgecolor = 'none',
+    edgecolor_default = 'none',
     hatching = None,
     plot_label_box = False,
     ax = None,
@@ -606,6 +607,17 @@ def plot_voronoi(
     cell_kwargs = {},
     **annotate_kwargs
 ):
+
+    # Duplicate coordinates are not handled well
+    points, unique_inds = np.unique( points, axis=0, return_index=True )
+    if labels is not None:
+        labels = np.array( labels )[unique_inds]
+    if colors is not None:
+        colors = colors[unique_inds]
+    if edgecolors is not None:
+        edgecolors = edgecolors[unique_inds]
+    if hatching is not None:
+        hatching = hatching[unique_inds]
     
     if ax is None:
         fig = plt.figure()
@@ -661,7 +673,11 @@ def plot_voronoi(
                     far_point = vor.vertices[ii] + direction * ptp_bound.max()
 
                     add_vertices.append( far_point )
-            vertices = np.concatenate( [ vertices, add_vertices ], axis=0 )
+            # If found a vertex, add it on
+            if len( add_vertices ) > 0:
+                vertices = np.concatenate( [ vertices, add_vertices ], axis=0 )
+            else:
+                import pdb; pdb.set_trace()
             
         # Construct a shapely polygon for the region
         region_polygon = Polygon( vertices ).convex_hull
@@ -671,11 +687,11 @@ def plot_voronoi(
             if colors is not None:
                 facecolor = colors[i]
             else:
-                facecolor = 'none'
+                facecolor = color_default
             if edgecolors is not None:
                 edgecolor = edgecolors[i]
             else:
-                edgecolor = default_edgecolor
+                edgecolor = edgecolor_default
             if hatching is not None:
                 cell_kwargs['hatch'] = hatching[i]
             patch = PolygonPatch(
