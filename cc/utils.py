@@ -684,6 +684,8 @@ def plot_voronoi(
         
         # Plot the cell
         if plot_cells:
+            used_cell_kwargs = {}
+            used_cell_kwargs.update( cell_kwargs )
             if colors is not None:
                 facecolor = colors[i]
             else:
@@ -693,12 +695,12 @@ def plot_voronoi(
             else:
                 edgecolor = edgecolor_default
             if hatching is not None:
-                cell_kwargs['hatch'] = hatching[i]
+                used_cell_kwargs['hatch'] = hatching[i]
             patch = PolygonPatch(
                 region_polygon,
                 facecolor = facecolor,
                 edgecolor = edgecolor,
-                **cell_kwargs
+                **used_cell_kwargs
             )
             ax.add_patch( patch )
             

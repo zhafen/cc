@@ -1218,10 +1218,24 @@ class Cartographer( object ):
                     arccos( cospsi ), since vectors are normalized to a sphere of radius 1.
                 'exponential':
                     exp( ( psi_ij - [median psi] ) / [std psi] )
+                    
+            median_psi (float):
+                Median psi to use for the exponential distance transform.
+                If not provided will be calculated from self.cospsi_matrix.
+                    
+            std_psi (float):
+                Standard deviation of psi to use for the exponential distance transform.
+                If not provided will be calculated from self.cospsi_matrix.
 
-            max_links (int or None):
+            max_links (int):
                 Maximum number of times an individual publication can be linked to, including
                 the central publication. Changes the appearance of the map.
+
+            max_searched (int):
+                For most publications two distances can be preserved per publication.
+                However, this is not always possible. max_searched is the number of times
+                the algorithm will look for a position that preserves two distances
+                before giving up and preserving one distance.
 
             save_filepath (str):
                 Location to save the data at, if given.
@@ -1323,13 +1337,14 @@ class Cartographer( object ):
 
     def plot_map(
         self,
-        center,
+        center = None,
         coords = None,
         inds = None,
         pairs = None,
+        ax = None,
         colors = None,
         edgecolors = None,
-        ax = None,
+        hatching = None,
         xlim = None,
         ylim = None,
         clean_plot = True,
@@ -1347,6 +1362,85 @@ class Cartographer( object ):
         labels_kwargs = {},
         **kwargs
     ):
+        '''Plot a 2D projection of the N-dimensional feature space.
+        The default method used is self.map, which preserves some pairwise distances.
+
+        Args:
+            center (str):
+                The central publication for the map.
+
+            coords ((N,2) dimensional array):
+                2D location of each publication. If None, calculated via self.map.
+
+            inds (N-dimensional array):
+                Order in which the publications were mapped. Typically only used for labels.
+
+            pairs ((N,2) dimensional array):
+                For each publication what other publication it preserves a distance to.
+
+            ax (matplotlib axis):
+                Axis to plot on. Creates a new figure if this is not passed.
+
+            colors (N-dimensional array):
+                Colors to use for the publications.
+
+            edgecolors (N-dimensional array):
+                Edgecolors to use for the publications (voronoi cells only).
+
+            hatching (N-dimensional array):
+                Hatching to use for the publications (voronoi cells only).
+
+            xlim ((2,) list):
+                x-limits to use. Important to set these through this function if using voronoi labels.
+
+            ylim ((2,) list):
+                y-limits to use. Important to set these through this function if using voronoi labels.
+
+            clean_plot (bool):
+                If True, remove axis ticks.
+
+            scatter (bool):
+                If True, add a scatter point for each publicaiton.
+
+            scatter_kwargs (dict):
+                Keyword arguments to pass to ax.scatter
+
+            links (bool):
+                If True, draw lines between pairs with preserved distances.
+
+            links_kwargs (dict):
+                Keyword arguments to pass to ax.plot
+
+            histogram (bool):
+                If True, plot the publication locations via a 2D histogram.
+
+            histogram_kwargs (dict):
+                Keyword arguments to pass to ax.hist2d
+
+            voronoi (bool):
+                If True, represent each publication with a voronoi cell.
+
+            voronoi_kwargs (dict):
+                Keyword arguments to pass to cc.utils.plot_voronoi
+
+            labels (bool):
+                If True, label each point.
+
+            labels_placer_voronoi (bool):
+                If True, decide on the location of each label by placing it in a voronoi cell. Remove labels that don't fit.
+
+            labels_formatter (function):
+                If passed, a function that decides how each publication could be labeled.
+                The function must take in arguments ( i, m_i, c ), where i is the index in c.inds of the publication,
+                m_i is the index indicating order in which the publication was placed, and c is a Cartographer object.
+
+            labels_kwargs (dict):
+                Keyword arguments to pass to ax.annotate
+
+            **kwargs:
+                Keyword arguments to pass to self.map
+                Only used if coords is None.
+        '''
 
         # Get needed data
         if coords is None:
@@ -1482,6 +1576,8 @@ class Cartographer( object ):
                     edgecolors = colors
                 else:
                     edgecolors = edgecolors[inside]
+            if hatching is not None:
+                hatching = hatching[inside]
 
             ax, vor = utils.plot_voronoi(
                 coords[inside],
@@ -1492,6 +1588,7 @@ class Cartographer( object ):
                 ax = ax,
                 colors = colors,
                 edgecolors = edgecolors,
+                hatching = hatching,
                 **voronoi_kwargs
             )
         else:
