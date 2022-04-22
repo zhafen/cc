@@ -7,6 +7,7 @@ import pandas as pd
 import scipy
 import string
 import tqdm
+import warnings
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -596,7 +597,7 @@ def plot_voronoi(
     colors = None,
     color_default = 'none',
     edgecolors = None,
-    edgecolor_default = 'none',
+    edgecolor_default = 'k',
     cmap = 'cubehelix',
     norm = None,
     hatching = None,
@@ -628,6 +629,8 @@ def plot_voronoi(
         edgecolors = cmap( norm( edgecolors ) )
     if hatching is not None:
         hatching = hatching[unique_inds]
+        if ( edgecolor_default == 'none' ) or ( edgecolors is not None ):
+            warnings.warn( 'Hatchcolor and edgecolor are the same in matplotlib.' )
     
     if ax is None:
         fig = plt.figure()
