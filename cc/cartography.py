@@ -1351,7 +1351,6 @@ class Cartographer( object ):
         xlim = None,
         ylim = None,
         vlim = None,
-        clean_plot = True,
         scatter = True,
         scatter_kwargs = {},
         links = False,
@@ -1487,12 +1486,13 @@ class Cartographer( object ):
             return inside
 
         # Setup color limits
-        if vlim is None:
-            vmin = np.nanmin( colors )
-            vmax = np.nanmax( colors )
-            vlim = [ vmin, vmax ]
-        if norm is None:
-            norm = matplotlib.colors.Normalize( vmin=vmin, vmax=vmax )
+        if colors is not None:
+            if vlim is None:
+                vmin = np.nanmin( colors )
+                vmax = np.nanmax( colors )
+                vlim = [ vmin, vmax ]
+            if norm is None:
+                norm = matplotlib.colors.Normalize( vmin=vlim[0], vmax=vlim[1] )
 
         # Scatter plot
         if scatter:
@@ -1502,7 +1502,8 @@ class Cartographer( object ):
                 'norm': norm,
             }
             if colors is not None:
-                scatter_kwargs['color'] = colors
+                scatter_kwargs_used['c'] = colors
+                del scatter_kwargs_used['color']
             scatter_kwargs_used.update( scatter_kwargs )
             ax.scatter(
                 coords[:,0],
@@ -1564,23 +1565,32 @@ class Cartographer( object ):
                 hist2d = weighted_hist2d / hist2d
 
             # Plot
+            if norm is None:
+                norm = matplotlib.colors.LogNorm()
             hist_plot_kwargs_used = {
                 'cmap': cmap,
+                'norm': norm,
             }
-            if norm is None:
-                hist_plot_kwargs_used['norm'] = matplotlib.colors.LogNorm()
             hist_plot_kwargs_used.update( histogram_plot_kwargs )
-            ax.pcolormesh(
+            img = ax.pcolormesh(
                 x_edges,
                 y_edges,
                 hist2d.transpose(),
                 **hist_plot_kwargs_used
             )
 
+            if colors is None:
+                # Create divider for existing axes instance                                
+                divider = make_axes_locatable( ax )                                   
+                # Append axes to the right of ax, with 5% width of ax                      
+                cax = divider.append_axes("right", pad=0.05, size='5%')                    
+                # Create colorbar in the appended axes                                     
+                cbar = plt.colorbar( img, cax=cax, )
+
         # Label formatting
         if labels:
             def default_labels_formatter( ii, m_ii, c ):
-                return '{}: {}'.format( m_ii, c.publications[ii] )
+                return '{}: {}'.format( m_ii, c.publications[ii][:10] )
             if labels_formatter is None:
                 labels_formatter = default_labels_formatter
             m_is = np.argsort( inds )
@@ -1669,19 +1679,6 @@ class Cartographer( object ):
                 cax,
                 cmap = cmap,
                 norm = norm,
-            )
-
-        if clean_plot:
-            ax.tick_params( 
-                which='both',
-                top=False,
-                bottom=False,
-                left=False,
-                right=False,
-                labeltop=False,
-                labelbottom=False,
-                labelleft=False,
-                labelright=False,
             )
 
         return ax, ( coords, inds, pairs )
