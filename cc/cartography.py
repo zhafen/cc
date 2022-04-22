@@ -16,6 +16,7 @@ import warnings
 import matplotlib
 import matplotlib.colors
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import plotly
 import plotly.graph_objects as go
@@ -1344,9 +1345,12 @@ class Cartographer( object ):
         ax = None,
         colors = None,
         edgecolors = None,
+        cmap = 'cubehelix',
+        norm = None,
         hatching = None,
         xlim = None,
         ylim = None,
+        vlim = None,
         clean_plot = True,
         scatter = True,
         scatter_kwargs = {},
@@ -1354,6 +1358,7 @@ class Cartographer( object ):
         links_kwargs = {},
         histogram = False,
         histogram_kwargs = {},
+        histogram_plot_kwargs = {},
         voronoi = False,
         voronoi_kwargs = {},
         labels = False,
@@ -1382,10 +1387,16 @@ class Cartographer( object ):
                 Axis to plot on. Creates a new figure if this is not passed.
 
             colors (N-dimensional array):
-                Colors to use for the publications.
+                Values of the colors to use for the publications.
 
             edgecolors (N-dimensional array):
-                Edgecolors to use for the publications (voronoi cells only).
+                Values of the edgecolors to use for the publications (voronoi cells only).
+
+            cmap:
+                Colormap to use.
+
+            norm:
+                Normalization to use.
 
             hatching (N-dimensional array):
                 Hatching to use for the publications (voronoi cells only).
@@ -1415,7 +1426,10 @@ class Cartographer( object ):
                 If True, plot the publication locations via a 2D histogram.
 
             histogram_kwargs (dict):
-                Keyword arguments to pass to ax.hist2d
+                Keyword arguments to pass to np.histogram2d
+
+            histogram_plot_kwargs (dict):
+                Keyword arguments to pass to ax.pcolormesh
 
             voronoi (bool):
                 If True, represent each publication with a voronoi cell.
@@ -1472,10 +1486,23 @@ class Cartographer( object ):
             inside = inside_x & inside_y
             return inside
 
+        # Setup color limits
+        if vlim is None:
+            vmin = np.nanmin( colors )
+            vmax = np.nanmax( colors )
+            vlim = [ vmin, vmax ]
+        if norm is None:
+            norm = matplotlib.colors.Normalize( vmin=vmin, vmax=vmax )
+
+        # Scatter plot
         if scatter:
             scatter_kwargs_used = {
                 'color': 'k',
+                'cmap': cmap,
+                'norm': norm,
             }
+            if colors is not None:
+                scatter_kwargs['color'] = colors
             scatter_kwargs_used.update( scatter_kwargs )
             ax.scatter(
                 coords[:,0],
@@ -1483,6 +1510,7 @@ class Cartographer( object ):
                 **scatter_kwargs_used,
             )
 
+        # Plot pairwise distances.
         if links:
             assert pairs is not None, 'pairs cannot be "None" when coords is not "None".'
             for i, pairs_i in enumerate( pairs ):
@@ -1510,21 +1538,46 @@ class Cartographer( object ):
                         **links_kwargs_used
                     )
 
+        # Histogram plot
         if histogram:
-            hist_kwargs_used = dict(
-                bins = [
+
+            # Calculate
+            hist_kwargs_used = {
+                'bins': [
                     np.linspace( xlim[0], xlim[1], 64 ),
                     np.linspace( ylim[0], ylim[1], 64 ),
-                ],
-                norm = matplotlib.colors.LogNorm(),
-            )
+                ]
+            }
             hist_kwargs_used.update( histogram_kwargs )
-            ax.hist2d(
+            hist2d, x_edges, y_edges = np.histogram2d(
                 coords[:,0],
                 coords[:,1],
-                **hist_kwargs_used,
+                **hist_kwargs_used
+            )
+            if colors is not None:
+                weighted_hist2d, x_edges, y_edges = np.histogram2d(
+                    coords[:,0],
+                    coords[:,1],
+                    weights = colors,
+                    **hist_kwargs_used
+                )
+                hist2d = weighted_hist2d / hist2d
+
+            # Plot
+            hist_plot_kwargs_used = {
+                'cmap': cmap,
+            }
+            if norm is None:
+                hist_plot_kwargs_used['norm'] = matplotlib.colors.LogNorm()
+            hist_plot_kwargs_used.update( histogram_plot_kwargs )
+            ax.pcolormesh(
+                x_edges,
+                y_edges,
+                hist2d.transpose(),
+                **hist_plot_kwargs_used
             )
 
+        # Label formatting
         if labels:
             def default_labels_formatter( ii, m_ii, c ):
                 return '{}: {}'.format( m_ii, c.publications[ii] )
@@ -1537,6 +1590,7 @@ class Cartographer( object ):
         else:
             labels_list = None
 
+        # Alternative to voronoi labels (not great)
         if labels and not labels_placer_voronoi:
             for m_i, i in enumerate( inds ):
 
@@ -1556,16 +1610,24 @@ class Cartographer( object ):
                     **labels_kwargs_used
                 )
 
+        # Voronoi labels or cells
         voronoi_labels = ( labels and labels_placer_voronoi )
         if voronoi or voronoi_labels:
 
             # Only plot those that are visible (reduce expenses majorly)
             x, y = coords.transpose()
             inside = is_inside( x, y )
+            
+            # Set up keyword arguments
+            voronoi_kwargs_used = {
+                'cmap': cmap,
+                'norm': norm,
+            }
+            voronoi_kwargs_used.update( voronoi_kwargs )
 
             if voronoi_labels:
                 voronoi_labels_list = np.array( labels_list )[inside]
-                voronoi_kwargs.update( labels_kwargs )
+                voronoi_kwargs_used.update( labels_kwargs )
             else:
                 voronoi_labels_list = None
 
@@ -1589,12 +1651,25 @@ class Cartographer( object ):
                 colors = colors,
                 edgecolors = edgecolors,
                 hatching = hatching,
-                **voronoi_kwargs
+                **voronoi_kwargs_used
             )
         else:
             ax.set_xlim( xlim )
             ax.set_ylim( ylim )
             ax.set_aspect( 'equal' )
+
+        # Colorbar
+        if colors is not None:
+            # Create divider for existing axes instance                                
+            divider = make_axes_locatable( ax )                                   
+            # Append axes to the right of ax, with 5% width of ax                      
+            cax = divider.append_axes("right", pad=0.05, size='5%')                    
+            # Create colorbar in the appended axes                                     
+            matplotlib.colorbar.ColorbarBase(
+                cax,
+                cmap = cmap,
+                norm = norm,
+            )
 
         if clean_plot:
             ax.tick_params( 

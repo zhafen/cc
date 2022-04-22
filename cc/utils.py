@@ -597,6 +597,8 @@ def plot_voronoi(
     color_default = 'none',
     edgecolors = None,
     edgecolor_default = 'none',
+    cmap = 'cubehelix',
+    norm = None,
     hatching = None,
     plot_label_box = False,
     ax = None,
@@ -608,14 +610,22 @@ def plot_voronoi(
     **annotate_kwargs
 ):
 
+    # Convert to colors arrays
+    if norm is None:
+        norm = matplotlib.colors.Normalize()
+    if isinstance( cmap, str ):
+        cmap = matplotlib.cm.get_cmap( cmap )
+
     # Duplicate coordinates are not handled well
     points, unique_inds = np.unique( points, axis=0, return_index=True )
     if labels is not None:
         labels = np.array( labels )[unique_inds]
     if colors is not None:
         colors = colors[unique_inds]
+        colors = cmap( norm( colors ) )
     if edgecolors is not None:
         edgecolors = edgecolors[unique_inds]
+        edgecolors = cmap( norm( edgecolors ) )
     if hatching is not None:
         hatching = hatching[unique_inds]
     
