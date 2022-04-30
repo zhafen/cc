@@ -10,8 +10,12 @@ import scipy.sparse as ss
 import scipy.spatial
 from scipy.spatial.distance import cdist
 import sklearn.feature_extraction.text as skl_text_features
-from tqdm import tqdm
 import warnings
+
+# Import tqdm but change default options
+from functools import partial
+from tqdm import tqdm as std_tqdm
+tqdm = partial(std_tqdm, ncols=79)
 
 import matplotlib
 import matplotlib.colors

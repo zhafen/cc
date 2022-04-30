@@ -1,7 +1,6 @@
 import ads
 import bibtexparser
 import copy
-from tqdm import tqdm
 import glob
 import io
 import nltk
@@ -13,6 +12,11 @@ import re
 import scipy.sparse as ss
 import sklearn.feature_extraction.text as skl_text_features
 import warnings
+
+# Import tqdm but change default options
+from functools import partial
+from tqdm import tqdm as std_tqdm
+tqdm = partial(std_tqdm, ncols=79)
 
 import matplotlib.pyplot as plt
 
@@ -819,6 +823,7 @@ class Atlas( object ):
         identifier = 'key_as_bibcode',
         skip_unofficial = True,
         perform_noid_queries = True,
+        verbose = False,
     ):
         '''Get the ADS data for all publications.
 
@@ -849,6 +854,9 @@ class Atlas( object ):
 
             perform_noid_queries (bool):
                 Do individual queries for the publications missing a unique ID.
+
+            verbose (bool):
+                Warn when publication data is not retrieved.
         '''
 
         # key_as_bibcode is an alias for bibcode
@@ -955,7 +963,7 @@ class Atlas( object ):
         # Exit early if no ids to call
         if len( queries ) == 1 and len( queries[0]['search_strs'] ) == 0:
             if  len( queries_noid ) == 0 and perform_noid_queries:
-                print( 'No publications need to/are able to retrieve ads data.' )
+                print( 'No publications to retrieve data for.' )
                 return
 
         # Query
@@ -995,10 +1003,11 @@ class Atlas( object ):
 
                 # Don't try to update if no matching publication was found
                 if not found:
-                    warnings.warn(
-                        'No publications found for ' + \
-                        '{}. Skipping.'.format( key )
-                    )
+                    if verbose:
+                        warnings.warn(
+                            'No publications found for ' + \
+                            '{}. Skipping.'.format( key )
+                        )
                     continue
             
                 # Store the data
@@ -1025,16 +1034,18 @@ class Atlas( object ):
                 pubs = list( ads_query )
 
                 if len( pubs ) > 1:
-                    warnings.warn(
-                        'Multiple publications possible ' + \
-                        'for {}. Skipping.'.format( key )
-                    )
+                    if verbose:
+                        warnings.warn(
+                            'Multiple publications possible ' + \
+                            'for {}. Skipping.'.format( key )
+                        )
                     continue
                 elif len( pubs ) == 0:
-                    warnings.warn(
-                        'No publications found ' + \
-                        'for {}. Skipping.'.format( key )
-                    )
+                    if verbose:
+                        warnings.warn(
+                            'No publications found ' + \
+                            'for {}. Skipping.'.format( key )
+                        )
                     continue
                 p = pubs[0]
 
