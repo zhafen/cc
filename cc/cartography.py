@@ -142,9 +142,7 @@ class Cartographer( object ):
 
         is_nonzero = np.invert( np.isclose( self.norms, 0. ) )
         valid_inds = np.arange( self.publications.size )[is_nonzero]
-        for attr in [ 'vectors', 'norms', 'publications', 'publication_dates', 'entry_dates' ]:
-            value = getattr( self, attr )[valid_inds]
-            setattr( self, attr, value )
+        self.prune( valid_inds )
 
     ########################################################################
 
@@ -153,9 +151,23 @@ class Cartographer( object ):
 
         unique_inds = np.unique( self.vectors_notsp, axis=0, return_index=True )[1]
         valid_inds = np.sort( unique_inds )
+        self.prune( valid_inds )
+
+    ########################################################################
+
+    def prune( self, valid_inds ):
+        '''Toss out entries not in valid_inds.'''
+
         for attr in [ 'vectors', 'norms', 'publications', 'publication_dates', 'entry_dates' ]:
             value = getattr( self, attr )[valid_inds]
             setattr( self, attr, value )
+
+        # Clear out calculated properties to start fresh
+        for attr in dir( self ):
+            if isinstance( getattr( type( self ), attr, None), property):
+                stored_attr = '_' + attr
+                if hasattr( self, stored_attr ):
+                    delattr( self, stored_attr )
 
     ########################################################################
 
