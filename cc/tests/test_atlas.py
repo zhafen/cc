@@ -388,6 +388,26 @@ class TestRealisticAtlas( unittest.TestCase ):
 
     ########################################################################
 
+    def test_chu2021( self ):
+        '''Individual case prone to breaking.'''
+
+        cite_key = 'Chu2021'
+
+        # Load and make into a mini atlas
+        bibtex_fp = os.path.join( self.atlas_dir, 'chu2021.bib' )
+        a = atlas.Atlas(
+            self.atlas_dir,
+            load_bibtex = False,
+        )
+        a.import_bibtex( bibtex_fp=bibtex_fp )
+        assert cite_key in a.data.keys()
+
+        a.process_abstracts( identifier='from_citation' )
+
+        assert a[cite_key].abstract_str() == ''
+
+    ########################################################################
+
     def test_chen2005( self ):
         '''Individual case prone to breaking.'''
 
