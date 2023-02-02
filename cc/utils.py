@@ -435,7 +435,7 @@ def random_publications(
 
     pubs = []
     n_loops = 0
-    pbar = tqdm.tqdm( total=n_sample )
+    pbar = tqdm.tqdm( total=n_sample, position=0, leave=True )
     bad_dates = []
     empty_dates = []
     empty_abstracts = []
