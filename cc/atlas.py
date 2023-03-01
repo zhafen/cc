@@ -1257,7 +1257,7 @@ class Atlas( object ):
             print( '    Calculating vectorization...' )
             vectorizer = skl_text_features.CountVectorizer( token_pattern=r"(?u)\b[A-Za-z]+\b" )
             vectors = vectorizer.fit_transform( abstracts )
-            feature_names = vectorizer.get_feature_names()
+            feature_names = vectorizer.get_feature_names_out()
 
             # Calculate the norm
             norm_squared_unformatted = vectors.multiply( vectors ).sum( axis=1 )
