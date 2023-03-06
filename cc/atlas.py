@@ -123,7 +123,7 @@ class Atlas( object ):
         n_sample,
         start_time = '1990',
         end_time = '2015',
-        fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode', 'entry_date' ],
+        fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode', 'entry_date', 'arxiv_class' ],
         arxiv_class = None,
         seed = None,
         max_loops = None,

@@ -374,7 +374,7 @@ def random_publications(
     n_sample,
     start_time,
     end_time,
-    fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode', 'entry_date' ],
+    fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode', 'entry_date', 'arxiv_class' ],
     arxiv_class = None,
     seed = None,
     max_loops = None,
@@ -428,10 +428,11 @@ def random_publications(
     if arxiv_class is not None:
         search_str += 'arxiv_class:"{}"'.format( arxiv_class )
         if arxiv_class == 'astro-ph':
-            search_str = 'arxiv_class:"astro-ph"'
             subcats = [ 'GA', 'CO', 'EP', 'HE', 'IM', 'SR' ]
             for subcat in subcats:
                 search_str += ' OR arxiv_class:"astro-ph.{}"'.format( subcat )
+        else:
+            subcats = []
 
     pubs = []
     n_loops = 0
@@ -440,6 +441,7 @@ def random_publications(
     empty_dates = []
     empty_abstracts = []
     no_refs_or_cits = []
+    not_right_class = []
     while len( pubs ) < n_sample:
 
         # Build query
@@ -490,10 +492,19 @@ def random_publications(
             tqdm.tqdm.write( 'Publication {} has no abstract. Continuing.'.format( p.bibcode ) )
             continue
         
+        # Cannot do this for publications missing citation data.
         if p.citation is None and p.reference is None:
             no_refs_or_cits.append( p )
             tqdm.tqdm.write( 'Publication {} has no references or citations. Continuing.'.format( p.bibcode ) )
             continue
+
+        # If the *primary* class is not the target arxiv_class, continue
+        if arxiv_class is not None:
+            viable_classes = [ arxiv_class, ] + [ '{}.{}'.format( arxiv_class, _ ) for _ in subcats ]
+            if not p.arxiv_class[0] in viable_classes:
+                not_right_class.append( p )
+                tqdm.tqdm.write( 'Publication {} is not the right arxiv category. Continuing.'.format( p.bibcode ) )
+                continue
         
         pubs.append( p )
         pbar.update( 1 )
