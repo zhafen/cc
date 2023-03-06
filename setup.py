@@ -33,7 +33,7 @@ setuptools.setup(
         'simple-augment>=1.0',
         'mock>=4.0.2',
         'pandas>=1.1.4',
-        'verdict>=1.1.4',
+        'verdict>=1.2',
         'h5py>=3.6.0',
         'descartes>=1.1.0',
         'scikit_learn>=1.0.2',
