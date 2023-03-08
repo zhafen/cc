@@ -156,7 +156,7 @@ class Atlas( object ):
                 Defaults to not being used.
 
             max_loops (int):
-                Number of iterations before breaking. Defaults to 10 * n_sample.
+                Number of iterations before breaking. Defaults to 20 * n_sample.
 
         Returns:
             atlas (Atlas):
