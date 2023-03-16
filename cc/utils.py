@@ -379,6 +379,7 @@ def random_publications(
     seed = None,
     max_loops = None,
     bad_days_of_week = [ 'Saturday', 'Sunday' ],
+    verbose = False,
 ):
     '''Choose random publications by choosing a random date and then choosing
     a random publication announced on that date.
@@ -492,6 +493,8 @@ def random_publications(
                 query_list = list( ads_query )
             except ads.exceptions.APIResponseError as e:
                 api_response_errors.append( e )
+                if verbose:
+                    tqdm.tqdm.write( 'API error, moving to next loop.' )
                 continue
 
         if len( query_list ) == 0:
@@ -503,13 +506,15 @@ def random_publications(
         # Cannot do this for publications missing abstract data.
         if p.abstract is None:
             empty_abstracts.append( p )
-            tqdm.tqdm.write( 'Publication {} has no abstract. Continuing.'.format( p.bibcode ) )
+            if verbose:
+                tqdm.tqdm.write( 'Publication {} has no abstract. Continuing.'.format( p.bibcode ) )
             continue
         
         # Cannot do this for publications missing citation data.
         if p.citation is None and p.reference is None:
             no_refs_or_cits.append( p )
-            tqdm.tqdm.write( 'Publication {} has no references or citations. Continuing.'.format( p.bibcode ) )
+            if verbose:
+                tqdm.tqdm.write( 'Publication {} has no references or citations. Continuing.'.format( p.bibcode ) )
             continue
 
         # If the *primary* class is not the target arxiv_class, continue
