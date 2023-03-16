@@ -437,11 +437,11 @@ def random_publications(
     pubs = []
     n_loops = 0
     pbar = tqdm.tqdm( total=n_sample, position=0, leave=True )
-    bad_dates = []
     empty_dates = []
     empty_abstracts = []
     no_refs_or_cits = []
     not_right_class = []
+    api_response_errors = []
     while len( pubs ) < n_sample:
 
         # Build query
@@ -479,7 +479,21 @@ def random_publications(
             query_dict['q'] = search_str + ' entdate:[{} TO {}]'.format( random_date, random_date_end )
             ads_query = ads.SearchQuery( query_dict = query_dict )
 
-        query_list = list( ads_query )
+        try:
+            query_list = list( ads_query )
+        # Try again if the error is with the API
+        except ads.exceptions.APIResponseError as e:
+            if search_str == '':
+                ads_query = ads.SearchQuery( **query_dict )
+            else:
+                ads_query = ads.SearchQuery( query_dict = query_dict )
+            # If it fails again move on, and add to the list of failures.
+            try:
+                query_list = list( ads_query )
+            except ads.exceptions.APIResponseError as e:
+                api_response_errors.append( e )
+                continue
+
         if len( query_list ) == 0:
             empty_dates.append( random_datetime )
             continue

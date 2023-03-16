@@ -970,14 +970,18 @@ class Atlas( object ):
         print( '    Making {} ADS calls...'.format( len( queries ) ) )
         for query_i in tqdm( queries ):
             search_str = ' OR '.join( query_i['search_strs'] )
-            ads_query = ads.SearchQuery(
-                query_dict={
-                    'q': search_str,
-                    'fl': fl,
-                    'rows': publications_per_request,
-                },
-            )
-            pubs = list( ads_query )
+            query_dict={
+                'q': search_str,
+                'fl': fl,
+                'rows': publications_per_request,
+            },
+            ads_query = ads.SearchQuery( query_dict=query_dict )
+            try:
+                pubs = list( ads_query )
+            # try again if we received an internal error.
+            except ads.exceptions.APIResponseError as e:
+                ads_query = ads.SearchQuery( query_dict=query_dict )
+                pubs = list( ads_query )
 
             # Identify and update
             for i, key in enumerate( query_i['data_keys'] ):
