@@ -1566,9 +1566,10 @@ def save_bibcodes_to_bibtex( bibcodes, bibtex_fp, call_size=2000 ):
         try:
             q = ads.ExportQuery( bibcodes )
             bibtex_str_i = q.execute()
-        except:
-            # DEBUG
-            import pdb; pdb.set_trace()
+        # Try again if there was an error on the ADS side
+        except ads.exceptions.APIResponseError:
+            q = ads.ExportQuery( bibcodes )
+            bibtex_str_i = q.execute()
 
         # Reformat some lines to work with bibtexparser
         # This is not optimized.
