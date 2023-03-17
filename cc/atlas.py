@@ -127,6 +127,8 @@ class Atlas( object ):
         arxiv_class = None,
         seed = None,
         max_loops = None,
+        load_atlas_data = True,
+        **kwargs
     ):
         '''Make an atlas of random publications by choosing random dates and then choosing
         a random publication announced on that date.
@@ -162,6 +164,12 @@ class Atlas( object ):
             atlas (Atlas):
                 Atlas of publications selected.
         '''
+
+        # Start by checking if there is an existing atlas that has data
+        if load_atlas_data:
+            result = Atlas( atlas_dir=atlas_dir, load_atlas_data=True **kwargs )
+            if len( result.data ) > 0:
+                return result
 
         pubs = utils.random_publications(
             n_sample = n_sample,
