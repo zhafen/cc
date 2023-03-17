@@ -982,7 +982,7 @@ class Atlas( object ):
                 'q': search_str,
                 'fl': fl,
                 'rows': publications_per_request,
-            },
+            }
             ads_query = ads.SearchQuery( query_dict=query_dict )
             try:
                 pubs = list( ads_query )
