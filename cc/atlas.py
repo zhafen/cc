@@ -128,6 +128,7 @@ class Atlas( object ):
         seed = None,
         max_loops = None,
         load_atlas_data = True,
+        load_bibtex = False,
         **kwargs
     ):
         '''Make an atlas of random publications by choosing random dates and then choosing
@@ -167,7 +168,7 @@ class Atlas( object ):
 
         # Start by checking if there is an existing atlas that has data
         if load_atlas_data:
-            result = Atlas( atlas_dir=atlas_dir, load_atlas_data=True **kwargs )
+            result = Atlas( atlas_dir=atlas_dir, load_atlas_data=True, load_bibtex=load_bibtex, **kwargs )
             if len( result.data ) > 0:
                 return result
 

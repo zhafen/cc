@@ -88,7 +88,11 @@ class Publication( object ):
         '''
 
         ads_query = ads.SearchQuery( fl=fl, **kwargs )
-        query_list = list( ads_query )
+        try:
+            query_list = list( ads_query )
+        except ads.exceptions.APIResponseError:
+            ads_query = ads.SearchQuery( fl=fl, **kwargs )
+            query_list = list( ads_query )
 
         # Parse results of search
         if len( query_list ) < 1:
