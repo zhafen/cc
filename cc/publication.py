@@ -65,6 +65,7 @@ class Publication( object ):
         self,
         fl = [ 'abstract', 'citation', 'reference', 'entry_date' ],
         keep_query_open = False,
+        n_attempts = 5,
         verbose = False,
         **kwargs
     ):
@@ -74,25 +75,31 @@ class Publication( object ):
         NOTE: For this to work you MUST have your ADS API key
         saved to ~/.ads/dev_key
 
-        Keyword Args:
+        Args:
             fl (list of strs):
                 Fields to preload when the data is first retrieved.
 
-            kwargs:
-                Unique identifiers of the publication, e.g. the arXiv number
-                with arxiv='1811.11753'.
+            n_attempts (int):
+                Number of attempts to access the API. Useful when experiencing
+                connection issues.
+
+        Keyword Args:
+            Unique identifiers of the publication, e.g. the arXiv number
+            with arxiv='1811.11753'.
 
         Returns:
             self.ads_data (dict):
                 Dictionary containing ADS data.
         '''
 
-        ads_query = ads.SearchQuery( fl=fl, **kwargs )
-        try:
-            query_list = list( ads_query )
-        except ads.exceptions.APIResponseError:
+        # Query. Turned into a function and
+        # wrapped to allow multiple attempts.
+        @utils.keep_trying( n_attempts=n_attempts )
+        def get_ads_query():
             ads_query = ads.SearchQuery( fl=fl, **kwargs )
             query_list = list( ads_query )
+            return query_list
+        query_list = get_ads_query()
 
         # Parse results of search
         if len( query_list ) < 1:

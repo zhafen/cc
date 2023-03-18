@@ -426,6 +426,7 @@ def random_publications(
     seed = None,
     max_loops = None,
     bad_days_of_week = [ 'Saturday', 'Sunday' ],
+    n_attempts_per_query = 5,
     verbose = False,
 ):
     '''Choose random publications by choosing a random date and then choosing
@@ -454,6 +455,13 @@ def random_publications(
 
         max_loops (int):
             Number of iterations before breaking. Defaults to 20 * n_sample.
+
+        n_attempts_per_query (int):
+            Number of attempts to access the API per query. Useful when experiencing
+            connection issues.
+
+        verbose (bool):
+            The usual switch to turn on/off lots of messages.
 
     Returns:
         pubs (list of ads queries):
@@ -516,7 +524,15 @@ def random_publications(
         random_date = '{}-{}-{}'.format( random_datetime.year, random_datetime.month, random_datetime.day )
         if search_str == '':
             query_dict['entdate'] = random_date
-            ads_query = ads.SearchQuery( **query_dict )
+
+            # Get publications out. Turned into a function and
+            # wrapped to allow multiple attempts.
+            @keep_trying( n_attempts=n_attempts_per_query )
+            def get_pubs_for_query():
+                ads_query = ads.SearchQuery( **query_dict )
+                query_list = list( ads_query )
+                return query_list
+
         else:
             random_datetime_end = random_datetime + pd.DateOffset( days=1 )
             random_date_end = '{}-{}-{}'.format(
@@ -525,24 +541,16 @@ def random_publications(
                 random_datetime_end.day
             )
             query_dict['q'] = search_str + ' entdate:[{} TO {}]'.format( random_date, random_date_end )
-            ads_query = ads.SearchQuery( query_dict = query_dict )
 
-        try:
-            query_list = list( ads_query )
-        # Try again if the error is with the API
-        except ads.exceptions.APIResponseError as e:
-            if search_str == '':
-                ads_query = ads.SearchQuery( **query_dict )
-            else:
-                ads_query = ads.SearchQuery( query_dict = query_dict )
-            # If it fails again move on, and add to the list of failures.
-            try:
+            # Get publications out. Turned into a function and
+            # wrapped to allow multiple attempts.
+            @keep_trying( n_attempts=n_attempts_per_query )
+            def get_pubs_for_query():
+                ads_query = ads.SearchQuery( query_dict=query_dict )
                 query_list = list( ads_query )
-            except ads.exceptions.APIResponseError as e:
-                api_response_errors.append( e )
-                if verbose:
-                    tqdm.tqdm.write( 'API error, moving to next loop.' )
-                continue
+                return query_list
+
+        query_list = get_pubs_for_query()
 
         if len( query_list ) == 0:
             empty_dates.append( random_datetime )

@@ -832,6 +832,7 @@ class Atlas( object ):
         identifier = 'key_as_bibcode',
         skip_unofficial = True,
         perform_noid_queries = True,
+        n_attempts_per_query = 5,
         verbose = False,
     ):
         '''Get the ADS data for all publications.
@@ -863,6 +864,10 @@ class Atlas( object ):
 
             perform_noid_queries (bool):
                 Do individual queries for the publications missing a unique ID.
+
+            n_attempts_per_query (int):
+                Number of attempts to access the API per query. Useful when experiencing
+                connection issues.
 
             verbose (bool):
                 Warn when publication data is not retrieved.
@@ -984,13 +989,15 @@ class Atlas( object ):
                 'fl': fl,
                 'rows': publications_per_request,
             }
-            ads_query = ads.SearchQuery( query_dict=query_dict )
-            try:
-                pubs = list( ads_query )
-            # try again if we received an internal error.
-            except ads.exceptions.APIResponseError as e:
+
+            # Get publications out. Turned into a function and
+            # wrapped to allow multiple attempts.
+            @utils.keep_trying( n_attempts=n_attempts_per_query )
+            def get_pubs_for_query():
                 ads_query = ads.SearchQuery( query_dict=query_dict )
                 pubs = list( ads_query )
+                return pubs
+            pubs = get_pubs_for_query()
 
             # Identify and update
             for i, key in enumerate( query_i['data_keys'] ):
@@ -1037,14 +1044,19 @@ class Atlas( object ):
 
                 key = query_noid['data_key']
 
-                ads_query = ads.SearchQuery(
-                    query_dict={
-                        'q': query_noid['search_str'],
-                        'fl': fl,
-                        'rows': publications_per_request,
-                    },
-                )
-                pubs = list( ads_query )
+                # Make query. Turned into a function to allow multiple attempts
+                @utils.keep_trying( n_attempts=n_attempts_per_query )
+                def get_pubs_for_noid_query():
+                    ads_query = ads.SearchQuery(
+                        query_dict={
+                            'q': query_noid['search_str'],
+                            'fl': fl,
+                            'rows': publications_per_request,
+                        },
+                    )
+                    pubs = list( ads_query )
+                    return pubs
+                pubs = get_pubs_for_noid_query()
 
                 if len( pubs ) > 1:
                     if verbose:
