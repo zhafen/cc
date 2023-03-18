@@ -1,5 +1,6 @@
 import ads
 from collections import Counter 
+from functools import wraps
 import nltk
 from nltk.metrics import edit_distance
 import numpy as np
@@ -339,6 +340,52 @@ def citation_to_ads_call( citation ):
 
 ########################################################################
 
+def keep_trying( n_attempts=5, allowed_exception=ads.exceptions.APIResponseError, verbose=True ):
+    '''Sometimes we receive server errors. We don't want that to disrupt the entire
+    process, so this decorator allow trying n_attempts times.
+
+    Args:
+        n_attempts (int):
+            Number of attempts before letting the exception happen.
+
+        allowed_exception (class):
+            Allowed exception class. Set to BaseException to keep trying regardless of exception.
+
+        verbose (bool):
+            If True, be talkative.
+
+    Example Usage:
+        > @keep_trying( n_attempts=4 )
+        > def try_to_call_web_api():
+        >     " do stuff "
+    '''
+
+    def _keep_trying( f ):
+
+        @wraps( f )
+        def wrapped_fn( *args, **kwargs ):
+            # Loop over for n-1 attempts, trying to return
+            for i in range( n_attempts - 1 ):
+                try:
+                    result = f( *args, **kwargs )
+                    if i > 0 and verbose:
+                        print( 'Had to call {} {} times to get a response.'.format( f, i+1 ) )
+                    return result
+                except allowed_exception:
+                    continue
+
+            # On last attempt just let it be
+            if verbose:
+                print( 'Had to call {} {} times to get a response. Trying once more.'.format( f, n_attempts ) )
+            return f( *args, **kwargs )
+
+        return wrapped_fn
+
+    return _keep_trying
+
+########################################################################
+
+@keep_trying()
 def ads_query(
     q,
     fl = ['abstract', 'citation', 'reference', 'entry_date', 'identifier' ],
