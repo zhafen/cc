@@ -1,18 +1,19 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
     <title>cc.utils module &#8212; cc 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head><body>
@@ -35,11 +36,73 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-cc.utils">
-<span id="cc-utils-module"></span><h1>cc.utils module<a class="headerlink" href="#module-cc.utils" title="Permalink to this headline">¶</a></h1>
+  <section id="module-cc.utils">
+<span id="cc-utils-module"></span><h1>cc.utils module<a class="headerlink" href="#module-cc.utils" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
-<dt id="cc.utils.match_words">
-<code class="sig-prename descclassname">cc.utils.</code><code class="sig-name descname">match_words</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em>, <em class="sig-param"><span class="n">max_edit_distance</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">min_len_ed</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">stemmed</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.match_words" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.utils.ads_query">
+<span class="sig-prename descclassname"><span class="pre">cc.utils.</span></span><span class="sig-name descname"><span class="pre">ads_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['abstract',</span> <span class="pre">'citation',</span> <span class="pre">'reference',</span> <span class="pre">'entry_date',</span> <span class="pre">'identifier']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.ads_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience wrapper for searching ADS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Call to ADS.</p></li>
+<li><p><strong>fl</strong> (<em>list of strs</em>) – Fields to return for publications.</p></li>
+<li><p><strong>rows</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Number of publications to return per page.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cc.utils.citation_to_ads_call">
+<span class="sig-prename descclassname"><span class="pre">cc.utils.</span></span><span class="sig-name descname"><span class="pre">citation_to_ads_call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">citation</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.citation_to_ads_call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a dictionary containing a citation return a string that,
+when sent to ADS, will give a unique result.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>citation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – Dictionary containing the citation information for a publication.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>String to be used as a query for ADS.</p>
+<dl class="simple">
+<dt>ident (str):</dt><dd><p>Type of identifier used.</p>
+</dd>
+<dt>id (str):</dt><dd><p>ID used.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>q (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cc.utils.keep_trying">
+<span class="sig-prename descclassname"><span class="pre">cc.utils.</span></span><span class="sig-name descname"><span class="pre">keep_trying</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_attempts=5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_exception=&lt;class</span> <span class="pre">'ads.exceptions.APIResponseError'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.keep_trying" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sometimes we receive server errors. We don’t want that to disrupt the entire
+process, so this decorator allow trying n_attempts times.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_attempts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Number of attempts before letting the exception happen.</p></li>
+<li><p><strong>allowed_exception</strong> (<em>class</em>) – Allowed exception class. Set to BaseException to keep trying regardless of exception.</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If True, be talkative.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example Usage:</dt><dd><p>&gt; &#64;keep_trying( n_attempts=4 )
+&gt; def try_to_call_web_api():
+&gt;     ” do stuff “</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cc.utils.match_words">
+<span class="sig-prename descclassname"><span class="pre">cc.utils.</span></span><span class="sig-name descname"><span class="pre">match_words</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_edit_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_len_ed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stemmed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.match_words" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the matching words in two lists.
 This involves…
 1. Stemming the words in the lists
@@ -48,51 +111,112 @@ This involves…
 <div><p>(accounts for mispellings)</p>
 </div></blockquote>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>a</strong> (<em>list of strs</em>) – The first to look for matching words in.</p></li>
 <li><p><strong>b</strong> (<em>list of strs</em>) – The second to look for matching words in.</p></li>
-<li><p><strong>max_edit_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Maximum Levenshtein edit-distance between two concepts for them
+<li><p><strong>max_edit_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Maximum Levenshtein edit-distance between two concepts for them
 to count as the same concept.</p></li>
-<li><p><strong>min_len_ed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Words below this length will not be considered the same even if
+<li><p><strong>min_len_ed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Words below this length will not be considered the same even if
 they are within the given edit distance.</p></li>
-<li><p><strong>stemmed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True the words are already stemmed.</p></li>
+<li><p><strong>stemmed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If True the words are already stemmed.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Set of matching words between the two lists.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>result (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.9)">set</a>)</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>result (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.11)">set</a>)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="cc.utils.multicolor_text">
-<code class="sig-prename descclassname">cc.utils.</code><code class="sig-name descname">multicolor_text</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">strings</span></em>, <em class="sig-param"><span class="n">colors</span></em>, <em class="sig-param"><span class="n">fontweights</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fontsize</span><span class="o">=</span><span class="default_value">24</span></em>, <em class="sig-param"><span class="n">annotated</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">annote_fontsize</span><span class="o">=</span><span class="default_value">12</span></em>, <em class="sig-param"><span class="n">spacing</span><span class="o">=</span><span class="default_value">1.1</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.multicolor_text" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.utils.multicolor_text">
+<span class="sig-prename descclassname"><span class="pre">cc.utils.</span></span><span class="sig-name descname"><span class="pre">multicolor_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontweights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annote_fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.multicolor_text" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="cc.utils.stem">
-<code class="sig-prename descclassname">cc.utils.</code><code class="sig-name descname">stem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">l</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.stem" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.utils.plot_voronoi">
+<span class="sig-prename descclassname"><span class="pre">cc.utils.</span></span><span class="sig-name descname"><span class="pre">plot_voronoi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_cells</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edgecolors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edgecolor_default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cubehelix'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hatching</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_label_box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_magnitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qhull_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Qbb</span> <span class="pre">Qc</span> <span class="pre">Qz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">annotate_kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.plot_voronoi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cc.utils.random_publications">
+<span class="sig-prename descclassname"><span class="pre">cc.utils.</span></span><span class="sig-name descname"><span class="pre">random_publications</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['arxivid',</span> <span class="pre">'doi',</span> <span class="pre">'date',</span> <span class="pre">'citation',</span> <span class="pre">'reference',</span> <span class="pre">'abstract',</span> <span class="pre">'bibcode',</span> <span class="pre">'entry_date',</span> <span class="pre">'arxiv_class']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arxiv_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_loops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bad_days_of_week</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Saturday',</span> <span class="pre">'Sunday']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_attempts_per_query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.random_publications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose random publications by choosing a random date and then choosing
+a random publication announced on that date.
+Note that while this means that publications announced on the same date
+as many other publications are less likely to be selected, this is not
+expected to typically be an important effect.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_sample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Number of publications to sample.</p></li>
+<li><p><strong>start_time</strong> (<em>pd.Timestamp</em><em> or </em><em>pd-compatible string</em>) – Beginning time to use for the range of selectable publications.</p></li>
+<li><p><strong>end_time</strong> (<em>pd.Timestamp</em><em> or </em><em>pd-compatible string</em>) – End time to use for the range of selectable publications.</p></li>
+<li><p><strong>arxiv_class</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – What arxiv class the publications should belong to, if any.
+If set to ‘astro-ph’ it will include all subcategories of ‘astro-ph’.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Integer to use for setting the random number selection.
+Defaults to not being used.</p></li>
+<li><p><strong>max_loops</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Number of iterations before breaking. Defaults to 20 * n_sample.</p></li>
+<li><p><strong>n_attempts_per_query</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Number of attempts to access the API per query. Useful when experiencing
+connection issues.</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – The usual switch to turn on/off lots of messages.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Publications selected.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pubs (list of ads queries)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cc.utils.stem">
+<span class="sig-prename descclassname"><span class="pre">cc.utils.</span></span><span class="sig-name descname"><span class="pre">stem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.stem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stem the words in a list of words.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>l</strong> (<em>list of strs</em>) – The words to stem.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>l</strong> (<em>list of strs</em>) – The words to stem.</p></li>
+<li><p><strong>unique</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If True return the unique, sorted stemmed words.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List of stemmed words.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>sl (list of strs)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="cc.utils.uniquify_words">
-<code class="sig-prename descclassname">cc.utils.</code><code class="sig-name descname">uniquify_words</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.uniquify_words" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.utils.tokenize_and_sort_text">
+<span class="sig-prename descclassname"><span class="pre">cc.utils.</span></span><span class="sig-name descname"><span class="pre">tokenize_and_sort_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_alphabet_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.tokenize_and_sort_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tokenize text into words, position tag them, and then sort
+according to tag tier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Text to tokenize and sort.</p></li>
+<li><p><strong>tag_mapping</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – How to sort the tags.
+If None uses the tag_tier in the config.</p></li>
+<li><p><strong>primary_alphabet_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If True, demote any words with numerals or punctuation to secondary.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>result (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cc.utils.uniquify_words">
+<span class="sig-prename descclassname"><span class="pre">cc.utils.</span></span><span class="sig-name descname"><span class="pre">uniquify_words</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.utils.uniquify_words" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the unique words in a list
 This involves…
 1. Stemming the words in the lists
@@ -101,7 +225,7 @@ This involves…
 <div><p>(accounts for mispellings)</p>
 </div></blockquote>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>a</strong> (<em>list of strs</em>) – The list to uniquify</p>
 </dd>
 </dl>
@@ -120,7 +244,7 @@ they are within the given edit distance.</p>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
             <div class="clearer"></div>
@@ -140,12 +264,12 @@ they are within the given edit distance.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -165,7 +289,7 @@ they are within the given edit distance.</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2020, Zach Hafen.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     </div>
   </body>
 </html>

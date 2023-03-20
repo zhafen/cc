@@ -26,6 +26,15 @@ Next, download data used by the Natural Language Processing Toolkit.
 
     python -m nltk.downloader all
 
+For handling multiple datasets you may also benefit from downloading and installing the below data management package.
+Please download and install from source for now, as the pip install is experiencing issues.
+
+.. code-block:: console
+
+    git clone git@github.com:zhafen/trove.git
+    cd trove
+    pip install -e .
+
 Usage
 =====
 

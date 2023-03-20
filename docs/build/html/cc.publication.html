@@ -1,18 +1,19 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
     <title>cc.publication module &#8212; cc 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head><body>
@@ -35,15 +36,33 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-cc.publication">
-<span id="cc-publication-module"></span><h1>cc.publication module<a class="headerlink" href="#module-cc.publication" title="Permalink to this headline">¶</a></h1>
+  <section id="module-cc.publication">
+<span id="cc-publication-module"></span><h1>cc.publication module<a class="headerlink" href="#module-cc.publication" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
-<dt id="cc.publication.Publication">
-<em class="property">class </em><code class="sig-prename descclassname">cc.publication.</code><code class="sig-name descname">Publication</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dt class="sig sig-object py" id="cc.publication.Publication">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cc.publication.</span></span><span class="sig-name descname"><span class="pre">Publication</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">citation_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes_categories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['key_concepts',</span> <span class="pre">'key_points',</span> <span class="pre">'uncategorized']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_failed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="py method">
-<dt id="cc.publication.Publication.citations_per_year">
-<code class="sig-name descname">citations_per_year</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.citations_per_year" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.publication.Publication.abstract_str">
+<span class="sig-name descname"><span class="pre">abstract_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">return_empty_upon_failure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.abstract_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the abstract text, either from the citation or from ADS</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>return_empty_upon_failure</strong> – If True, treat the abstract as an empty string when failing to
+download the abstract from ADS.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>String containing the abstract.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>abstract_str (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cc.publication.Publication.citations_per_year">
+<span class="sig-name descname"><span class="pre">citations_per_year</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.citations_per_year" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the citations per year. This depends on the instance
 having access to the ADS entry date and citation list, self.entry_date
 and self.citations. Note that this is usually automatically done
@@ -51,80 +70,56 @@ after processing and saving the abstracts.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cc.publication.Publication.concept_projection">
-<code class="sig-name descname">concept_projection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">component_concepts</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.concept_projection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Project the abstract into concept space.
-In simplest form this can just be counting up the number of
-times each unique, stemmed noun, verb, or adjective shows up in the
-abstract.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>component_concepts</strong> (<em>array-like of strs</em>) – Basis concepts to project onto. Defaults to all concepts in
-the abstract.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>The value of the projection for each concept (by default the</dt><dd><p>number of times a word shows up in the abstract).</p>
-</dd>
-<dt>component_concepts (np.ndarray of strs):</dt><dd><p>The component concepts. If the component_concepts argument
-is None then all non-zero concepts in the abstract are used.
-If not None then the union of the non-zero concepts and
-the component_concepts arg.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>components (np.ndarray of ints)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cc.publication.Publication.get_ads_data">
-<code class="sig-name descname">get_ads_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fl</span><span class="o">=</span><span class="default_value">['abstract', 'citation', 'reference', 'entry_date']</span></em>, <em class="sig-param"><span class="n">keep_query_open</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.get_ads_data" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.publication.Publication.get_ads_data">
+<span class="sig-name descname"><span class="pre">get_ads_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['abstract',</span> <span class="pre">'citation',</span> <span class="pre">'reference',</span> <span class="pre">'entry_date']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_query_open</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_attempts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.get_ads_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve all data the NASA Astrophysical Data System has regarding
 a paper.</p>
 <p>NOTE: For this to work you MUST have your ADS API key
 saved to ~/.ads/dev_key</p>
 <dl class="field-list simple">
-<dt class="field-odd">Keyword Arguments</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fl</strong> (<em>list of strs</em>) – Fields to preload when the data is first retrieved.</p></li>
-<li><p><strong>kwargs</strong> – Unique identifiers of the publication, e.g. the arXiv number
-with arxiv=’1811.11753’.</p></li>
+<li><p><strong>n_attempts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Number of attempts to access the API. Useful when experiencing
+connection issues.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Dictionary containing ADS data.</p>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>number</strong> (<em>Unique identifiers of the publication</em><em>, </em><em>e.g. the arXiv</em>) – </p></li>
+<li><p><strong>arxiv='1811.11753'.</strong> (<em>with</em>) – </p></li>
+</ul>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>self.ads_data (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a>)</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing ADS data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>self.ads_data (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)">dict</a>)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cc.publication.Publication.identify_unique_key_concepts">
-<code class="sig-name descname">identify_unique_key_concepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.identify_unique_key_concepts" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.publication.Publication.identify_unique_key_concepts">
+<span class="sig-name descname"><span class="pre">identify_unique_key_concepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.identify_unique_key_concepts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Identify the unique key concepts derived from notes.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>**kwargs</strong> – Passed to concept.uniquify_concepts.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cc.publication.Publication.inner_product_custom">
-<code class="sig-name descname">inner_product_custom</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'cached key-point concepts'</span></em>, <em class="sig-param"><span class="n">max_edit_distance</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.inner_product_custom" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.publication.Publication.inner_product_custom">
+<span class="sig-name descname"><span class="pre">inner_product_custom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cached</span> <span class="pre">key-point</span> <span class="pre">concepts'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_edit_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.inner_product_custom" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the inner product between the publication and another
 object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>other</strong> – The other object to calcualte the inner product with.</p></li>
-<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – <p>How to calculate the inner product. Options are…
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – <p>How to calculate the inner product. Options are…
 ‘key-point concepts’:</p>
 <blockquote>
 <div><p>The inner product is the the sum of the inner products
@@ -156,23 +151,50 @@ Computationally expensive currently.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cc.publication.Publication.load_full_tex">
-<code class="sig-name descname">load_full_tex</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tex_fp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.load_full_tex" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.publication.Publication.load_full_tex">
+<span class="sig-name descname"><span class="pre">load_full_tex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tex_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.load_full_tex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads a tex file for further manipulation.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>tex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Location of tex file to load.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Location of tex file to load.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cc.publication.Publication.process_abstract">
-<code class="sig-name descname">process_abstract</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abstract_str</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_empty_upon_failure</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.process_abstract" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.publication.Publication.points">
+<span class="sig-name descname"><span class="pre">points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all currently-processed points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – Be talkative or not?</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cc.publication.Publication.points_str">
+<span class="sig-name descname"><span class="pre">points_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.points_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cc.publication.Publication.primary_stemmed_points_str">
+<span class="sig-name descname"><span class="pre">primary_stemmed_points_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.primary_stemmed_points_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cc.publication.Publication.process_abstract">
+<span class="sig-name descname"><span class="pre">process_abstract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abstract_str</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_empty_upon_failure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.process_abstract" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process the abstract with natural language processing.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>abstract_str</strong> – Raw abstract. If none, download from ADS.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>abstract_str</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – <p>Raw abstract. If none, download from ADS.</p>
+<dl class="simple">
+<dt>return_empty_upon_failure (bool):</dt><dd><p>If True, treat the abstract as an empty string when failing to
+download the abstract from ADS.</p>
+</dd>
+</dl>
+</p>
 </dd>
 </dl>
 <dl class="simple">
@@ -185,38 +207,38 @@ Computationally expensive currently.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cc.publication.Publication.process_annotation_line">
-<code class="sig-name descname">process_annotation_line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">line</span></em>, <em class="sig-param"><span class="n">notes</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">word_per_concept</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.process_annotation_line" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.publication.Publication.process_annotation_line">
+<span class="sig-name descname"><span class="pre">process_annotation_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word_per_concept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forgiving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.process_annotation_line" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a line of annotation to extract more information.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>line</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The line of annotation to process.</p></li>
-<li><p><strong>notes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – The dictionary storing notes on various lines.
+<li><p><strong>line</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The line of annotation to process.</p></li>
+<li><p><strong>notes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – The dictionary storing notes on various lines.
 Defaults to using self.notes.</p></li>
-<li><p><strong>word_per_concept</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, break each concept into its composite words.</p></li>
+<li><p><strong>word_per_concept</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If True, break each concept into its composite words.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A dictionary containing updates notes on annotations.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>notes (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a>)</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>notes (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)">dict</a>)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cc.publication.Publication.process_bibtex_annotations">
-<code class="sig-name descname">process_bibtex_annotations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bibtex_fp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">word_per_concept</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.process_bibtex_annotations" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.publication.Publication.process_bibtex_annotations">
+<span class="sig-name descname"><span class="pre">process_bibtex_annotations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bibtex_fp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation_str</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word_per_concept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.process_bibtex_annotations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process notes residing in a .bib file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>bibtex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Filepath of the .bib file. Defaults to assuming one
+<li><p><strong>bibtex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Filepath of the .bib file. Defaults to assuming one
 is already loaded.</p></li>
-<li><p><strong>reload</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Forcibly reprocess annotations, even if already processed.</p></li>
-<li><p><strong>word_per_concept</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, break each concept into its composite words.</p></li>
+<li><p><strong>reload</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – Forcibly reprocess annotations, even if already processed.</p></li>
+<li><p><strong>word_per_concept</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If True, break each concept into its composite words.</p></li>
 </ul>
 </dd>
 </dl>
@@ -229,31 +251,86 @@ is already loaded.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="cc.publication.Publication.publication_date">
-<em class="property">property </em><code class="sig-name descname">publication_date</code><a class="headerlink" href="#cc.publication.Publication.publication_date" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.publication.Publication.publication_date">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">publication_date</span></span><a class="headerlink" href="#cc.publication.Publication.publication_date" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="cc.publication.Publication.read_citation">
-<code class="sig-name descname">read_citation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bibtex_fp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.read_citation" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.publication.Publication.read_citation">
+<span class="sig-name descname"><span class="pre">read_citation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bibtex_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.read_citation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve a citation from a BibTex file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>bibtex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Filepath containing the BibTex file to read from.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bibtex_fp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Filepath containing the BibTex file to read from.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A dictionary containing entries for a BibTex-style citation.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>self.citation (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a>)</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>self.citation (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)">dict</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cc.publication.Publication.stemmed_points">
+<span class="sig-name descname"><span class="pre">stemmed_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.stemmed_points" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cc.publication.Publication.vectorize">
+<span class="sig-name descname"><span class="pre">vectorize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.Publication.vectorize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project the abstract into concept space.
+In simplest form this can just be counting up the number of
+times each unique, stemmed noun, verb, or adjective shows up in the
+abstract.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>feature_names</strong> (<em>array-like of strs</em>) – Basis features to project onto. Defaults to all concepts in
+the abstract.</p></li>
+<li><p><strong>include_notes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If True include key_points and uncategorized in the vectorized text.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>The value of the projection for each concept (by default the</dt><dd><p>number of times a word shows up in the abstract).</p>
+</dd>
+<dt>feature_names (np.ndarray of strs):</dt><dd><p>The component concepts. If the feature_names argument
+is None then all non-zero concepts in the abstract are used.
+If not None then the union of the non-zero concepts and
+the feature_names arg.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>vector (np.ndarray of ints)</p>
 </dd>
 </dl>
 </dd></dl>
 
 </dd></dl>
 
-</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="cc.publication.UnofficialPublication">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cc.publication.</span></span><span class="sig-name descname"><span class="pre">UnofficialPublication</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">citation_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strictness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'warn'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.UnofficialPublication" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cc.publication.Publication" title="cc.publication.Publication"><code class="xref py py-class docutils literal notranslate"><span class="pre">Publication</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.publication.UnofficialPublication.publication_date">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">publication_date</span></span><a class="headerlink" href="#cc.publication.UnofficialPublication.publication_date" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="cc.publication.UnofficialPublicationException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cc.publication.</span></span><span class="sig-name descname"><span class="pre">UnofficialPublicationException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Unofficial</span> <span class="pre">Publication</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">compatible</span> <span class="pre">with</span> <span class="pre">this</span> <span class="pre">action.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.publication.UnofficialPublicationException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+</dd></dl>
+
+</section>
 
 
             <div class="clearer"></div>
@@ -273,12 +350,12 @@ is already loaded.</p></li>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -298,7 +375,7 @@ is already loaded.</p></li>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2020, Zach Hafen.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     </div>
   </body>
 </html>

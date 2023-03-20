@@ -1,18 +1,19 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
     <title>cc.tex module &#8212; cc 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head><body>
@@ -35,23 +36,23 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-cc.tex">
-<span id="cc-tex-module"></span><h1>cc.tex module<a class="headerlink" href="#module-cc.tex" title="Permalink to this headline">¶</a></h1>
+  <section id="module-cc.tex">
+<span id="cc-tex-module"></span><h1>cc.tex module<a class="headerlink" href="#module-cc.tex" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
-<dt id="cc.tex.Tex">
-<em class="property">class </em><code class="sig-prename descclassname">cc.tex.</code><code class="sig-name descname">Tex</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.Tex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dt class="sig sig-object py" id="cc.tex.Tex">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cc.tex.</span></span><span class="sig-name descname"><span class="pre">Tex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.Tex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Class for parsing tex, without regard to context.
 Can load a main tex file and all included files.</p>
 <dl class="py method">
-<dt id="cc.tex.Tex.clean">
-<code class="sig-name descname">clean</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">string</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.Tex.clean" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.tex.Tex.clean">
+<span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.Tex.clean" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clean up the text, i.e. remove comments, handle “~” characters.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The string to clean.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The string to clean.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><p>The string once cleaned.</p>
 <dl class="simple">
 <dt>comments (list of strs):</dt><dd><p>A list of any removed comments.</p>
@@ -59,103 +60,103 @@ Can load a main tex file and all included files.</p>
 </dl>
 </p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>cleaned (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>)</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>cleaned (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a>)</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="cc.tex.Tex.cleaned">
-<em class="property">property </em><code class="sig-name descname">cleaned</code><a class="headerlink" href="#cc.tex.Tex.cleaned" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.tex.Tex.cleaned">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cleaned</span></span><a class="headerlink" href="#cc.tex.Tex.cleaned" title="Permalink to this definition">¶</a></dt>
 <dd><p>String with comments removed.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="cc.tex.Tex.comments">
-<em class="property">property </em><code class="sig-name descname">comments</code><a class="headerlink" href="#cc.tex.Tex.comments" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.tex.Tex.comments">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">comments</span></span><a class="headerlink" href="#cc.tex.Tex.comments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Comments found in the tex</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cc.tex.Tex.display_chunked_sentence">
-<code class="sig-name descname">display_chunked_sentence</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">tier1_colors</span><span class="o">=</span><span class="default_value">[0.5215686274509804, 0.3607843137254902, 0.4588235294117647, 0.8509803921568627, 0.6862745098039216, 0.4196078431372549, 0.6862745098039216, 0.39215686274509803, 0.34509803921568627, 0.45098039215686275, 0.43529411764705883, 0.2980392156862745, 0.3215686274509804, 0.41568627450980394, 0.5137254901960784, 0.3843137254901961, 0.3254901960784314, 0.4666666666666667, 0.40784313725490196, 0.5215686274509804, 0.3607843137254902, 0.611764705882353, 0.611764705882353, 0.3686274509803922, 0.6274509803921569, 0.3803921568627451, 0.4666666666666667, 0.5490196078431373, 0.47058823529411764, 0.36470588235294116]</span></em>, <em class="sig-param"><span class="n">default_color</span><span class="o">=</span><span class="default_value">'0.7'</span></em>, <em class="sig-param"><span class="n">fontsize</span><span class="o">=</span><span class="default_value">24</span></em>, <em class="sig-param"><span class="n">tier_fontweights</span><span class="o">=</span><span class="default_value">{1: 'bold', 2: None}</span></em>, <em class="sig-param"><span class="n">max_word_per_line</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.Tex.display_chunked_sentence" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.tex.Tex.display_chunked_sentence">
+<span class="sig-name descname"><span class="pre">display_chunked_sentence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tier1_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[(0.5215686274509804,</span> <span class="pre">0.3607843137254902,</span> <span class="pre">0.4588235294117647),</span> <span class="pre">(0.8509803921568627,</span> <span class="pre">0.6862745098039216,</span> <span class="pre">0.4196078431372549),</span> <span class="pre">(0.6862745098039216,</span> <span class="pre">0.39215686274509803,</span> <span class="pre">0.34509803921568627),</span> <span class="pre">(0.45098039215686275,</span> <span class="pre">0.43529411764705883,</span> <span class="pre">0.2980392156862745),</span> <span class="pre">(0.3215686274509804,</span> <span class="pre">0.41568627450980394,</span> <span class="pre">0.5137254901960784),</span> <span class="pre">(0.3843137254901961,</span> <span class="pre">0.3254901960784314,</span> <span class="pre">0.4666666666666667),</span> <span class="pre">(0.40784313725490196,</span> <span class="pre">0.5215686274509804,</span> <span class="pre">0.3607843137254902),</span> <span class="pre">(0.611764705882353,</span> <span class="pre">0.611764705882353,</span> <span class="pre">0.3686274509803922),</span> <span class="pre">(0.6274509803921569,</span> <span class="pre">0.3803921568627451,</span> <span class="pre">0.4666666666666667),</span> <span class="pre">(0.5490196078431373,</span> <span class="pre">0.47058823529411764,</span> <span class="pre">0.36470588235294116)]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0.7'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tier_fontweights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{1:</span> <span class="pre">'bold',</span> <span class="pre">2:</span> <span class="pre">None}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_word_per_line</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.Tex.display_chunked_sentence" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="cc.tex.Tex.interpret">
-<code class="sig-name descname">interpret</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">string</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.Tex.interpret" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.tex.Tex.interpret">
+<span class="sig-name descname"><span class="pre">interpret</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.Tex.interpret" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpret the LaTeX, i.e. process macros, and some commands and
 characters to make more compatible with the suite of cc language
 analysis tools.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="cc.tex.Tex.interpreted">
-<em class="property">property </em><code class="sig-name descname">interpreted</code><a class="headerlink" href="#cc.tex.Tex.interpreted" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.tex.Tex.interpreted">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">interpreted</span></span><a class="headerlink" href="#cc.tex.Tex.interpreted" title="Permalink to this definition">¶</a></dt>
 <dd><p>String with comments removed.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="cc.tex.Tex.ne_chunks">
-<em class="property">property </em><code class="sig-name descname">ne_chunks</code><a class="headerlink" href="#cc.tex.Tex.ne_chunks" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.tex.Tex.ne_chunks">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ne_chunks</span></span><a class="headerlink" href="#cc.tex.Tex.ne_chunks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.tex.Tex.sentence_words">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sentence_words</span></span><a class="headerlink" href="#cc.tex.Tex.sentence_words" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.tex.Tex.sentences">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sentences</span></span><a class="headerlink" href="#cc.tex.Tex.sentences" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="cc.tex.Tex.sentence_words">
-<em class="property">property </em><code class="sig-name descname">sentence_words</code><a class="headerlink" href="#cc.tex.Tex.sentence_words" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="cc.tex.Tex.sentences">
-<em class="property">property </em><code class="sig-name descname">sentences</code><a class="headerlink" href="#cc.tex.Tex.sentences" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="cc.tex.Tex.tier_chunk">
-<code class="sig-name descname">tier_chunk</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tagged_words</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.Tex.tier_chunk" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.tex.Tex.tier_chunk">
+<span class="sig-name descname"><span class="pre">tier_chunk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tagged_words</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.Tex.tier_chunk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Chunk the sentence according to defined “tiers” of relevance.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="cc.tex.Tex.tier_chunks">
-<em class="property">property </em><code class="sig-name descname">tier_chunks</code><a class="headerlink" href="#cc.tex.Tex.tier_chunks" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.tex.Tex.tier_chunks">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tier_chunks</span></span><a class="headerlink" href="#cc.tex.Tex.tier_chunks" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt id="cc.tex.Tex.tiers">
-<em class="property">property </em><code class="sig-name descname">tiers</code><a class="headerlink" href="#cc.tex.Tex.tiers" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.tex.Tex.tiers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tiers</span></span><a class="headerlink" href="#cc.tex.Tex.tiers" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt id="cc.tex.Tex.tokens">
-<em class="property">property </em><code class="sig-name descname">tokens</code><a class="headerlink" href="#cc.tex.Tex.tokens" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.tex.Tex.tokens">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tokens</span></span><a class="headerlink" href="#cc.tex.Tex.tokens" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt id="cc.tex.Tex.words">
-<em class="property">property </em><code class="sig-name descname">words</code><a class="headerlink" href="#cc.tex.Tex.words" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="cc.tex.Tex.words">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">words</span></span><a class="headerlink" href="#cc.tex.Tex.words" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
-<dt id="cc.tex.interpret">
-<code class="sig-prename descclassname">cc.tex.</code><code class="sig-name descname">interpret</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em>, <em class="sig-param"><span class="n">subsequent_tex</span></em>, <em class="sig-param"><span class="n">commands</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.interpret" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.tex.interpret">
+<span class="sig-prename descclassname"><span class="pre">cc.tex.</span></span><span class="sig-name descname"><span class="pre">interpret</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subsequent_tex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.interpret" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpret a LaTeX command. Uninterpretable commands are left in.
 In this context, to interpret a command means to modify the tex
 to be more compatible with the suite of cc language analysis tools.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>command</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Name of the command to interpret.</p></li>
-<li><p><strong>subsequent_tex</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – All LaTex following the command call.</p></li>
+<li><p><strong>command</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Name of the command to interpret.</p></li>
+<li><p><strong>subsequent_tex</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – All LaTex following the command call.</p></li>
 <li><p><strong>commands</strong> (<em>dict of fns</em>) – Functions dictating how to handle given commands.
 Built-in-functions consist of the module level functions in
 tex_commands.py</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><p>What to replace the call to command with.</p>
 <dl class="simple">
 <dt>dj (int):</dt><dd><p>How much of subsequent_tex is the argument for command
@@ -167,36 +168,36 @@ outside of those in globals()</p>
 </dl>
 </p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>command_tex (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>)</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>command_tex (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a>)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="cc.tex.word_tokenize">
-<code class="sig-prename descclassname">cc.tex.</code><code class="sig-name descname">word_tokenize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sent</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.word_tokenize" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.tex.word_tokenize">
+<span class="sig-prename descclassname"><span class="pre">cc.tex.</span></span><span class="sig-name descname"><span class="pre">word_tokenize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sent</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.tex.word_tokenize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Word tokenize that accounts for math-mode in LaTex, producing more
 comprehendible results.
 * All math mode inside one set of “$”s is grouped into one word.
 * All escaped “$”s outside mathmode are replaced with “$”s.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>sent</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Sentence to Tokenize</p></li>
+<li><p><strong>sent</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Sentence to Tokenize</p></li>
 <li><p><strong>**kwargs</strong> – Passed to nltk.tokenize.word_tokenize</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Word tokenized sentence.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>words (list of strs)</p>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
             <div class="clearer"></div>
@@ -216,12 +217,12 @@ comprehendible results.
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -241,7 +242,7 @@ comprehendible results.
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2020, Zach Hafen.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     </div>
   </body>
 </html>

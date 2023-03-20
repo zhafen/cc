@@ -1,6 +1,14 @@
 cc package
 ==========
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   cc.tests
+
 Submodules
 ----------
 

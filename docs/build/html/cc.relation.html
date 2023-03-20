@@ -1,18 +1,19 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
     <title>cc.relation module &#8212; cc 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head><body>
@@ -35,62 +36,114 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-cc.relation">
-<span id="cc-relation-module"></span><h1>cc.relation module<a class="headerlink" href="#module-cc.relation" title="Permalink to this headline">¶</a></h1>
+  <section id="module-cc.relation">
+<span id="cc-relation-module"></span><h1>cc.relation module<a class="headerlink" href="#module-cc.relation" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
-<dt id="cc.relation.inner_product">
-<code class="sig-prename descclassname">cc.relation.</code><code class="sig-name descname">inner_product</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em>, <em class="sig-param"><span class="n">word_per_concept</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.relation.inner_product" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.relation.inner_product">
+<span class="sig-prename descclassname"><span class="pre">cc.relation.</span></span><span class="sig-name descname"><span class="pre">inner_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word_per_concept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.relation.inner_product" title="Permalink to this definition">¶</a></dt>
 <dd><p>The inner product between two relations.
-Fiducially defined as the number of shared key concepts.</p>
+Fiducially defined as the number of shared key features.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>a</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The first relation to calculate the inner product of.</p></li>
-<li><p><strong>b</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The second relation to calculate the inner product of.</p></li>
-<li><p><strong>word_per_concept</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, break each concept into its composite words.</p></li>
+<li><p><strong>a</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The first relation to calculate the inner product of.</p></li>
+<li><p><strong>b</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The second relation to calculate the inner product of.</p></li>
+<li><p><strong>word_per_concept</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If True, break each conckey_concept into its composite words.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="simple">
 <dt>Kwargs:</dt><dd><dl class="simple">
-<dt>max_edit_distance (int):</dt><dd><p>Maximum Levenshtein edit-distance between two concepts for them
+<dt>max_edit_distance (int):</dt><dd><p>Maximum Levenshtein edit-distance between two features for them
 to count as the same concept.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The number of shared key concepts between two relations.</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of shared key features between two relations.</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>result (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a>)</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>result (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a>)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="cc.relation.parse_relation_for_key_concepts">
-<code class="sig-prename descclassname">cc.relation.</code><code class="sig-name descname">parse_relation_for_key_concepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">word_per_concept</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.relation.parse_relation_for_key_concepts" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cc.relation.parse_relation_for_key_concepts">
+<span class="sig-prename descclassname"><span class="pre">cc.relation.</span></span><span class="sig-name descname"><span class="pre">parse_relation_for_key_concepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word_per_concept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.relation.parse_relation_for_key_concepts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse a formatted relation for key_concepts, including nested brackets.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>a</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The written relation you want to parse.</p></li>
-<li><p><strong>word_per_concept</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, limit concepts to one word per concept, and break down
-multi-word concepts (including nested concepts) into individuals.</p></li>
+<li><p><strong>a</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The written relation you want to parse.</p></li>
+<li><p><strong>word_per_concept</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If True, limit features to one word per concept, and break down
+multi-word features (including nested features) into individuals.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The key concepts contained in the relation.</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The key features contained in the relation.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list of strs</p>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="cc.relation.project_onto_existing">
+<span class="sig-prename descclassname"><span class="pre">cc.relation.</span></span><span class="sig-name descname"><span class="pre">project_onto_existing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">original_feature_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">added_vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">added_feature_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.relation.project_onto_existing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project onto an existing list of features.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>original_feature_names</strong> (<em>list-like of strs</em>) – Original features to project onto.</p></li>
+<li><p><strong>added_vector</strong> (<em>list-like of floats</em><em> or </em><em>ints</em>) – Weights for the new words.</p></li>
+<li><p><strong>added_feature_names</strong> (<em>list-like of strs</em>) – Concepts for the new vector. Some may already be part of
+original_feature_names</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Components in new space.</p>
+<dl class="simple">
+<dt>feature_names</dt><dd><p>Concepts for the space.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>vector (list-like of floats)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cc.relation.vectorize">
+<span class="sig-prename descclassname"><span class="pre">cc.relation.</span></span><span class="sig-name descname"><span class="pre">vectorize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">words</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cc.relation.vectorize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of words, project into conckey_concept space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>words</strong> (<em>list-like of strs</em>) – Words to project into conckey_concept space.</p></li>
+<li><p><strong>feature_names</strong> (<em>list-like of strs</em>) – Existing features to project onto.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Components in new space.</p>
+<dl class="simple">
+<dt>feature_names</dt><dd><p>Concepts for the space.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>vector (list-like of floats)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 
 
             <div class="clearer"></div>
@@ -110,12 +163,12 @@ multi-word concepts (including nested concepts) into individuals.</p></li>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -135,7 +188,7 @@ multi-word concepts (including nested concepts) into individuals.</p></li>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2020, Zach Hafen.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     </div>
   </body>
 </html>
