@@ -5,6 +5,8 @@ import nltk
 import numpy as np
 import pandas as pd
 import warnings
+## API_extension::maybe_unnecessary
+## Clean up imports
 
 import augment
 
@@ -72,6 +74,11 @@ class Publication( object ):
         '''Retrieve all data the NASA Astrophysical Data System has regarding
         a paper.
 
+        ## API_extension::get_data_via_api
+        ## It's pretty rare to call this function because it's much more efficient
+        ## to call Atlas.get_ads_data, i.e. fewer calls to the API.
+        ## We may be able to skip making an analogous general function.
+
         NOTE: For this to work you MUST have your ADS API key
         saved to ~/.ads/dev_key
 
@@ -136,6 +143,8 @@ class Publication( object ):
         having access to the ADS entry date and citation list, self.entry_date
         and self.citations. Note that this is usually automatically done
         after processing and saving the abstracts.
+
+        ## API_extension::publication_date
         '''
 
         if self.ignore_failed:
@@ -272,6 +281,9 @@ class Publication( object ):
             abstract_str (str):
                 Raw abstract. If none, download from ADS.
 
+                ## API_extension::get_data_via_api
+                ## Probably just need to change the call here.
+
              return_empty_upon_failure (bool):
                 If True, treat the abstract as an empty string when failing to
                 download the abstract from ADS.
@@ -305,6 +317,10 @@ class Publication( object ):
 
     def abstract_str( self, return_empty_upon_failure=True, verbose=False ):
         '''Retrieve the abstract text, either from the citation or from ADS
+
+        ## API_extension::process_data
+        ## This function retrieves the abstract string itself from the formatted
+        ## ADS data.
 
         Args:
              return_empty_upon_failure (bool):
@@ -343,6 +359,7 @@ class Publication( object ):
             if 'abstract' in self.citation:
                 abstract_str = self.citation['abstract']
 
+            ## API_extension:get_data_via_api
             # If neither of those work, auto-retrieve ADS data
             else:
                 if not hasattr( self, 'ads_data' ):

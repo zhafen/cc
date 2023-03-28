@@ -9,6 +9,8 @@ import scipy
 import string
 import tqdm
 import warnings
+## API_extension::maybe_unnecessary
+## Clean up imports after.
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -239,6 +241,9 @@ def citation_to_ads_call( citation ):
     '''Given a dictionary containing a citation return a string that,
     when sent to ADS, will give a unique result.
 
+    ## API_extension::get_data_via_api
+    ## Need a general function and an analogous function for SS
+
     Args:
         citation (dict):
             Dictionary containing the citation information for a publication.
@@ -344,6 +349,9 @@ def keep_trying( n_attempts=5, allowed_exception=ads.exceptions.APIResponseError
     '''Sometimes we receive server errors. We don't want that to disrupt the entire
     process, so this decorator allow trying n_attempts times.
 
+    ## API_extension::get_data_via_api
+    ## This decorator is general, except for the default allowed exception.
+
     Args:
         n_attempts (int):
             Number of attempts before letting the exception happen.
@@ -393,6 +401,9 @@ def ads_query(
 ):
     '''Convenience wrapper for searching ADS.
 
+    ## API_extension::get_data_via_api
+    ## Need a general version of this function and a specific one for SS.
+
     Args:
         q (str):
             Call to ADS.
@@ -434,6 +445,8 @@ def random_publications(
     Note that while this means that publications announced on the same date
     as many other publications are less likely to be selected, this is not
     expected to typically be an important effect.
+
+    ## API_extension::random_publications
 
     Args:
         n_sample (int):

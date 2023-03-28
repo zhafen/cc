@@ -59,6 +59,7 @@ class TestBibTexData( unittest.TestCase ):
 ########################################################################
 
 class TestAPIUsage( unittest.TestCase ):
+    ## API_extension::get_data_via_api
 
     def setUp( self ):
 
@@ -97,11 +98,13 @@ class TestAPIUsage( unittest.TestCase ):
 ########################################################################
 
 class TestFromBibcodes( unittest.TestCase ):
+    ## API_extension::to_and_from_bibcodes
 
     def setUp( self ):
 
         self.a = atlas.Atlas( './tests/data/example_atlas' )
 
+        ## API_extension::default_name_change
         self.bibtex_fp = './tests/data/example_atlas/cc_ads.bib' 
 
     def tearDown( self ):

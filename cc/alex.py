@@ -22,7 +22,9 @@ def get_year(entry):
     return year.replace(' ','')
 
 def replace_cite_key(entry):
-    '''Replaces ADS citation key with a more intelligible one.'''
+    '''Replaces ADS citation key with a more intelligible one.
+    API_extension::no_change
+    '''
     key = "%s%s"%(get_first_author(entry),get_year(entry))
 
     index = entry.index('{')+1

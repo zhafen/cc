@@ -458,6 +458,7 @@ class TestExplore( unittest.TestCase ):
 
     def setUp( self ):
 
+        ## API_extension::default_name_change
         # We want to start fresh for these tests
         ads_bib_fp = './tests/data/example_atlas/cc_ads.bib'
         if os.path.isfile( ads_bib_fp ):
@@ -469,6 +470,7 @@ class TestExplore( unittest.TestCase ):
 
     def tearDown(self):
 
+        ## API_extension::default_name_change
         # We want to start fresh for these tests
         ads_bib_fp = './tests/data/example_atlas/cc_ads.bib'
         if os.path.isfile( ads_bib_fp ):
@@ -519,6 +521,7 @@ class TestExplore( unittest.TestCase ):
 
     @patch( 'ads.ExportQuery' )
     def test_expand_check_call( self, mock ):
+        ## API_extension::get_data_via_api
 
         # Modify citations to control expected results
         self.a.data['Hafen2019'].citations = []

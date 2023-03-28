@@ -12,6 +12,7 @@ import cc.publication
 filepath = './tests/data/arxiv_source/Hafen2019/CGM_origin.tex'
 
 class TestRetrieveMetadata( unittest.TestCase ):
+    ## API_extension::get_data_via_api
 
     def test_get_ads_data( self ):
 

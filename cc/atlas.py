@@ -12,6 +12,8 @@ import re
 import scipy.sparse as ss
 import sklearn.feature_extraction.text as skl_text_features
 import warnings
+## API_extension::maybe_unnecessary
+## The imports can probably be pared down, post-extension.
 
 # Import tqdm but change default options
 from functools import partial
@@ -41,6 +43,7 @@ class Atlas( object ):
         bibtex_fp (str):
             Location to save the bibliography data at. Defaults to 
             $atlas_dir/cc_ads.bib
+            ## API_extension::default_name_change
 
         bibtex_entries_to_load (str or list-like):
             If not 'all', load specific bibtex entried.
@@ -85,6 +88,8 @@ class Atlas( object ):
                 bibtex_fp = os.path.join( atlas_dir, '*.bib' )
                 bibtex_fps = glob.glob( bibtex_fp )
                 if len( bibtex_fps ) > 1:
+
+                    ## API_extension::default_name_change
                     # Ignore the auxiliary downloaded biliography
                     cc_ads_fp = os.path.join( atlas_dir, 'cc_ads.bib' )
                     if cc_ads_fp in bibtex_fps:
@@ -93,6 +98,7 @@ class Atlas( object ):
                         raise IOError(
                             'Multiple possible BibTex files. Please specify.'
                         )
+
                 if len( bibtex_fps ) == 0:
                     raise IOError( 'No *.bib file found in {}'.format( atlas_dir ) )
                 bibtex_fp = bibtex_fps[0]
@@ -172,6 +178,8 @@ class Atlas( object ):
             if len( result.data ) > 0:
                 return result
 
+        ## API_extension:random_publications
+        ## This call may need to be changed
         pubs = utils.random_publications(
             n_sample = n_sample,
             start_time = start_time,
@@ -193,6 +201,11 @@ class Atlas( object ):
         bibcodes = [ _.bibcode for _ in pubs ]
         result = Atlas.from_bibcodes( atlas_dir, bibcodes )
         
+        ## API_extension:random_publications
+        ## The below code block stores already retrieved values in the atlas.
+        ## The way a random atlas is made currently is to retrieve the publications,
+        ## use their bibcodes to make an easy list of them,
+        ## pass in and format the already retrieved data.
         # Store publication data
         for p_ads in pubs:
             
@@ -227,6 +240,8 @@ class Atlas( object ):
         '''Generate an Atlas from bibcodes by downloading and saving the
         citations from ADS as a new bibliography.
 
+        ## API_extension::to_and_from_bibcodes
+
         Args:
             atlas_dir (str):
                 Primary location atlas data is stored in.
@@ -237,6 +252,7 @@ class Atlas( object ):
             bibtex_fp (str):
                 Location to save the bibliography data at. Defaults to 
                 $atlas_dir/cc_ads.bib
+            ## API_extension::default_name_change
 
             data_fp (str):
                 Location to save other atlas data at. Defaults to 
@@ -253,6 +269,7 @@ class Atlas( object ):
         # Make sure the atlas directory exists
         os.makedirs( atlas_dir, exist_ok=True )
 
+        ## API_extension::default_name_change
         # Save the bibcodes to a bibtex
         if bibtex_fp is None:
             bibtex_fp = os.path.join( atlas_dir, 'cc_ads.bib' )
@@ -273,6 +290,8 @@ class Atlas( object ):
     def import_bibcodes( self, bibcodes, bibtex_fp=None ):
         '''Import bibliography data using bibcodes.
 
+        ## API_extension::to_and_from_bibcodes
+
         Args:
             bibcodes (list of strs):
                 Publications to retrieve.
@@ -280,6 +299,7 @@ class Atlas( object ):
             bibtex_fp (str):
                 Location to save the bibliography data at. Defaults to 
                 $atlas_dir/cc_ads.bib
+            ## API_extension::default_name_change
 
         Updates:
             self.data and the file at bibtex_fp:
@@ -289,6 +309,7 @@ class Atlas( object ):
         # Store original keys for later removing duplicates
         original_keys = copy.copy( list( self.data.keys() ) )
 
+        # API_extension::default_name_change
         # Import bibcodes
         if bibtex_fp is None:
             bibtex_fp = os.path.join( self.atlas_dir, 'cc_ads.bib' )
@@ -837,6 +858,10 @@ class Atlas( object ):
     ):
         '''Get the ADS data for all publications.
 
+        ## API_extension::get_data_via_api
+        ## We will likely want to keep this function, but also make a general function
+        ## that calls the specific functions per API.
+
         Args:
             fl (list of strs):
                 Fields to retrieve from ADS.
@@ -1092,6 +1117,7 @@ class Atlas( object ):
             Passed to self.get_ads_data
         '''
 
+        ## API_extension::get_data_via_api
         self.get_ads_data( *args, **kwargs )
 
         print( '    Doing NLP...' )
@@ -1568,7 +1594,7 @@ class Atlas( object ):
 ########################################################################
 
 def save_bibcodes_to_bibtex( bibcodes, bibtex_fp, call_size=2000 ):
-
+    ## API_extension::to_and_from_bibcodes
 
     # ADS doesn't like np arrays
     bibcodes = list( bibcodes )
