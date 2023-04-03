@@ -66,6 +66,12 @@ class TestAPIUsage( unittest.TestCase ):
         self.a = atlas.Atlas( './tests/data/example_atlas' )
 
 ########################################################################
+
+    def test_get_data_via_api( self ):
+
+        self.a.get_data_via_api()
+
+########################################################################
     
     def test_get_ads_data( self ):
 
