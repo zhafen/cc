@@ -69,7 +69,13 @@ class TestAPIUsage( unittest.TestCase ):
 
     def test_get_data_via_api( self ):
 
-        self.a.get_data_via_api()
+        self.a.get_data_via_api( identifier='from_citation', skip_unofficial=False )
+
+########################################################################
+
+    def test_get_s2_data( self ):
+
+        self.a.get_s2_data( identifier='from_citation', skip_unofficial=False )
 
 ########################################################################
     
@@ -111,7 +117,8 @@ class TestFromBibcodes( unittest.TestCase ):
         self.a = atlas.Atlas( './tests/data/example_atlas' )
 
         ## API_extension::default_name_change
-        self.bibtex_fp = './tests/data/example_atlas/cc_ads.bib' 
+        atlas_dir = './tests/data/example_atlas'
+        self.bibtex_fp = os.join(atlas_dir, atlas.DEFAULT_BIB_NAME)
 
     def tearDown( self ):
         if os.path.isfile( self.bibtex_fp ):
@@ -119,14 +126,34 @@ class TestFromBibcodes( unittest.TestCase ):
 
     ########################################################################
 
-    def test_from_bibcodes( self ):
+    def test_to_and_from_ids( self, api = atlas.DEFAULT_API ):
+
+        if api == 'ADS':
+            self.test_to_and_from_bibcodes()
+        elif api == 'S2':
+            self.test_to_and_from_s2_ids()
+
+    ########################################################################
+
+    def test_to_and_from_s2_ids( self ):
+
+        a = atlas.Atlas.to_and_from_ids(
+            self.a.atlas_dir,
+            [],
+            api = 'S2',
+        )
+
+    ########################################################################
+
+    def test_to_and_from_bibcodes( self ):
+        api = 'ADS'
 
         bibcodes = [
             '2019MNRAS.488.1248H',
             '2020MNRAS.494.3581H',
         ]
 
-        a = atlas.Atlas.from_bibcodes(
+        a = atlas.Atlas.to_and_from_bibcodes(
             self.a.atlas_dir,
             bibcodes,
         )
@@ -139,12 +166,37 @@ class TestFromBibcodes( unittest.TestCase ):
             assert a.data['2019MNRAS.488.1248H'].citation[key] == self.a.data['Hafen2019'].citation[key]
 
         # Test we can get the abstracts
-        a.process_abstracts()
+        a.process_abstracts( api = api )
         assert a.n_err_abs == 0
 
     ########################################################################
 
-    def test_from_bibcodes_existing_bib( self ):
+    # def test_from_bibcodes( self ):
+
+    #     bibcodes = [
+    #         '2019MNRAS.488.1248H',
+    #         '2020MNRAS.494.3581H',
+    #     ]
+
+    #     a = atlas.Atlas.from_bibcodes(
+    #         self.a.atlas_dir,
+    #         bibcodes,
+    #     )
+
+    #     # Saved in the right spot
+    #     assert a.bibtex_fp == self.bibtex_fp
+
+    #     # Expected values for entries
+    #     for key in [ 'title', 'year', 'arxivid' ]:
+    #         assert a.data['2019MNRAS.488.1248H'].citation[key] == self.a.data['Hafen2019'].citation[key]
+
+    #     # Test we can get the abstracts
+    #     a.process_abstracts()
+    #     assert a.n_err_abs == 0
+
+    ########################################################################
+
+    def test_from_bibcodes_existing_bib( self, api = atlas.DEFAULT_API ):
 
         # Copy the duplicate file so there's already a bib there
         shutil.copyfile(
@@ -156,7 +208,7 @@ class TestFromBibcodes( unittest.TestCase ):
             '2020MNRAS.494.3581H',
         ]
 
-        a = atlas.Atlas.from_bibcodes(
+        a = atlas.Atlas.to_and_from_bibcodes(
             self.a.atlas_dir,
             bibcodes,
         )

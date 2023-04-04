@@ -28,6 +28,10 @@ import verdict
 from . import publication
 from . import utils
 
+# constants
+DEFAULT_BIB_NAME = 'cc_ads.bib'
+DEFAULT_API = 'ADS'
+
 ########################################################################
 
 class Atlas( object ):
@@ -42,7 +46,7 @@ class Atlas( object ):
 
         bibtex_fp (str):
             Location to save the bibliography data at. Defaults to 
-            $atlas_dir/cc_ads.bib
+            $atlas_dir/DEFAULT_BIB_NAME
             ## API_extension::default_name_change
 
         bibtex_entries_to_load (str or list-like):
@@ -91,9 +95,9 @@ class Atlas( object ):
 
                     ## API_extension::default_name_change
                     # Ignore the auxiliary downloaded biliography
-                    cc_ads_fp = os.path.join( atlas_dir, 'cc_ads.bib' )
-                    if cc_ads_fp in bibtex_fps:
-                        bibtex_fps.remove( cc_ads_fp )
+                    cc_default_fp = os.path.join( atlas_dir, DEFAULT_BIB_NAME )
+                    if cc_default_fp in bibtex_fps:
+                        bibtex_fps.remove( cc_default_fp )
                     else:
                         raise IOError(
                             'Multiple possible BibTex files. Please specify.'
@@ -228,7 +232,18 @@ class Atlas( object ):
     ########################################################################
 
     @classmethod
-    def from_bibcodes(
+    def to_and_from_ids( cls, *args, api = DEFAULT_API, **kwargs ):
+
+        validate_api(api)
+        if api == 'ADS':
+            return cls.to_and_from_bibcodes( *args, **kwargs )
+        elif api == 'S2':
+            raise NotImplementedError
+
+    ########################################################################
+
+    @classmethod
+    def to_and_from_bibcodes(
         cls,
         atlas_dir,
         bibcodes,
@@ -251,7 +266,7 @@ class Atlas( object ):
 
             bibtex_fp (str):
                 Location to save the bibliography data at. Defaults to 
-                $atlas_dir/cc_ads.bib
+                $atlas_dir/DEFAULT_BIB_NAME
             ## API_extension::default_name_change
 
             data_fp (str):
@@ -272,8 +287,8 @@ class Atlas( object ):
         ## API_extension::default_name_change
         # Save the bibcodes to a bibtex
         if bibtex_fp is None:
-            bibtex_fp = os.path.join( atlas_dir, 'cc_ads.bib' )
-        save_bibcodes_to_bibtex( bibcodes, bibtex_fp )
+            bibtex_fp = os.path.join( atlas_dir, DEFAULT_BIB_NAME )
+        save_ids_to_bibtex( bibcodes, bibtex_fp, api = 'ADS')
 
         result = Atlas(
             atlas_dir = atlas_dir,
@@ -844,6 +859,32 @@ class Atlas( object ):
 
     ########################################################################
 
+    def get_data_via_api(self, *args, api = DEFAULT_API, **kwargs,):
+        '''Get data for all publications via ADS or S2.
+        
+        Args:
+            api (str): What api to call. Options are...
+            'S2':
+                Call the Semantic Scholar Academic Graph API (S2AG)
+            'ADS':
+                Call the NASA Astrophysics Data System API (ADS)
+        '''
+        validate_api(api)
+        
+        if api == 'ADS':
+            self.get_ads_data(*args, **kwargs)
+        
+        elif api == 'S2':
+            raise NotImplementedError
+        
+    ########################################################################
+
+    def get_s2_data(self, **kwargs):
+        '''Get the Semantic Scholar data for all publications.'''
+        raise NotImplementedError
+
+    ########################################################################
+
     def get_ads_data(
         self,
         fl = [ 'abstract', 'citation', 'reference', 'entry_date',
@@ -1104,7 +1145,7 @@ class Atlas( object ):
 
     ########################################################################
 
-    def process_abstracts( self, *args, process_stemmed_content_words=True, **kwargs ):
+    def process_abstracts( self, *args, process_stemmed_content_words=True, api = DEFAULT_API, **kwargs ):
         '''Download and process the abstracts of all publications.
         Faster and with fewer API calls than for each paper individually.
 
@@ -1118,7 +1159,8 @@ class Atlas( object ):
         '''
 
         ## API_extension::get_data_via_api
-        self.get_ads_data( *args, **kwargs )
+        # self.get_ads_data( *args, **kwargs )
+        self.get_data_via_api( *args, api = api, **kwargs, )
 
         print( '    Doing NLP...' )
 
@@ -1593,7 +1635,19 @@ class Atlas( object ):
 
 ########################################################################
 
-def save_bibcodes_to_bibtex( bibcodes, bibtex_fp, call_size=2000 ):
+def save_ids_to_bibtex ( *args, api = DEFAULT_API, **kwargs, ):
+    '''Use ADS or S2 to convert publication identifiers into bibtex files.'''
+
+    validate_api(api)
+
+    if api == 'ADS':
+        save_ads_bibcodes_to_bibtex( *args, **kwargs )
+    elif api == 'S2':
+        raise NotImplementedError
+
+########################################################################
+
+def save_ads_bibcodes_to_bibtex( bibcodes, bibtex_fp, call_size=2000 ):
     ## API_extension::to_and_from_bibcodes
 
     # ADS doesn't like np arrays
@@ -1638,3 +1692,10 @@ def save_bibcodes_to_bibtex( bibcodes, bibtex_fp, call_size=2000 ):
     # Save the bibtex
     with open( bibtex_fp, 'a' ) as f:
         f.write( bibtex_str )
+
+########################################################################
+
+def validate_api(api: str) -> None:
+    apis_allowed = ['S2', 'ADS']
+    if api not in apis_allowed:
+        raise ValueError(f"No support for {api}. Allowed API options include {apis_allowed}")
