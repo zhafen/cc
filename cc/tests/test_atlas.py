@@ -222,14 +222,15 @@ class TestFromBibcodes( unittest.TestCase ):
 
     ########################################################################
 
-    def test_import_bibcodes( self ):
+    # def test_import_bibcodes( self ):
+    def test_import_ids_bibcodes( self ):
 
         bibcodes = [
             '2019MNRAS.488.1248H',
             '2020MNRAS.491.6102B',
         ]
 
-        self.a.import_bibcodes( bibcodes )
+        self.a.import_ids( bibcodes )
 
         # Check that the values exist
         for key in [ 'title', 'year', 'arxivid' ]:
@@ -241,11 +242,12 @@ class TestFromBibcodes( unittest.TestCase ):
     ########################################################################
 
     @patch( 'ads.ExportQuery' )
-    def test_import_bibcodes_chunk( self, mock_export ):
+    # def test_import_bibcodes_chunk( self, mock_export ):
+    def test_import_ids_bibcodes_chunk( self, mock_export ):
 
         bibcodes = np.random.randint( 0, high=1000, size=3000 ).astype( 'str' )
 
-        self.a.import_bibcodes( bibcodes )
+        self.a.import_ids( bibcodes )
 
         expected_first = list( bibcodes[:2000] )
         actual_first = mock_export.call_args_list[0][0][0]

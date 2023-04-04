@@ -23,6 +23,10 @@ import verdict
 
 from . import config
 
+# constants
+DEFAULT_BIB_NAME = 'cc_ads.bib'
+DEFAULT_API = 'ADS'
+
 ########################################################################
 
 def uniquify_words( a, **kwargs ):
@@ -428,7 +432,25 @@ def ads_query(
 
 ########################################################################
 
-def random_publications(
+def random_publications(*args, api = DEFAULT_API, **kwargs,):
+    '''Choose random publications by choosing a random date and then choosing a random publication announced on that date, via some API.'''
+
+    validate_api(api)
+    if api == 'ADS':
+        random_publications_ads(*args, **kwargs)
+    
+    elif api == 'S2':
+        random_publications_s2(*args, **kwargs)
+
+########################################################################
+
+def random_publications_s2(*args, **kwargs):
+    '''Choose random publications by choosing a random date and then choosing a random publication announced on that date.'''
+    raise NotImplementedError
+
+########################################################################
+
+def random_publications_ads(
     n_sample,
     start_time,
     end_time,
@@ -884,3 +906,10 @@ def plot_voronoi(
                     break
 
     return ax, vor
+
+########################################################################
+
+def validate_api(api: str) -> None:
+    apis_allowed = ['S2', 'ADS']
+    if api not in apis_allowed:
+        raise ValueError(f"No support for {api}. Allowed API options include {apis_allowed}")

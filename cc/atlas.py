@@ -28,9 +28,7 @@ import verdict
 from . import publication
 from . import utils
 
-# constants
-DEFAULT_BIB_NAME = 'cc_ads.bib'
-DEFAULT_API = 'ADS'
+from utils import DEFAULT_API, DEFAULT_BIB_NAME, validate_api
 
 ########################################################################
 
@@ -133,6 +131,7 @@ class Atlas( object ):
         n_sample,
         start_time = '1990',
         end_time = '2015',
+        api = DEFAULT_API,        
         fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode', 'entry_date', 'arxiv_class' ],
         arxiv_class = None,
         seed = None,
@@ -159,6 +158,9 @@ class Atlas( object ):
 
             end_time (pd.Timestamp or pd-compatible string):
                 End time to use for the range of selectable publications.
+
+            api (str): 
+                The API to call. See validate_api for more details.
 
             arxiv_class (str):
                 What arxiv class the publications should belong to, if any.
@@ -188,6 +190,7 @@ class Atlas( object ):
             n_sample = n_sample,
             start_time = start_time,
             end_time = end_time,
+            api = api,
             fl = fl,
             arxiv_class = arxiv_class,
             seed = seed,
@@ -201,33 +204,7 @@ class Atlas( object ):
                 )
             )
 
-        # Create an atlas
-        bibcodes = [ _.bibcode for _ in pubs ]
-        result = Atlas.from_bibcodes( atlas_dir, bibcodes )
-        
-        ## API_extension:random_publications
-        ## The below code block stores already retrieved values in the atlas.
-        ## The way a random atlas is made currently is to retrieve the publications,
-        ## use their bibcodes to make an easy list of them,
-        ## pass in and format the already retrieved data.
-        # Store publication data
-        for p_ads in pubs:
-            
-            if p_ads.bibcode not in result.data:
-                continue
-
-            p = result.data[p_ads.bibcode]
-
-            p.ads_data = {}
-            for f in fl:
-                value = getattr( p_ads, f )
-                p.ads_data[f] = value
-                attr_f = copy.copy( f )
-                if attr_f == 'citation' or attr_f == 'reference':
-                    attr_f += 's'
-                setattr( p, attr_f, value )
-
-        return result
+        return create_random_atlas_from_pubs( atlas_dir, pubs, fl, api, )
 
     ########################################################################
 
@@ -302,10 +279,8 @@ class Atlas( object ):
 
     ########################################################################
 
-    def import_bibcodes( self, bibcodes, bibtex_fp=None ):
-        '''Import bibliography data using bibcodes.
-
-        ## API_extension::to_and_from_bibcodes
+    def import_ids( self, ids, bibtex_fp=None , api = DEFAULT_API):
+        '''Import bibliography data using the publication ids, e.g. bibcodes or paperIds.
 
         Args:
             bibcodes (list of strs):
@@ -322,16 +297,46 @@ class Atlas( object ):
         '''
 
         # Store original keys for later removing duplicates
-        original_keys = copy.copy( list( self.data.keys() ) )
-
-        # API_extension::default_name_change
-        # Import bibcodes
+        original_keys = copy.copy( list( self.data.keys() ) )        
         if bibtex_fp is None:
-            bibtex_fp = os.path.join( self.atlas_dir, 'cc_ads.bib' )
-        save_bibcodes_to_bibtex( bibcodes, bibtex_fp, )
+            bibtex_fp = os.path.join( self.atlas_dir, DEFAULT_BIB_NAME )
+        save_ids_to_bibtex( ids, bibtex_fp, api = api )
         self.import_bibtex( bibtex_fp, verbose=False )
 
-        self.prune_duplicates( original_keys )
+        self.prune_duplicates( original_keys )        
+
+    ########################################################################
+
+    # def import_bibcodes( self, bibcodes, bibtex_fp=None ):
+    #     '''Import bibliography data using bibcodes.
+
+    #     ## API_extension::to_and_from_bibcodes
+
+    #     Args:
+    #         bibcodes (list of strs):
+    #             Publications to retrieve.
+
+    #         bibtex_fp (str):
+    #             Location to save the bibliography data at. Defaults to 
+    #             $atlas_dir/cc_ads.bib
+    #         ## API_extension::default_name_change
+
+    #     Updates:
+    #         self.data and the file at bibtex_fp:
+    #             Saves the import bibliography data to the instance and disk.
+    #     '''
+
+    #     # Store original keys for later removing duplicates
+    #     original_keys = copy.copy( list( self.data.keys() ) )
+
+    #     # API_extension::default_name_change
+    #     # Import bibcodes
+    #     if bibtex_fp is None:
+    #         bibtex_fp = os.path.join( self.atlas_dir, DEFAULT_BIB_NAME )
+    #     save_bibcodes_to_bibtex( bibcodes, bibtex_fp, )
+    #     self.import_bibtex( bibtex_fp, verbose=False )
+
+    #     self.prune_duplicates( original_keys )
 
     ########################################################################
 
@@ -1695,7 +1700,74 @@ def save_ads_bibcodes_to_bibtex( bibcodes, bibtex_fp, call_size=2000 ):
 
 ########################################################################
 
-def validate_api(api: str) -> None:
-    apis_allowed = ['S2', 'ADS']
-    if api not in apis_allowed:
-        raise ValueError(f"No support for {api}. Allowed API options include {apis_allowed}")
+def create_random_atlas_from_pubs(
+    atlas_dir, 
+    pubs, 
+    fl,
+    api = DEFAULT_API,    
+) -> Atlas:
+    '''Constructs an atlas from a random list of publications, by accessing API-specific data.
+    
+    Args:
+        atlas_dir (str):
+            Directory to store the atlas data in.
+        
+        pubs (list): 
+            the publications resulting from calling util.random_publications with some API
+
+        fl (list):
+            list of fields to populate in each atlas publication from retrieved pubs
+            
+        api (str):
+            the API to call. 
+
+    Returns:
+        result (Atlas) the random Atlas
+    '''
+    validate_api(api)
+    if api == 'ADS':
+        create_random_atlas_from_pubs_ads( atlas_dir, pubs, fl )
+    elif api == 'S2':
+        create_random_atlas_from_pubs_s2( atlas_dir, pubs, fl )
+
+########################################################################
+
+def create_random_atlas_from_pubs_ads(
+    atlas_dir, 
+    pubs, 
+    fl,
+    ) -> Atlas:
+    '''Constructs an atlas from a random list of publications, by accessing ADS specific data.'''
+
+    bibcodes = [ _.bibcode for _ in pubs ] # ADS specifc
+    result = Atlas.from_bibcodes( atlas_dir, bibcodes )    
+    
+    ## API_extension:random_publications
+    ## The below code block stores already retrieved values in the atlas.
+    ## The way a random atlas is made currently is to retrieve the publications,
+    ## use their bibcodes to make an easy list of them,
+    ## pass in and format the already retrieved data.
+    # Store publication data
+    for p_ads in pubs:
+        
+        if p_ads.bibcode not in result.data:
+            continue
+
+        p = result.data[p_ads.bibcode]
+
+        p.ads_data = {}
+        for f in fl:
+            value = getattr( p_ads, f )
+            p.ads_data[f] = value
+            attr_f = copy.copy( f )
+            if attr_f == 'citation' or attr_f == 'reference':
+                attr_f += 's'
+            setattr( p, attr_f, value )
+
+    return result
+
+########################################################################
+
+def create_random_atlas_from_pubs_s2(*args, **kwargs) -> Atlas:
+    '''Constructs an atlas from a random list of publications, by accessing S2 specific data.'''
+    raise NotImplementedError
