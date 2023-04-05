@@ -36,3 +36,14 @@ maybe_unnecessary:
 no_change:
     This code uses ADS, but should not be touched. Probably because it's not used.
 '''
+
+# constants
+DEFAULT_BIB_NAME = 'cc_ads.bib'
+DEFAULT_API = 'ADS'
+
+########################################################################
+
+def validate_api(api: str) -> None:
+    apis_allowed = ['S2', 'ADS']
+    if api not in apis_allowed:
+        raise ValueError(f"No support for {api}. Allowed API options include {apis_allowed}")

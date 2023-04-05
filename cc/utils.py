@@ -23,10 +23,6 @@ import verdict
 
 from . import config
 
-# constants
-DEFAULT_BIB_NAME = 'cc_ads.bib'
-DEFAULT_API = 'ADS'
-
 ########################################################################
 
 def uniquify_words( a, **kwargs ):
@@ -906,10 +902,3 @@ def plot_voronoi(
                     break
 
     return ax, vor
-
-########################################################################
-
-def validate_api(api: str) -> None:
-    apis_allowed = ['S2', 'ADS']
-    if api not in apis_allowed:
-        raise ValueError(f"No support for {api}. Allowed API options include {apis_allowed}")

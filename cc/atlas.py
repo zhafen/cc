@@ -28,7 +28,7 @@ import verdict
 from . import publication
 from . import utils
 
-from utils import DEFAULT_API, DEFAULT_BIB_NAME, validate_api
+from api import DEFAULT_API, DEFAULT_BIB_NAME, validate_api
 
 ########################################################################
 
