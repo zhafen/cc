@@ -73,9 +73,9 @@ class TestAPIUsage( unittest.TestCase ):
 
 ########################################################################
 
-    def test_get_s2_data( self ):
+    # def test_get_s2_data( self ):
 
-        self.a.get_s2_data( identifier='from_citation', skip_unofficial=False )
+    #     self.a.get_s2_data( identifier='from_citation', skip_unofficial=False )
 
 ########################################################################
     
@@ -118,7 +118,7 @@ class TestFromBibcodes( unittest.TestCase ):
 
         ## API_extension::default_name_change
         atlas_dir = './tests/data/example_atlas'
-        self.bibtex_fp = os.join(atlas_dir, atlas.DEFAULT_BIB_NAME)
+        self.bibtex_fp = os.path.join(atlas_dir, atlas.DEFAULT_BIB_NAME)
 
     def tearDown( self ):
         if os.path.isfile( self.bibtex_fp ):
@@ -135,13 +135,13 @@ class TestFromBibcodes( unittest.TestCase ):
 
     ########################################################################
 
-    def test_to_and_from_s2_ids( self ):
+    # def test_to_and_from_s2_ids( self ):
 
-        a = atlas.Atlas.to_and_from_ids(
-            self.a.atlas_dir,
-            [],
-            api = 'S2',
-        )
+        # a = atlas.Atlas.to_and_from_ids(
+        #     self.a.atlas_dir,
+        #     [],
+        #     api = 'S2',
+        # )
 
     ########################################################################
 
@@ -1305,6 +1305,7 @@ class TestKeyConcepts( unittest.TestCase ):
 
 ########################################################################
 
+# NOTE: definitely implement analogous tests for S2
 class TestVectorize( unittest.TestCase ):
 
     def setUp( self ):

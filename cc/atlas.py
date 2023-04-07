@@ -28,7 +28,7 @@ import verdict
 from . import publication
 from . import utils
 
-from api import DEFAULT_API, DEFAULT_BIB_NAME, validate_api
+from api import DEFAULT_API, DEFAULT_BIB_NAME, validate_api, ADS_API_NAME, S2_API_NAME
 
 ########################################################################
 
@@ -212,9 +212,9 @@ class Atlas( object ):
     def to_and_from_ids( cls, *args, api = DEFAULT_API, **kwargs ):
 
         validate_api(api)
-        if api == 'ADS':
+        if api == ADS_API_NAME:
             return cls.to_and_from_bibcodes( *args, **kwargs )
-        elif api == 'S2':
+        elif api == S2_API_NAME:
             raise NotImplementedError
 
     ########################################################################
@@ -265,7 +265,7 @@ class Atlas( object ):
         # Save the bibcodes to a bibtex
         if bibtex_fp is None:
             bibtex_fp = os.path.join( atlas_dir, DEFAULT_BIB_NAME )
-        save_ids_to_bibtex( bibcodes, bibtex_fp, api = 'ADS')
+        save_ids_to_bibtex( bibcodes, bibtex_fp, api = ADS_API_NAME )
 
         result = Atlas(
             atlas_dir = atlas_dir,
@@ -876,10 +876,10 @@ class Atlas( object ):
         '''
         validate_api(api)
         
-        if api == 'ADS':
+        if api == ADS_API_NAME:
             self.get_ads_data(*args, **kwargs)
         
-        elif api == 'S2':
+        elif api == S2_API_NAME:
             raise NotImplementedError
         
     ########################################################################
@@ -1179,7 +1179,7 @@ class Atlas( object ):
                 if isinstance( item.abstract, verdict.Dict ) or isinstance( item.abstract, dict ):
                     continue
 
-            abstract_str = item.abstract_str()
+            abstract_str = item.abstract_str( api = api )
             if abstract_str == '':
                 n_err += 1
             item.process_abstract( abstract_str=abstract_str, overwrite=True )
@@ -1378,7 +1378,7 @@ class Atlas( object ):
                     continue
 
                 vector_i, feature_names = item.vectorize(
-                    feature_names,
+                    feature_names = feature_names,
                 )
                 vectors_list.append( vector_i )
                 projected_publications.append( key )
@@ -1645,9 +1645,9 @@ def save_ids_to_bibtex ( *args, api = DEFAULT_API, **kwargs, ):
 
     validate_api(api)
 
-    if api == 'ADS':
+    if api == ADS_API_NAME:
         save_ads_bibcodes_to_bibtex( *args, **kwargs )
-    elif api == 'S2':
+    elif api == S2_API_NAME:
         raise NotImplementedError
 
 ########################################################################
@@ -1725,10 +1725,10 @@ def create_random_atlas_from_pubs(
         result (Atlas) the random Atlas
     '''
     validate_api(api)
-    if api == 'ADS':
-        create_random_atlas_from_pubs_ads( atlas_dir, pubs, fl )
-    elif api == 'S2':
-        create_random_atlas_from_pubs_s2( atlas_dir, pubs, fl )
+    if api == ADS_API_NAME:
+        return create_random_atlas_from_pubs_ads( atlas_dir, pubs, fl )
+    elif api == S2_API_NAME:
+        return create_random_atlas_from_pubs_s2( atlas_dir, pubs, fl )
 
 ########################################################################
 
@@ -1740,7 +1740,7 @@ def create_random_atlas_from_pubs_ads(
     '''Constructs an atlas from a random list of publications, by accessing ADS specific data.'''
 
     bibcodes = [ _.bibcode for _ in pubs ] # ADS specifc
-    result = Atlas.from_bibcodes( atlas_dir, bibcodes )    
+    result = Atlas.to_and_from_ids( atlas_dir, bibcodes, api = ADS_API_NAME )
     
     ## API_extension:random_publications
     ## The below code block stores already retrieved values in the atlas.

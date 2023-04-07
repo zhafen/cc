@@ -38,8 +38,11 @@ no_change:
 '''
 
 # constants
-DEFAULT_BIB_NAME = 'cc_ads.bib'
-DEFAULT_API = 'ADS'
+ADS_BIB_NAME = 'cc_ads.bib'
+ADS_API_NAME = 'ADS'
+S2_API_NAME = 'S2'
+DEFAULT_BIB_NAME = ADS_BIB_NAME
+DEFAULT_API = ADS_API_NAME
 
 ########################################################################
 
