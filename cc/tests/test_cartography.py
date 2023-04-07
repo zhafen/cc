@@ -460,9 +460,11 @@ class TestExplore( unittest.TestCase ):
 
         ## API_extension::default_name_change
         # We want to start fresh for these tests
-        ads_bib_fp = './tests/data/example_atlas/cc_ads.bib'
-        if os.path.isfile( ads_bib_fp ):
-            os.remove( ads_bib_fp )
+        atlas_dir = './tests/data/example_atlas'
+        self.bibtex_fp = os.path.join(atlas_dir, atlas.DEFAULT_BIB_NAME)
+
+        if os.path.isfile( self.bibtex_fp ):
+            os.remove( self.bibtex_fp )
 
         fp = './tests/data/example_atlas/projection.h5'
         self.c = cartography.Cartographer.from_hdf5( fp )
@@ -472,9 +474,8 @@ class TestExplore( unittest.TestCase ):
 
         ## API_extension::default_name_change
         # We want to start fresh for these tests
-        ads_bib_fp = './tests/data/example_atlas/cc_ads.bib'
-        if os.path.isfile( ads_bib_fp ):
-            os.remove( ads_bib_fp )
+        if os.path.isfile( self.bibtex_fp ):
+            os.remove( self.bibtex_fp )
 
     ########################################################################
 

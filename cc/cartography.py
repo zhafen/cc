@@ -32,6 +32,8 @@ import verdict
 from . import atlas
 from . import utils
 
+from api import DEFAULT_API
+
 ########################################################################
 
 class Cartographer( object ):
@@ -716,7 +718,7 @@ class Cartographer( object ):
     # Automated exploration, expansion, or otherwise updating
     ########################################################################
 
-    def expand( self, a, center=None, n_pubs_max=4000, n_sources_max=None ):
+    def expand( self, a, api = DEFAULT_API, center=None, n_pubs_max=4000, n_sources_max=None ):
         '''Expand an atlas by retrieving all publications cited by the
         the publications in the given atlas, or that reference a
         publication in the given atlas.
@@ -724,6 +726,9 @@ class Cartographer( object ):
         Args:
             a (atlas.Atlas):
                 Atlas to expand.
+
+            api (str):
+                The API to call to expand the publication region.
 
             center (str):
                 If given, center the search on this publication, preferentially
@@ -751,39 +756,41 @@ class Cartographer( object ):
         if n_sources_max is not None:
             expand_keys = expand_keys[:n_sources_max]
 
-        # Make the bibcode list
+        # API_extension::to_and_from_bibcodes
+        # NOTE: The below implementation assumes that both the `references` and `citations` attributes of `a[key]` will contain either an ADS bibcode or an appropriate S2 id.
+        # Make the ids list
         existing_keys = set( a.data.keys() )
-        bibcodes = []
+        ids = []
         for key in expand_keys:
 
-            bibcodes_i = []
+            ids_i = []
             try:
-                bibcodes_i += list( a[key].references )
+                ids_i += list( a[key].references )
             except (AttributeError, TypeError) as e:
                 pass
             try:
-                bibcodes_i += list( a[key].citations )
+                ids_i += list( a[key].citations )
             except (AttributeError, TypeError) as e:
                 pass
 
-            # Prune bibcodes_i for obvious overlap
-            bibcodes += list( set( bibcodes_i ) - existing_keys )
+            # Prune ids_i for obvious overlap
+            ids += list( set( ids_i ) - existing_keys )
 
             # Break when the search is centered and we're maxed out
-            if len( bibcodes ) > n_pubs_max and center is not None:
+            if len( ids ) > n_pubs_max and center is not None:
                 break
-        bibcodes = list( set( bibcodes ) )
+        ids = list( set( ids ) )
 
-        assert len( bibcodes ) > 0, "Overly-restrictive search, no bibcodes to retrieve."
+        assert len( ids ) > 0, "Overly-restrictive search, no ids (bibcodes, etc) to retrieve."
 
         # Sample to account for max number of publications we want to retrieve at once
-        if len( bibcodes ) > n_pubs_max:
-            bibcodes = np.random.choice( bibcodes, n_pubs_max, replace=False )
+        if len( ids ) > n_pubs_max:
+            ids = np.random.choice( ids, n_pubs_max, replace=False )
 
-        print( 'Expansion will include {} new publications.'.format( len( bibcodes ) ) )
+        print( 'Expansion will include {} new publications.'.format( len( ids ) ) )
 
         # New atlas
-        a_exp = atlas.Atlas.from_bibcodes( a.atlas_dir, bibcodes )
+        a_exp = atlas.Atlas.to_and_from_ids( a.atlas_dir, ids, api = api )
 
         # Update the new atlas
         a_exp.data._storage.update( a.data )

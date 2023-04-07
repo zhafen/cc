@@ -23,6 +23,8 @@ import verdict
 
 from . import config
 
+from api import DEFAULT_API, DEFAULT_BIB_NAME, validate_api
+
 ########################################################################
 
 def uniquify_words( a, **kwargs ):
@@ -433,10 +435,10 @@ def random_publications(*args, api = DEFAULT_API, **kwargs,):
 
     validate_api(api)
     if api == 'ADS':
-        random_publications_ads(*args, **kwargs)
+        return random_publications_ads(*args, **kwargs)
     
     elif api == 'S2':
-        random_publications_s2(*args, **kwargs)
+        return random_publications_s2(*args, **kwargs)
 
 ########################################################################
 

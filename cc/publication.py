@@ -14,7 +14,7 @@ from . import relation
 from . import tex
 from . import utils
 
-from api import DEFAULT_API, validate_api
+from api import DEFAULT_API, validate_api, ADS_API_NAME, S2_API_NAME
 
 ########################################################################
 
@@ -289,8 +289,8 @@ class Publication( object ):
 
     def process_abstract(
         self,
-        api = DEFAULT_API,
         abstract_str = None,
+        api = DEFAULT_API,        
         return_empty_upon_failure = True,
         verbose = False,
         overwrite = False,
@@ -338,8 +338,8 @@ class Publication( object ):
 
     ########################################################################
 
-    def abstract_str( self, api, return_empty_upon_failure=True, verbose=False ):
-        '''Retrieve the abstract text, either from the citation or from ADS
+    def abstract_str( self, api = DEFAULT_API, return_empty_upon_failure=True, verbose=False ):
+        '''Retrieve the abstract text, either from the citation or from some API
 
         ## API_extension::process_data
         ## This function retrieves the abstract string itself from the formatted
@@ -386,10 +386,10 @@ class Publication( object ):
                 abstract_str = self.citation['abstract']
 
             ## API_extension:get_data_via_api
-            # If neither of those work, auto-retrieve ADS data
+            # If neither of those work, auto-retrieve data from ADS or S2
             else:
-                api_names = {'ADS': 'ads', 'S2': 's2'}
-                api_data_attr = f'{api_names[api]}_data' #N.B.: there is no `s2_data` attribute yet.
+                api_names = {ADS_API_NAME: 'ads', S2_API_NAME: 's2'}
+                api_data_attr = f'{api_names[api]}_data' # NOTE: there is no `s2_data` attribute yet.
 
                 if not hasattr( self, api_data_attr ):
 
@@ -637,7 +637,7 @@ class Publication( object ):
 
     ########################################################################
 
-    def vectorize( self, api = DEFAULT_API, feature_names=None, include_notes=True ):
+    def vectorize( self, feature_names=None, include_notes=True, api = DEFAULT_API, ):
         '''Project the abstract into concept space.
         In simplest form this can just be counting up the number of
         times each unique, stemmed noun, verb, or adjective shows up in the
