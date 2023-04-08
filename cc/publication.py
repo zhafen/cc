@@ -145,6 +145,7 @@ class Publication( object ):
                 key += 's'
             setattr( self, key, value )
 
+        # NOTE: I think the code in condition never reached
         if keep_query_open:
             self.ads_query = ads_query
 
