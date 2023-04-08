@@ -29,6 +29,7 @@ from . import publication
 from . import utils
 
 from api import DEFAULT_API, DEFAULT_BIB_NAME, validate_api, ADS_API_NAME, S2_API_NAME
+from api import DEFAULT_API, DEFAULT_BIB_NAME, validate_api, ADS_API_NAME, S2_API_NAME
 
 ########################################################################
 
@@ -1725,10 +1726,10 @@ def create_random_atlas_from_pubs(
         result (Atlas) the random Atlas
     '''
     validate_api(api)
-    if api == ADS_API_NAME:
-        return create_random_atlas_from_pubs_ads( atlas_dir, pubs, fl )
-    if api == S2_API_NAME:
-        return create_random_atlas_from_pubs_s2( atlas_dir, pubs, fl )
+    if api == 'ADS':
+        create_random_atlas_from_pubs_ads( atlas_dir, pubs, fl )
+    if api == 'S2':
+        create_random_atlas_from_pubs_s2( atlas_dir, pubs, fl )
 
 ########################################################################
 

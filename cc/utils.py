@@ -23,7 +23,7 @@ import verdict
 
 from . import config
 
-from api import DEFAULT_API, DEFAULT_BIB_NAME, validate_api, ADS_API_NAME, S2_API_NAME, DEFAULT_ALLOWED_EXCEPTION
+from api import DEFAULT_API, validate_api, ADS_API_NAME, S2_API_NAME, DEFAULT_ALLOWED_EXCEPTION
 
 ########################################################################
 
