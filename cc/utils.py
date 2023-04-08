@@ -23,7 +23,7 @@ import verdict
 
 from . import config
 
-from api import DEFAULT_API, DEFAULT_BIB_NAME, validate_api
+from api import DEFAULT_API, DEFAULT_BIB_NAME, validate_api, ADS_API_NAME, S2_API_NAME, DEFAULT_ALLOWED_EXCEPTION
 
 ########################################################################
 
@@ -239,12 +239,29 @@ def tokenize_and_sort_text( text, tag_mapping=None, primary_alphabet_only=False 
 
 ########################################################################
 
+def citation_to_api_call( citation: dict, api = DEFAULT_API ) -> tuple:
+    '''Given a dictionary containing a citation return a string that, when sent to S2AG, will give a unique result.
+    '''
+    validate_api(api)
+    if api == ADS_API_NAME:
+        return citation_to_ads_call( citation)
+    if api == S2_API_NAME:
+        return citation_to_s2_call( citation )
+
+########################################################################
+
+def citation_to_s2_call( citation ):
+    '''Given a dictionary containing a citation return a string that, when sent to S2AG, will give a unique result.'''
+    raise NotImplementedError
+
+########################################################################
+
 def citation_to_ads_call( citation ):
     '''Given a dictionary containing a citation return a string that,
     when sent to ADS, will give a unique result.
 
     ## API_extension::get_data_via_api
-    ## Need a general function and an analogous function for SS
+    ## Need a general function and an analogous function for S2
 
     Args:
         citation (dict):
@@ -347,7 +364,7 @@ def citation_to_ads_call( citation ):
 
 ########################################################################
 
-def keep_trying( n_attempts=5, allowed_exception=ads.exceptions.APIResponseError, verbose=True ):
+def keep_trying( n_attempts=5, allowed_exception=DEFAULT_ALLOWED_EXCEPTION, verbose=True ):
     '''Sometimes we receive server errors. We don't want that to disrupt the entire
     process, so this decorator allow trying n_attempts times.
 
@@ -395,6 +412,38 @@ def keep_trying( n_attempts=5, allowed_exception=ads.exceptions.APIResponseError
 
 ########################################################################
 
+def api_query(*args, api = DEFAULT_API, **kwargs ) -> list:
+    '''Convenience wrapper for searching an API.'''
+    validate_api(api)
+    if api == ADS_API_NAME:
+        return ads_query( *args, **kwargs )
+    if api == S2_API_NAME:
+        return s2_query( *args, **kwargs )
+
+########################################################################
+
+@keep_trying()
+def s2_query(
+    q,
+    fl = ['abstract', 'citation', 'reference', 'entry_date', 'identifier' ],
+    rows = 50
+):
+    '''Convenience wrapper for searching S2.
+
+    Args:
+        q (str):
+            Call to S2.
+
+        fl (list of strs):
+            Fields to return for publications.
+
+        rows (int):
+            Number of publications to return per page.
+    '''
+    raise NotImplementedError
+
+########################################################################
+
 @keep_trying()
 def ads_query(
     q,
@@ -404,7 +453,7 @@ def ads_query(
     '''Convenience wrapper for searching ADS.
 
     ## API_extension::get_data_via_api
-    ## Need a general version of this function and a specific one for SS.
+    ## Need a general version of this function and a specific one for S2.
 
     Args:
         q (str):

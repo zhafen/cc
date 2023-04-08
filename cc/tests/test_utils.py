@@ -33,9 +33,9 @@ class TestCitationToADS( unittest.TestCase ):
 
     def test_basic( self ):
 
-        q, ident, id = utils.citation_to_ads_call( self.citation )
+        q, ident, id = utils.citation_to_api_call( self.citation )
 
-        pubs = utils.ads_query( q )
+        pubs = utils.api_query( q )
         assert len( pubs ) == 1
         p = pubs[0]
 
@@ -48,9 +48,9 @@ class TestCitationToADS( unittest.TestCase ):
         del self.citation['doi']
         self.citation['eprint'] = '1111.5039'
 
-        q, ident, id = utils.citation_to_ads_call( self.citation )
+        q, ident, id = utils.citation_to_api_call( self.citation )
 
-        pubs = utils.ads_query( q )
+        pubs = utils.api_query( q )
         assert len( pubs ) == 1
         p = pubs[0]
 
@@ -62,9 +62,9 @@ class TestCitationToADS( unittest.TestCase ):
 
         del self.citation['doi']
 
-        q, ident, id = utils.citation_to_ads_call( self.citation )
+        q, ident, id = utils.citation_to_api_call( self.citation )
 
-        pubs = utils.ads_query( q )
+        pubs = utils.api_query( q )
         assert len( pubs ) == 1
         p = pubs[0]
 
@@ -78,9 +78,9 @@ class TestCitationToADS( unittest.TestCase ):
         del self.citation['eprint']
         del self.citation['eprinttype']
 
-        q, ident, id = utils.citation_to_ads_call( self.citation )
+        q, ident, id = utils.citation_to_api_call( self.citation )
 
-        pubs = utils.ads_query( q )
+        pubs = utils.api_query( q )
         assert len( pubs ) == 1
         p = pubs[0]
 

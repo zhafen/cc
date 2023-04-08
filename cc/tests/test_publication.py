@@ -19,7 +19,8 @@ class TestRetrieveMetadata( unittest.TestCase ):
         # Load
         p = cc.publication.Publication( 'Hafen2019' )
 
-        p.get_ads_data( arxiv='1811.11753', fl=[ 'title', ] )
+        p.get_data_via_api( arxiv='1811.11753', fl=[ 'title', ] )
+        # p.get_ads_data( arxiv='1811.11753', fl=[ 'title', ] )
 
         assert p.ads_data['title'] == ['The origins of the circumgalactic medium in the FIRE simulations']
 
@@ -44,7 +45,8 @@ class TestRetrieveMetadata( unittest.TestCase ):
         p = cc.publication.Publication( 'Hafen2019' )
         bibtex_fp = './tests/data/example_atlas/example.bib'
         p.read_citation( bibtex_fp )
-        p.get_ads_data( arxiv='1811.11753', fl=[ 'citation', 'entry_date'] )
+        p.get_data_via_api( arxiv='1811.11753', fl=[ 'citation', 'entry_date'] )
+        # p.get_ads_data( arxiv='1811.11753', fl=[ 'citation', 'entry_date'] )
         p.citations = p.ads_data['citation']
         p.entry_date = p.ads_data['entry_date']
 

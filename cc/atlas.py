@@ -214,7 +214,7 @@ class Atlas( object ):
         validate_api(api)
         if api == ADS_API_NAME:
             return cls.to_and_from_bibcodes( *args, **kwargs )
-        elif api == S2_API_NAME:
+        if api == S2_API_NAME:
             raise NotImplementedError
 
     ########################################################################
@@ -879,7 +879,7 @@ class Atlas( object ):
         if api == ADS_API_NAME:
             self.get_ads_data(*args, **kwargs)
         
-        elif api == S2_API_NAME:
+        if api == S2_API_NAME:
             raise NotImplementedError
         
     ########################################################################
@@ -1647,7 +1647,7 @@ def save_ids_to_bibtex ( *args, api = DEFAULT_API, **kwargs, ):
 
     if api == ADS_API_NAME:
         save_ads_bibcodes_to_bibtex( *args, **kwargs )
-    elif api == S2_API_NAME:
+    if api == S2_API_NAME:
         raise NotImplementedError
 
 ########################################################################
@@ -1727,7 +1727,7 @@ def create_random_atlas_from_pubs(
     validate_api(api)
     if api == ADS_API_NAME:
         return create_random_atlas_from_pubs_ads( atlas_dir, pubs, fl )
-    elif api == S2_API_NAME:
+    if api == S2_API_NAME:
         return create_random_atlas_from_pubs_s2( atlas_dir, pubs, fl )
 
 ########################################################################

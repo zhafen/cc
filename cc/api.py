@@ -36,13 +36,18 @@ maybe_unnecessary:
 no_change:
     This code uses ADS, but should not be touched. Probably because it's not used.
 '''
+import ads
 
 # constants
 ADS_BIB_NAME = 'cc_ads.bib'
 ADS_API_NAME = 'ADS'
+ADS_ALLOWED_EXCEPTION = ads.exceptions.APIResponseError
+
 S2_API_NAME = 'S2'
+
 DEFAULT_BIB_NAME = ADS_BIB_NAME
 DEFAULT_API = ADS_API_NAME
+DEFAULT_ALLOWED_EXCEPTION = ADS_ALLOWED_EXCEPTION
 
 ########################################################################
 
