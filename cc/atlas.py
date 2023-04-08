@@ -28,6 +28,7 @@ import verdict
 from . import publication
 from . import utils
 
+from . import api
 from api import DEFAULT_API, DEFAULT_BIB_NAME, validate_api, ADS_API_NAME, S2_API_NAME
 
 ########################################################################
