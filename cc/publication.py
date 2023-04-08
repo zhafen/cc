@@ -13,6 +13,7 @@ import augment
 from . import relation
 from . import tex
 from . import utils
+from . import api
 
 from api import DEFAULT_API, validate_api, ADS_API_NAME, S2_API_NAME
 

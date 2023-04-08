@@ -22,6 +22,7 @@ from descartes.patch import PolygonPatch
 import verdict
 
 from . import config
+from . import api
 
 from api import DEFAULT_API, validate_api, ADS_API_NAME, S2_API_NAME, DEFAULT_ALLOWED_EXCEPTION
 

@@ -31,6 +31,7 @@ import verdict
 
 from . import atlas
 from . import utils
+from . import api
 
 from api import DEFAULT_API
 
