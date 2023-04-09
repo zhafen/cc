@@ -33,8 +33,6 @@ from . import atlas
 from . import utils
 from . import api
 
-from api import DEFAULT_API
-
 ########################################################################
 
 class Cartographer( object ):
@@ -719,7 +717,7 @@ class Cartographer( object ):
     # Automated exploration, expansion, or otherwise updating
     ########################################################################
 
-    def expand( self, a, api = DEFAULT_API, center=None, n_pubs_max=4000, n_sources_max=None ):
+    def expand( self, a, api_name = api.DEFAULT_API, center=None, n_pubs_max=4000, n_sources_max=None ):
         '''Expand an atlas by retrieving all publications cited by the
         the publications in the given atlas, or that reference a
         publication in the given atlas.
@@ -791,7 +789,7 @@ class Cartographer( object ):
         print( 'Expansion will include {} new publications.'.format( len( ids ) ) )
 
         # New atlas
-        a_exp = atlas.Atlas.to_and_from_ids( a.atlas_dir, ids, api = api )
+        a_exp = atlas.Atlas.to_and_from_ids( a.atlas_dir, ids, api_name = api_name )
 
         # Update the new atlas
         a_exp.data._storage.update( a.data )

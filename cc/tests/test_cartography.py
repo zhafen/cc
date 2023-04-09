@@ -13,6 +13,7 @@ import warnings
 
 import cc.atlas as atlas
 import cc.cartography as cartography
+import cc.api as api
 
 ########################################################################
 
@@ -461,7 +462,7 @@ class TestExplore( unittest.TestCase ):
         ## API_extension::default_name_change
         # We want to start fresh for these tests
         atlas_dir = './tests/data/example_atlas'
-        self.bibtex_fp = os.path.join(atlas_dir, atlas.DEFAULT_BIB_NAME)
+        self.bibtex_fp = os.path.join(atlas_dir, api.DEFAULT_BIB_NAME)
 
         if os.path.isfile( self.bibtex_fp ):
             os.remove( self.bibtex_fp )

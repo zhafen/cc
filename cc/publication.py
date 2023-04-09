@@ -15,8 +15,6 @@ from . import tex
 from . import utils
 from . import api
 
-from api import DEFAULT_API, validate_api, ADS_API_NAME, S2_API_NAME
-
 ########################################################################
 
 class Publication( object ):
@@ -66,14 +64,14 @@ class Publication( object ):
     # Data Retrieval
     ########################################################################
 
-    def get_data_via_api(self, *args, api = DEFAULT_API, **kwargs,):
+    def get_data_via_api(self, *args, api_name = api.DEFAULT_API, **kwargs,):
         '''General function corresponding to get_ads_data. (may be unnecessary in the end).'''
-        validate_api(api)
+        api.validate_api(api_name)
         
-        if api == 'ADS':
+        if api_name == api.ADS_API_NAME:
             self.get_ads_data(*args, **kwargs)
         
-        elif api == 'S2':
+        if api_name == api.S2_API_NAME:
             raise NotImplementedError
 
     ########################################################################
@@ -292,7 +290,7 @@ class Publication( object ):
     def process_abstract(
         self,
         abstract_str = None,
-        api = DEFAULT_API,        
+        api_name = api.DEFAULT_API,        
         return_empty_upon_failure = True,
         verbose = False,
         overwrite = False,
@@ -315,7 +313,7 @@ class Publication( object ):
                 Parsed abstract data.
         '''
 
-        validate_api(api)
+        api.validate_api(api_name)
 
         # Don't parse the abstract if already parsed
         if hasattr( self, 'abstract' ) and not overwrite:
@@ -324,7 +322,7 @@ class Publication( object ):
         # Load abstract if not given
         if abstract_str is None:
             abstract_str = self.abstract_str(
-                api,
+                api_name,
                 return_empty_upon_failure,
                 verbose,
             )
@@ -340,7 +338,7 @@ class Publication( object ):
 
     ########################################################################
 
-    def abstract_str( self, api = DEFAULT_API, return_empty_upon_failure=True, verbose=False ):
+    def abstract_str( self, api_name = api.DEFAULT_API, return_empty_upon_failure=True, verbose=False ):
         '''Retrieve the abstract text, either from the citation or from some API
 
         ## API_extension::process_data
@@ -348,7 +346,7 @@ class Publication( object ):
         ## ADS data.
 
         Args:
-            api (str):
+            api_name (str):
                 What API to call to retrieve abstracts.
 
             return_empty_upon_failure (bool):
@@ -390,8 +388,8 @@ class Publication( object ):
             ## API_extension:get_data_via_api
             # If neither of those work, auto-retrieve data from ADS or S2
             else:
-                api_names = {ADS_API_NAME: 'ads', S2_API_NAME: 's2'}
-                api_data_attr = f'{api_names[api]}_data' # NOTE: there is no `s2_data` attribute yet.
+                api_names = {api.ADS_API_NAME: 'ads', api.S2_API_NAME: 's2'}
+                api_data_attr = f'{api_names[api_name]}_data' # NOTE: there is no `s2_data` attribute yet.
 
                 if not hasattr( self, api_data_attr ):
 
@@ -583,14 +581,14 @@ class Publication( object ):
 
     ########################################################################
 
-    def points( self, api = DEFAULT_API, verbose=False ):
+    def points( self, api_name = api.DEFAULT_API, verbose=False ):
         '''Return all currently-processed points.
 
             ##API_extension::process_abstracts
             ## I can imagine a general version being useful for test purposes
 
         Args:
-            api (str): 
+            api_name (str): 
                 What API to use when retrieving abstracts.
 
             verbose (bool):
@@ -607,7 +605,7 @@ class Publication( object ):
         # Points in the abstract
         points += nltk.sent_tokenize(
             self.abstract_str(
-                api = api,
+                api_name = api_name,
                 return_empty_upon_failure=True,
                 verbose = verbose,
             )
@@ -615,9 +613,9 @@ class Publication( object ):
 
         return points
 
-    def points_str( self, api = DEFAULT_API, verbose=False ):
+    def points_str( self, api_name = api.DEFAULT_API, verbose=False ):
 
-        return ' '.join( self.points( api=api, verbose=verbose ) )
+        return ' '.join( self.points( api_name=api_name, verbose=verbose ) )
 
     def stemmed_points( self, verbose=False, tag_mapping=None ):
 
@@ -639,14 +637,14 @@ class Publication( object ):
 
     ########################################################################
 
-    def vectorize( self, feature_names=None, include_notes=True, api = DEFAULT_API, ):
+    def vectorize( self, feature_names=None, include_notes=True, api_name = api.DEFAULT_API, ):
         '''Project the abstract into concept space.
         In simplest form this can just be counting up the number of
         times each unique, stemmed noun, verb, or adjective shows up in the
         abstract.
 
         Args:
-            api (str):
+            api_name (str):
                 The API to call in the call to `process_abstracts`.
 
             feature_names (array-like of strs):
@@ -685,7 +683,7 @@ class Publication( object ):
                 return values, feature_names
 
         # Get the processed abstracts
-        self.process_abstract( api = api )
+        self.process_abstract( api_name = api_name )
 
         if 'nltk' not in self.abstract: return upon_failure()
 
@@ -709,7 +707,7 @@ class Publication( object ):
     def inner_product_custom(
         self,
         other,
-        api = DEFAULT_API, 
+        api_name = api.DEFAULT_API, 
         method = 'cached key-point concepts',
         max_edit_distance = None,
         **kwargs
@@ -721,7 +719,7 @@ class Publication( object ):
             other:
                 The other object to calcualte the inner product with.
 
-            api (str):
+            api_name (str):
                 What API to use in the call to `process_abstracts`
 
             method (str):
@@ -804,8 +802,8 @@ class Publication( object ):
         elif method == 'abstract similarity':
 
             # Get the processed abstracts
-            self.process_abstract( api = api )
-            other.process_abstract( api = api )
+            self.process_abstract( api_name = api_name )
+            other.process_abstract( api_name = api_name )
 
             # When the abstract failed to retrieve
             no_nltk = 'nltk' not in self.abstract

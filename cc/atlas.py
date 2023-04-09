@@ -29,7 +29,6 @@ from . import publication
 from . import utils
 
 from . import api
-from api import DEFAULT_API, DEFAULT_BIB_NAME, validate_api, ADS_API_NAME, S2_API_NAME
 
 ########################################################################
 
@@ -45,7 +44,7 @@ class Atlas( object ):
 
         bibtex_fp (str):
             Location to save the bibliography data at. Defaults to 
-            $atlas_dir/DEFAULT_BIB_NAME
+            $atlas_dir/api.DEFAULT_BIB_NAME
             ## API_extension::default_name_change
 
         bibtex_entries_to_load (str or list-like):
@@ -94,7 +93,7 @@ class Atlas( object ):
 
                     ## API_extension::default_name_change
                     # Ignore the auxiliary downloaded biliography
-                    cc_default_fp = os.path.join( atlas_dir, DEFAULT_BIB_NAME )
+                    cc_default_fp = os.path.join( atlas_dir, api.DEFAULT_BIB_NAME )
                     if cc_default_fp in bibtex_fps:
                         bibtex_fps.remove( cc_default_fp )
                     else:
@@ -132,7 +131,7 @@ class Atlas( object ):
         n_sample,
         start_time = '1990',
         end_time = '2015',
-        api = DEFAULT_API,        
+        api_name = api.DEFAULT_API,
         fl = [ 'arxivid', 'doi', 'date', 'citation', 'reference', 'abstract', 'bibcode', 'entry_date', 'arxiv_class' ],
         arxiv_class = None,
         seed = None,
@@ -160,7 +159,7 @@ class Atlas( object ):
             end_time (pd.Timestamp or pd-compatible string):
                 End time to use for the range of selectable publications.
 
-            api (str): 
+            api_name (str): 
                 The API to call. See validate_api for more details.
 
             arxiv_class (str):
@@ -191,7 +190,7 @@ class Atlas( object ):
             n_sample = n_sample,
             start_time = start_time,
             end_time = end_time,
-            api = api,
+            api_name = api_name,
             fl = fl,
             arxiv_class = arxiv_class,
             seed = seed,
@@ -205,17 +204,17 @@ class Atlas( object ):
                 )
             )
 
-        return create_random_atlas_from_pubs( atlas_dir, pubs, fl, api, )
+        return create_random_atlas_from_pubs( atlas_dir, pubs, fl, api_name, )
 
     ########################################################################
 
     @classmethod
-    def to_and_from_ids( cls, *args, api = DEFAULT_API, **kwargs ):
+    def to_and_from_ids( cls, *args, api_name = api.DEFAULT_API, **kwargs ):
 
-        validate_api(api)
-        if api == ADS_API_NAME:
+        api.validate_api(api_name)
+        if api_name == api.ADS_API_NAME:
             return cls.to_and_from_bibcodes( *args, **kwargs )
-        if api == S2_API_NAME:
+        if api_name == api.S2_API_NAME:
             raise NotImplementedError
 
     ########################################################################
@@ -244,7 +243,7 @@ class Atlas( object ):
 
             bibtex_fp (str):
                 Location to save the bibliography data at. Defaults to 
-                $atlas_dir/DEFAULT_BIB_NAME
+                $atlas_dir/api.DEFAULT_BIB_NAME
             ## API_extension::default_name_change
 
             data_fp (str):
@@ -265,8 +264,8 @@ class Atlas( object ):
         ## API_extension::default_name_change
         # Save the bibcodes to a bibtex
         if bibtex_fp is None:
-            bibtex_fp = os.path.join( atlas_dir, DEFAULT_BIB_NAME )
-        save_ids_to_bibtex( bibcodes, bibtex_fp, api = ADS_API_NAME )
+            bibtex_fp = os.path.join( atlas_dir, api.DEFAULT_BIB_NAME )
+        save_ids_to_bibtex( bibcodes, bibtex_fp, api_name = api.ADS_API_NAME )
 
         result = Atlas(
             atlas_dir = atlas_dir,
@@ -280,7 +279,7 @@ class Atlas( object ):
 
     ########################################################################
 
-    def import_ids( self, ids, bibtex_fp=None , api = DEFAULT_API):
+    def import_ids( self, ids, bibtex_fp=None , api_name = api.DEFAULT_API):
         '''Import bibliography data using the publication ids, e.g. bibcodes or paperIds.
 
         Args:
@@ -300,8 +299,8 @@ class Atlas( object ):
         # Store original keys for later removing duplicates
         original_keys = copy.copy( list( self.data.keys() ) )        
         if bibtex_fp is None:
-            bibtex_fp = os.path.join( self.atlas_dir, DEFAULT_BIB_NAME )
-        save_ids_to_bibtex( ids, bibtex_fp, api = api )
+            bibtex_fp = os.path.join( self.atlas_dir, api.DEFAULT_BIB_NAME )
+        save_ids_to_bibtex( ids, bibtex_fp, api_name = api_name )
         self.import_bibtex( bibtex_fp, verbose=False )
 
         self.prune_duplicates( original_keys )        
@@ -333,7 +332,7 @@ class Atlas( object ):
     #     # API_extension::default_name_change
     #     # Import bibcodes
     #     if bibtex_fp is None:
-    #         bibtex_fp = os.path.join( self.atlas_dir, DEFAULT_BIB_NAME )
+    #         bibtex_fp = os.path.join( self.atlas_dir, api.DEFAULT_BIB_NAME )
     #     save_bibcodes_to_bibtex( bibcodes, bibtex_fp, )
     #     self.import_bibtex( bibtex_fp, verbose=False )
 
@@ -865,22 +864,22 @@ class Atlas( object ):
 
     ########################################################################
 
-    def get_data_via_api(self, *args, api = DEFAULT_API, **kwargs,):
+    def get_data_via_api(self, *args, api_name = api.DEFAULT_API, **kwargs,):
         '''Get data for all publications via ADS or S2.
         
         Args:
-            api (str): What api to call. Options are...
+            api_name (str): What api to call. Options are...
             'S2':
                 Call the Semantic Scholar Academic Graph API (S2AG)
             'ADS':
                 Call the NASA Astrophysics Data System API (ADS)
         '''
-        validate_api(api)
+        api.validate_api(api_name)
         
-        if api == ADS_API_NAME:
+        if api_name == api.ADS_API_NAME:
             self.get_ads_data(*args, **kwargs)
         
-        if api == S2_API_NAME:
+        if api_name == api.S2_API_NAME:
             raise NotImplementedError
         
     ########################################################################
@@ -1151,7 +1150,7 @@ class Atlas( object ):
 
     ########################################################################
 
-    def process_abstracts( self, *args, process_stemmed_content_words=True, api = DEFAULT_API, **kwargs ):
+    def process_abstracts( self, *args, process_stemmed_content_words=True, api_name = api.DEFAULT_API, **kwargs ):
         '''Download and process the abstracts of all publications.
         Faster and with fewer API calls than for each paper individually.
 
@@ -1166,7 +1165,7 @@ class Atlas( object ):
 
         ## API_extension::get_data_via_api
         # self.get_ads_data( *args, **kwargs )
-        self.get_data_via_api( *args, api = api, **kwargs, )
+        self.get_data_via_api( *args, api_name = api_name, **kwargs, )
 
         print( '    Doing NLP...' )
 
@@ -1180,7 +1179,7 @@ class Atlas( object ):
                 if isinstance( item.abstract, verdict.Dict ) or isinstance( item.abstract, dict ):
                     continue
 
-            abstract_str = item.abstract_str( api = api )
+            abstract_str = item.abstract_str( api_name = api_name )
             if abstract_str == '':
                 n_err += 1
             item.process_abstract( abstract_str=abstract_str, overwrite=True )
@@ -1641,14 +1640,14 @@ class Atlas( object ):
 
 ########################################################################
 
-def save_ids_to_bibtex ( *args, api = DEFAULT_API, **kwargs, ):
+def save_ids_to_bibtex ( *args, api_name = api.DEFAULT_API, **kwargs, ):
     '''Use ADS or S2 to convert publication identifiers into bibtex files.'''
 
-    validate_api(api)
+    api.validate_api(api_name)
 
-    if api == ADS_API_NAME:
+    if api_name == api.ADS_API_NAME:
         save_ads_bibcodes_to_bibtex( *args, **kwargs )
-    if api == S2_API_NAME:
+    if api_name == api.S2_API_NAME:
         raise NotImplementedError
 
 ########################################################################
@@ -1705,7 +1704,7 @@ def create_random_atlas_from_pubs(
     atlas_dir, 
     pubs, 
     fl,
-    api = DEFAULT_API,    
+    api_name = api.DEFAULT_API,
 ) -> Atlas:
     '''Constructs an atlas from a random list of publications, by accessing API-specific data.
     
@@ -1719,17 +1718,17 @@ def create_random_atlas_from_pubs(
         fl (list):
             list of fields to populate in each atlas publication from retrieved pubs
             
-        api (str):
+        api_name (str):
             the API to call. 
 
     Returns:
         result (Atlas) the random Atlas
     '''
-    validate_api(api)
-    if api == 'ADS':
-        create_random_atlas_from_pubs_ads( atlas_dir, pubs, fl )
-    if api == 'S2':
-        create_random_atlas_from_pubs_s2( atlas_dir, pubs, fl )
+    api.validate_api(api_name)
+    if api_name == 'ADS':
+        return create_random_atlas_from_pubs_ads( atlas_dir, pubs, fl )
+    if api_name == 'S2':
+        return create_random_atlas_from_pubs_s2( atlas_dir, pubs, fl )
 
 ########################################################################
 
@@ -1741,7 +1740,7 @@ def create_random_atlas_from_pubs_ads(
     '''Constructs an atlas from a random list of publications, by accessing ADS specific data.'''
 
     bibcodes = [ _.bibcode for _ in pubs ] # ADS specifc
-    result = Atlas.to_and_from_ids( atlas_dir, bibcodes, api = ADS_API_NAME )
+    result = Atlas.to_and_from_ids( atlas_dir, bibcodes, api_name = api.ADS_API_NAME )
     
     ## API_extension:random_publications
     ## The below code block stores already retrieved values in the atlas.

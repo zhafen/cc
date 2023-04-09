@@ -240,13 +240,13 @@ def tokenize_and_sort_text( text, tag_mapping=None, primary_alphabet_only=False 
 
 ########################################################################
 
-def citation_to_api_call( citation: dict, api = DEFAULT_API ) -> tuple:
+def citation_to_api_call( citation: dict, api_name = api.DEFAULT_API ) -> tuple:
     '''Given a dictionary containing a citation return a string that, when sent to S2AG, will give a unique result.
     '''
-    validate_api(api)
-    if api == ADS_API_NAME:
+    validate_api(api_name)
+    if api_name == ADS_API_NAME:
         return citation_to_ads_call( citation)
-    if api == S2_API_NAME:
+    if api_name == S2_API_NAME:
         return citation_to_s2_call( citation )
 
 ########################################################################
@@ -413,12 +413,12 @@ def keep_trying( n_attempts=5, allowed_exception=DEFAULT_ALLOWED_EXCEPTION, verb
 
 ########################################################################
 
-def api_query(*args, api = DEFAULT_API, **kwargs ) -> list:
+def api_query(*args, api_name = api.DEFAULT_API, **kwargs ) -> list:
     '''Convenience wrapper for searching an API.'''
-    validate_api(api)
-    if api == ADS_API_NAME:
+    validate_api(api_name)
+    if api_name == ADS_API_NAME:
         return ads_query( *args, **kwargs )
-    if api == S2_API_NAME:
+    if api_name == S2_API_NAME:
         return s2_query( *args, **kwargs )
 
 ########################################################################
@@ -480,14 +480,14 @@ def ads_query(
 
 ########################################################################
 
-def random_publications(*args, api = DEFAULT_API, **kwargs,):
+def random_publications(*args, api_name = api.DEFAULT_API, **kwargs,):
     '''Choose random publications by choosing a random date and then choosing a random publication announced on that date, via some API.'''
 
-    validate_api(api)
-    if api == 'ADS':
+    validate_api(api_name)
+    if api_name == api.ADS_API_NAME:
         return random_publications_ads(*args, **kwargs)
     
-    elif api == 'S2':
+    elif api_name == api.S2_API_NAME:
         return random_publications_s2(*args, **kwargs)
 
 ########################################################################

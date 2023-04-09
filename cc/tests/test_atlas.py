@@ -12,6 +12,7 @@ import unittest
 
 import cc.atlas as atlas
 import cc.publication as publication
+import cc.api as api
 
 import verdict
 
@@ -118,7 +119,7 @@ class TestFromBibcodes( unittest.TestCase ):
 
         ## API_extension::default_name_change
         atlas_dir = './tests/data/example_atlas'
-        self.bibtex_fp = os.path.join(atlas_dir, atlas.DEFAULT_BIB_NAME)
+        self.bibtex_fp = os.path.join(atlas_dir, api.DEFAULT_BIB_NAME)
 
     def tearDown( self ):
         if os.path.isfile( self.bibtex_fp ):
@@ -126,11 +127,11 @@ class TestFromBibcodes( unittest.TestCase ):
 
     ########################################################################
 
-    def test_to_and_from_ids( self, api = atlas.DEFAULT_API ):
+    def test_to_and_from_ids( self, api_name = api.DEFAULT_API ):
 
-        if api == 'ADS':
+        if api_name == api.ADS_API_NAME:
             self.test_to_and_from_bibcodes()
-        elif api == 'S2':
+        if api_name == api.S2_API_NAME:
             self.test_to_and_from_s2_ids()
 
     ########################################################################
@@ -140,13 +141,13 @@ class TestFromBibcodes( unittest.TestCase ):
         # a = atlas.Atlas.to_and_from_ids(
         #     self.a.atlas_dir,
         #     [],
-        #     api = 'S2',
+        #     api_name = 'S2',
         # )
 
     ########################################################################
 
     def test_to_and_from_bibcodes( self ):
-        api = 'ADS'
+        api_name = 'ADS'
 
         bibcodes = [
             '2019MNRAS.488.1248H',
@@ -166,7 +167,7 @@ class TestFromBibcodes( unittest.TestCase ):
             assert a.data['2019MNRAS.488.1248H'].citation[key] == self.a.data['Hafen2019'].citation[key]
 
         # Test we can get the abstracts
-        a.process_abstracts( api = api )
+        a.process_abstracts( api_name = api_name )
         assert a.n_err_abs == 0
 
     ########################################################################
@@ -196,7 +197,7 @@ class TestFromBibcodes( unittest.TestCase ):
 
     ########################################################################
 
-    def test_from_bibcodes_existing_bib( self, api = atlas.DEFAULT_API ):
+    def test_from_bibcodes_existing_bib( self ):
 
         # Copy the duplicate file so there's already a bib there
         shutil.copyfile(
