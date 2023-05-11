@@ -251,8 +251,21 @@ def citation_to_api_call( citation: dict, api_name = api.DEFAULT_API ) -> tuple:
 ########################################################################
 
 def citation_to_s2_call( citation ):
-    '''Given a dictionary containing a citation return a string that, when sent to S2AG, will give a unique result.'''
-    raise NotImplementedError
+    '''Given a dictionary containing a citation return a string that, when sent to S2AG, will give a unique result.
+
+    For now, we'll only use doi, as a proof of concept.
+    
+    Args:
+        citation (dict):
+            Dictionary containing the citation information for a publication.
+
+    Returns: 
+        paper_id (str):
+            String to be used for the mandatory paperId arg for S2 query.
+
+    '''
+    paper_id = f"DOI:{citation['doi']}"
+    return paper_id
 
 ########################################################################
 

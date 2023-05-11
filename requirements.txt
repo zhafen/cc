@@ -21,3 +21,4 @@ rebound==3.19.2
 scikit_learn==1.0.2
 Shapely==1.8.1.post1
 verdict==1.1.4
+semanticscholar==0.4.1

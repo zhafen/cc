@@ -15,6 +15,8 @@ import warnings
 ## API_extension::maybe_unnecessary
 ## The imports can probably be pared down, post-extension.
 
+from semanticscholar import SemanticScholar
+
 # Import tqdm but change default options
 from functools import partial
 from tqdm import tqdm as std_tqdm
@@ -884,9 +886,65 @@ class Atlas( object ):
         
     ########################################################################
 
-    def get_s2_data(self, **kwargs):
-        '''Get the Semantic Scholar data for all publications.'''
-        raise NotImplementedError
+    def get_s2_data(
+        self,
+        fields = [ 'abstract', 'citations', 'references', 'authors', ],
+        **kwargs, # probably remove this
+    ):
+        '''Get the Semantic Scholar data for all publications, from citations (the entries of a bibtex file).
+
+        This is gonna break for almost everything.
+        
+        Args:
+            fields (list of strs):
+                Fields to retrieve from ADS.
+        '''
+
+        sch = SemanticScholar()
+
+        def store_s2_data( atlas_pub, paper ):
+
+            # Store
+            atlas_pub.s2_data = {}
+            for field in fields:
+                value = getattr( paper, field )
+
+                # Formatting choice, abstract = None replaced
+                # with abstract = ''
+                if field == 'abstract' and value is None:
+                    value = ''
+
+                atlas_pub.s2_data[field] = value
+
+                attr_f = copy.copy( field )
+                setattr( atlas_pub, attr_f, value )
+
+            return atlas_pub 
+        
+
+        # Collect query strings to call S2 api
+        queries_data = { # NOTE something like `queries` and `query_i` ?
+            'data_keys': [],
+            'ids': [],
+        }        
+        for key, item in self.data.items():
+            paper_id = utils.citation_to_s2_call( item.citation )
+
+            queries_data['data_keys'].append( key )
+            queries_data['ids'].append( paper_id )
+
+        # Query api 
+        for key in queries_data['data_keys']:
+
+            paper = sch.get_paper(
+                paper_id=paper_id,
+                fields=fields,
+            )
+
+            # store
+            atlas_pub = self.data[key]
+            self.data[key] = store_s2_data( atlas_pub, paper )
+
 
     ########################################################################
 
@@ -1040,7 +1098,7 @@ class Atlas( object ):
 
                 attr_f = copy.copy( f )
                 if attr_f == 'citation' or attr_f == 'reference':
-                    attr_f += 's'
+                    attr_f += 's' # NOTE: what's this? a nuisance?
                 setattr( atlas_pub, attr_f, value )
 
             return atlas_pub
@@ -1076,6 +1134,7 @@ class Atlas( object ):
                 atlas_pub = self.data[key]
 
                 # Match the publication
+                # NOTE: how optimized is this?
                 found = False
                 for p in pubs:
                     if identifier == 'bibcode':

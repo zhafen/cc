@@ -44,7 +44,7 @@ class TestBibTexData( unittest.TestCase ):
 
     ########################################################################
 
-    def test_process_bibtex_anotations( self ):
+    def test_process_bibtex_annotations( self ):
 
         self.a.data.process_bibtex_annotations()
 
@@ -74,9 +74,9 @@ class TestAPIUsage( unittest.TestCase ):
 
 ########################################################################
 
-    # def test_get_s2_data( self ):
+    def test_get_s2_data( self ):
 
-    #     self.a.get_s2_data( identifier='from_citation', skip_unofficial=False )
+        self.a.get_s2_data( identifier='from_citation', skip_unofficial=False )
 
 ########################################################################
     
