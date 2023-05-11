@@ -16,6 +16,9 @@ import warnings
 ## The imports can probably be pared down, post-extension.
 
 from semanticscholar import SemanticScholar
+from bibtexparser.bparser import BibTexParser
+from bibtexparser.bwriter import BibTexWriter
+from bibtexparser.bibdatabase import BibDatabase
 
 # Import tqdm but change default options
 from functools import partial
@@ -80,7 +83,7 @@ class Atlas( object ):
         data_fp = None,
         atlas_data_format = 'json',
     ):
-
+        # breakpoint()
         # Make sure the atlas directory exists
         os.makedirs( atlas_dir, exist_ok=True )
         
@@ -106,6 +109,7 @@ class Atlas( object ):
                 if len( bibtex_fps ) == 0:
                     raise IOError( 'No *.bib file found in {}'.format( atlas_dir ) )
                 bibtex_fp = bibtex_fps[0]
+            # breakpoint()
             self.import_bibtex( bibtex_fp, entries=bibtex_entries_to_load )
 
         # Load general atlas data
@@ -260,7 +264,8 @@ class Atlas( object ):
         if bibtex_fp is None:
             bibtex_fp = os.path.join( atlas_dir, api.DEFAULT_BIB_NAME )
 
-        save_ids_to_bibtex( ids, bibtex_fp, api_name = api.ADS_API_NAME )
+        # breakpoint()
+        save_ids_to_bibtex( ids, bibtex_fp, api_name = api_name )
 
         result = Atlas(
             atlas_dir = atlas_dir,
@@ -429,6 +434,11 @@ class Atlas( object ):
         # Store into class
         if verbose:
             print( 'Storing bibliography entries.' )
+
+        if "cc_s2.bib" in bibtex_fp:
+            # breakpoint()
+            pass
+
         for citation in tqdm( bib_database.entries ):
             citation_key = citation['ID']
 
@@ -1773,7 +1783,7 @@ def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp, **kwargs ):
     '''Calls S2 with paper_ids, retrieves bibtex entries, reformatting them to store ids.'''
     sch = SemanticScholar()
 
-    paper_ids = list( paper_ids )
+    paper_ids = list( paper_ids ) # in case of np
     fields = [
         'externalIds', # supports ArXiv, MAG, ACL, PubMed, Medline, PubMedCentral, DBLP, DOI
         'abstract',
@@ -1791,39 +1801,69 @@ def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp, **kwargs ):
         fields=fields,
     )
 
-    # edit the bibtex
-    biblines = []
-    for paper in papers:
+    # Get bibtex and format
+    all_entries = []
+
+    parser = BibTexParser(common_strings=False)
+    parser.ignore_nonstandard_types = False
+    parser.homogenize_fields = False
+    parser.expect_multiple_parse = True # absolutely critical
+
+    for i, paper in enumerate(papers):
+
         bibtex_str = paper.citationStyles['bibtex']
 
-        # default citekey is something human readable, we change to paperId.
+        # breakpoint()
+
+        # Format for bibtexparser
+        # S2 entry types are garbage and we will replace ID anyway
+        bibtex_str = "".join(['@ARTICLE{dummy_key,'] + bibtex_str.split('\n')[1:])
+        db = bibtexparser.loads(bibtex_str, parser)
+
+        if not db.entries:
+            raise Exception(f'Bibtexparser could not parse:\n {bibtex_str}')
         
+        if len(db.entries) != 1:
+            # breakpoint()
+            pass
 
-
-        paper_biblines = []
-        # note the space before each ' key = {value},\n'
-
-        date = paper.publicationDate
-        if date is not None:
-            date = paper.publicationDate
-            year = f' year = {{{date.year}}}'
-            month = f' month = {{{date.month}}}'
-            day = f' day = {{{date.day}}}'
-            paper_biblines.extend( [year, month, day] )
-        
+        entry = db.entries[-1] # one paper at a time; not optimized.
         externalIds = paper.externalIds
+        date = paper.publicationDate
+
+        
+        # Alter the bib entry fields
+
+        # Title
+        title = entry['title']
+        entry['title'] = f'{{{title}}}' # Zach puts double brackes around the title
+
+        # ID
+        entry['ID'] = paper_ids[i] # NOTE:for consistency, not paper.paperId.
+
+        # Other identifiers
         if externalIds is not None:
             for xid in xids_map:
                 if xid in externalIds:
-                    paper_biblines.append( 
-                        f'{xids_map[xid]} = {{{externalIds[xid]}}}' 
-                    )
-        paper_bibtex_str += ',\n'.join( paper_biblines )
+                    entry[xids_map[xid]] = externalIds[xid]
 
+        # Date
+        if date is not None:
+            entry['year'] = str(date.year) # year probably is there already, no harm
+            entry['month'] = str(date.month)
+            entry['day'] = str(date.day)
+        
+        all_entries.append(entry)
+    
+    db = BibDatabase()
+    db.entries = all_entries
 
     # Save the bibtex
-    with open( bibtex_fp, 'a' ) as f:
-        f.write( bibtex_str )
+    writer = BibTexWriter()
+    with open( bibtex_fp, 'a') as bibfile:
+        bibfile.write( writer.write(db) )
+
+    # breakpoint()
 
 ########################################################################
 
@@ -1854,7 +1894,6 @@ def save_ads_bibcodes_to_bibtex( bibcodes, bibtex_fp, call_size=2000 ):
 
         # Reformat some lines to work with bibtexparser
         # This is not optimized.
-        breakpoint()
         l = []
         for line in bibtex_str_i.split( '\n' ):
             # ADS puts quotes instead of double brackes around the title
