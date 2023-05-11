@@ -882,7 +882,7 @@ class Atlas( object ):
             self.get_ads_data(*args, **kwargs)
         
         if api_name == api.S2_API_NAME:
-            raise NotImplementedError
+            self.get_s2_data( *args, **kwargs )
         
     ########################################################################
 

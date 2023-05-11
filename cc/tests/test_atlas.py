@@ -136,13 +136,13 @@ class TestFromBibcodes( unittest.TestCase ):
 
     ########################################################################
 
-    # def test_to_and_from_s2_ids( self ):
+    def test_to_and_from_s2_ids( self ):
 
-        # a = atlas.Atlas.to_and_from_ids(
-        #     self.a.atlas_dir,
-        #     [],
-        #     api_name = 'S2',
-        # )
+        a = atlas.Atlas.to_and_from_ids(
+            self.a.atlas_dir,
+            [], # TODO: implement paperIds -> bibliography -> Atlas
+            api_name = 'S2',
+        )
 
     ########################################################################
 
@@ -256,6 +256,58 @@ class TestFromBibcodes( unittest.TestCase ):
         expected_second = list( bibcodes[2000:] )
         actual_second = mock_export.call_args_list[1][0][0]
         assert expected_second == actual_second
+
+########################################################################
+
+class TestToyAtlas( unittest.TestCase ):
+    '''Test functionality for an unrealistic, baby atlas.'''
+    # NOTE: this is probably redundant to example_atlas, I'll refactor later
+
+    def setUp( self ):
+
+        self.atlas_dir = './tests/data/toy_atlas'
+        assert os.path.isdir( os.path.join( os.getcwd(), self.atlas_dir ) )
+
+    def tearDown( self ):
+        for f in [ 'atlas_data.h5', 'projection.h5', ]:
+            fp = os.path.join( self.atlas_dir, f )
+            if os.path.exists( fp ):
+                os.remove( fp )
+
+    ########################################################################
+
+    def test_process_abstracts( self ):
+
+        # Load
+        bibtex_fp = os.path.join( self.atlas_dir, 'toy.bib' )
+        a = atlas.Atlas( self.atlas_dir, bibtex_fp=bibtex_fp)
+
+        # query and process
+        a.process_abstracts( api_name = api.S2_API_NAME )
+
+    ########################################################################
+
+    @pytest.mark.slow
+    def test_basic_pipeline( self ):
+
+        # Load
+        bibtex_fp = os.path.join( self.atlas_dir, 'toy.bib' )
+        a = atlas.Atlas( self.atlas_dir, bibtex_fp=bibtex_fp)
+
+        # query and process
+        a.process_abstracts( api_name = api.S2_API_NAME )
+
+        # projection
+        vp_dict = a.vectorize()
+
+        breakpoint()
+
+        # ensure successful projection
+        unhandled = []
+        for key in a.data.keys():
+            if key not in vp_dict['publications']:
+                    unhandled.append( key )
+        assert len( unhandled ) == 0
 
 ########################################################################
 
