@@ -211,15 +211,73 @@ class Atlas( object ):
     ########################################################################
 
     @classmethod
-    def to_and_from_ids( cls, *args, api_name = api.DEFAULT_API, **kwargs ):
+    def to_and_from_ids( 
+        cls,
+        atlas_dir,
+        ids,
+        api_name = api.DEFAULT_API,
+        bibtex_fp = None,
+        data_fp = None,
+        load_atlas_data = False,
+        **kwargs
+     ):
+        '''Generate an Atlas from string ids by downloading and saving the
+        citations from an API as a new bibliography.
+
+        ## API_extension::to_and_from_bibcodes
+
+        Args:
+            atlas_dir (str):
+                Primary location atlas data is stored in.
+
+            ids (list of strs):
+                Publications to retrieve; must be ADS bibcodes or S2 paperIDs.
+
+            bibtex_fp (str):
+                Location to save the bibliography data at. Defaults to 
+                $atlas_dir/api.DEFAULT_BIB_NAME
+            ## API_extension::default_name_change
+
+            data_fp (str):
+                Location to save other atlas data at. Defaults to 
+                $atlas_dir/atlas_data.h5
+
+            load_atlas_data (bool):
+                If False don't load the atlas data from data_fp.
+
+        Returns:
+            Atlas:
+                An atlas object, designed for exploring a collection of papers.
+        '''
 
         api.validate_api(api_name)
-        if api_name == api.ADS_API_NAME:
-            return cls.to_and_from_bibcodes( *args, **kwargs )
-        if api_name == api.S2_API_NAME:
-            raise NotImplementedError
+
+        # Make sure the atlas directory exists
+        os.makedirs( atlas_dir, exist_ok=True )
+
+        ## API_extension::default_name_change
+        # Save the ids to a bibtex
+        if bibtex_fp is None:
+            bibtex_fp = os.path.join( atlas_dir, api.DEFAULT_BIB_NAME )
+
+        save_ids_to_bibtex( ids, bibtex_fp, api_name = api.ADS_API_NAME )
+
+        result = Atlas(
+            atlas_dir = atlas_dir,
+            bibtex_fp = bibtex_fp,
+            data_fp = data_fp,
+            load_atlas_data = load_atlas_data,
+            **kwargs
+        )
+
+        return result
 
     ########################################################################
+
+
+
+
+    ########################################################################    
 
     @classmethod
     def to_and_from_bibcodes(
@@ -1707,7 +1765,65 @@ def save_ids_to_bibtex ( *args, api_name = api.DEFAULT_API, **kwargs, ):
     if api_name == api.ADS_API_NAME:
         save_ads_bibcodes_to_bibtex( *args, **kwargs )
     if api_name == api.S2_API_NAME:
-        raise NotImplementedError
+        save_s2_paperids_to_bibtex( *args, **kwargs )
+
+########################################################################
+
+def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp, **kwargs ):
+    '''Calls S2 with paper_ids, retrieves bibtex entries, reformatting them to store ids.'''
+    sch = SemanticScholar()
+
+    paper_ids = list( paper_ids )
+    fields = [
+        'externalIds', # supports ArXiv, MAG, ACL, PubMed, Medline, PubMedCentral, DBLP, DOI
+        'abstract',
+        'citationStyles', # supports a very basic bibtex that we will augment
+        'publicationDate', # if available, type datetime.datetime (YYYY-MM-DD)
+    ]
+    xids_map = { # how external ids should be in bibtex entry
+        'ArXiv': 'arxivid', # also 'eprint', perhaps
+        'DOI': 'doi',
+    }
+
+    # NOTE: Here and below, why are we not calling get_data_via_api, where `fields` is not hardcoded?
+    papers = sch.get_papers(
+        paper_ids=paper_ids,
+        fields=fields,
+    )
+
+    # edit the bibtex
+    biblines = []
+    for paper in papers:
+        bibtex_str = paper.citationStyles['bibtex']
+
+        # default citekey is something human readable, we change to paperId.
+        
+
+
+        paper_biblines = []
+        # note the space before each ' key = {value},\n'
+
+        date = paper.publicationDate
+        if date is not None:
+            date = paper.publicationDate
+            year = f' year = {{{date.year}}}'
+            month = f' month = {{{date.month}}}'
+            day = f' day = {{{date.day}}}'
+            paper_biblines.extend( [year, month, day] )
+        
+        externalIds = paper.externalIds
+        if externalIds is not None:
+            for xid in xids_map:
+                if xid in externalIds:
+                    paper_biblines.append( 
+                        f'{xids_map[xid]} = {{{externalIds[xid]}}}' 
+                    )
+        paper_bibtex_str += ',\n'.join( paper_biblines )
+
+
+    # Save the bibtex
+    with open( bibtex_fp, 'a' ) as f:
+        f.write( bibtex_str )
 
 ########################################################################
 
@@ -1738,6 +1854,7 @@ def save_ads_bibcodes_to_bibtex( bibcodes, bibtex_fp, call_size=2000 ):
 
         # Reformat some lines to work with bibtexparser
         # This is not optimized.
+        breakpoint()
         l = []
         for line in bibtex_str_i.split( '\n' ):
             # ADS puts quotes instead of double brackes around the title

@@ -150,7 +150,8 @@ class TestFromBibcodes( unittest.TestCase ):
         api_name = 'ADS'
 
         bibcodes = [
-            '2019MNRAS.488.1248H',
+            # '2019MNRAS.488.1248H',
+            '2017MNRAS.469.2292H', # want to test my own for comparison
             '2020MNRAS.494.3581H',
         ]
 
@@ -299,8 +300,6 @@ class TestToyAtlas( unittest.TestCase ):
 
         # projection
         vp_dict = a.vectorize()
-
-        breakpoint()
 
         # ensure successful projection
         unhandled = []
