@@ -717,7 +717,15 @@ class Cartographer( object ):
     # Automated exploration, expansion, or otherwise updating
     ########################################################################
 
-    def expand( self, a, api_name = api.DEFAULT_API, center=None, n_pubs_max=4000, n_sources_max=None ):
+    def expand( 
+        self, 
+        a, 
+        api_name = api.DEFAULT_API, 
+        center=None, 
+        n_pubs_max=4000, 
+        n_sources_max=None, 
+        bibtex_fp = api.DEFAULT_BIB_NAME,
+    ):
         '''Expand an atlas by retrieving all publications cited by the
         the publications in the given atlas, or that reference a
         publication in the given atlas.
@@ -752,33 +760,13 @@ class Cartographer( object ):
             sort_inds = np.argsort( cospsi )[::-1]
             expand_keys = self.publications[sort_inds]
 
+        # breakpoint()
+
         if n_sources_max is not None:
             expand_keys = expand_keys[:n_sources_max]
 
-        # API_extension::to_and_from_bibcodes
-        # NOTE: The below implementation assumes that both the `references` and `citations` attributes of `a[key]` will contain either an ADS bibcode or an appropriate S2 id.
-        # Make the ids list
-        existing_keys = set( a.data.keys() )
-        ids = []
-        for key in expand_keys:
-
-            ids_i = []
-            try:
-                ids_i += list( a[key].references )
-            except (AttributeError, TypeError) as e:
-                pass
-            try:
-                ids_i += list( a[key].citations )
-            except (AttributeError, TypeError) as e:
-                pass
-
-            # Prune ids_i for obvious overlap
-            ids += list( set( ids_i ) - existing_keys )
-
-            # Break when the search is centered and we're maxed out
-            if len( ids ) > n_pubs_max and center is not None:
-                break
-        ids = list( set( ids ) )
+        # Main expansion via collection of references and citations
+        ids = get_ids_list(a, expand_keys, center, n_pubs_max, api_name)
 
         assert len( ids ) > 0, "Overly-restrictive search, no ids (bibcodes, etc) to retrieve."
 
@@ -789,7 +777,12 @@ class Cartographer( object ):
         print( 'Expansion will include {} new publications.'.format( len( ids ) ) )
 
         # New atlas
-        a_exp = atlas.Atlas.to_and_from_ids( a.atlas_dir, ids, api_name = api_name )
+        a_exp = atlas.Atlas.to_and_from_ids( 
+            a.atlas_dir, 
+            ids, 
+            api_name = api_name, 
+            bibtex_fp = bibtex_fp,
+        )
 
         # Update the new atlas
         a_exp.data._storage.update( a.data )
@@ -1836,6 +1829,61 @@ class Cartographer( object ):
         return fig
 
 ########################################################################
+
+def get_ids_list(a: atlas.Atlas, expand_keys: list[str], center: str, n_pubs_max: int, api_name = api.DEFAULT_API):
+    '''For each publication corresponding to an id in `expand_keys`, collect the ids corresponding to the publication's references and citations.
+    '''
+    # Make the ids list
+    existing_keys = set( a.data.keys() )
+    ids = []
+    for key in expand_keys:
+
+        ids_i = []
+
+        # ADS
+        if api_name == api.ADS_API_NAME:
+            try:
+                ids_i += list( a[key].references )
+            except (AttributeError, TypeError) as e:
+                pass
+            try:
+                ids_i += list( a[key].citations )
+            except (AttributeError, TypeError) as e:
+                pass
+        
+        # S2 
+        # Paper.references/citations returns Paper, not str paperId
+        papers = []
+        if api_name == api.S2_API_NAME:
+            papers += list( a[key].references )
+            papers += list( a[key].citations )
+            
+            for paper in papers:
+                id_i = None
+                # use alternative ids if necessary
+                if paper.paperId is not None:
+                    id_i = paper.paperId
+                else:
+                    externalIds = paper.externalIds
+                    if externalIds is not None:
+                        for xid in api.S2_EXTERNAL_IDS:
+                            if xid in externalIds:
+                                id_i = paper.externalIds[xid]
+                                break
+                if id_i is None:
+                    # TODO: use s2 to query based on title, as well
+                    warnings.warn(f'Could not find any identifier for paper {paper}; skipping.')
+                    continue
+                ids_i.append(id_i)
+
+        # Prune ids_i for obvious overlap
+        ids += list( set( ids_i ) - existing_keys )
+
+        # Break when the search is centered and we're maxed out
+        if len( ids ) > n_pubs_max and center is not None:
+            break
+    ids = list( set( ids ) )  
+    return ids  
 
 def _generate_map(
     sort_inds,

@@ -16,6 +16,8 @@ import warnings
 ## The imports can probably be pared down, post-extension.
 
 from semanticscholar import SemanticScholar
+from semanticscholar.Paper import Paper
+
 from bibtexparser.bparser import BibTexParser
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
@@ -568,6 +570,8 @@ class Atlas( object ):
             handle_jagged_arrs (str):
                 How, when saving using hdf5, to handle jagged arrays.
         '''
+        # BUG: TypeError: Object of type Paper is not JSON serializable. See https://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
+        # also NOTE: ask Zach how he is serializing Publications.
 
         # Filepath
         if fp is None:
@@ -1779,27 +1783,37 @@ def save_ids_to_bibtex ( *args, api_name = api.DEFAULT_API, **kwargs, ):
 
 ########################################################################
 
-def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp, **kwargs ):
+def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp = api.S2_BIB_NAME, **kwargs, ):
     '''Calls S2 with paper_ids, retrieves bibtex entries, reformatting them to store ids.'''
     sch = SemanticScholar()
 
     paper_ids = list( paper_ids ) # in case of np
+
+    if None in paper_ids:
+        # Since we should have already dropped all Nones
+        raise Exception("Passed `paper_ids` contains None.")
+
+    # NOTE: semantic scholar will truncate total number of references, citations each at 10,000 for the entire batch.
     fields = [
-        'externalIds', # supports ArXiv, MAG, ACL, PubMed, Medline, PubMedCentral, DBLP, DOI
         'abstract',
+        'externalIds', # supports ArXiv, MAG, ACL, PubMed, Medline, PubMedCentral, DBLP, DOI
+        'citations.externalIds',
+        'references.externalIds',
         'citationStyles', # supports a very basic bibtex that we will augment
         'publicationDate', # if available, type datetime.datetime (YYYY-MM-DD)
     ]
-    xids_map = { # how external ids should be in bibtex entry
-        'ArXiv': 'arxivid', # also 'eprint', perhaps
-        'DOI': 'doi',
-    }
+    # how external ids should be in bibtex entry
+    xids_map = {key: key.lower() for key in api.S2_EXTERNAL_IDS}
+    # arxiv could also have value 'eprint', perhaps
+    xids_map['ArXiv'] = 'arxivid'
 
-    # NOTE: Here and below, why are we not calling get_data_via_api, where `fields` is not hardcoded?
-    papers = sch.get_papers(
-        paper_ids=paper_ids,
-        fields=fields,
-    )
+    print( f'Querying Semantic Scholar for {len(paper_ids)} papers.')
+    # Faster to query in batch, but often fails.
+    # papers = sch.get_papers(
+    #     paper_ids=paper_ids,
+    #     fields=fields,
+    # )
+    papers = [sch.get_paper(paper_id, fields=fields) for paper_id in tqdm(paper_ids)]
 
     # Get bibtex and format
     all_entries = []
@@ -1863,11 +1877,9 @@ def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp, **kwargs ):
     with open( bibtex_fp, 'a') as bibfile:
         bibfile.write( writer.write(db) )
 
-    # breakpoint()
-
 ########################################################################
 
-def save_ads_bibcodes_to_bibtex( bibcodes, bibtex_fp, call_size=2000 ):
+def save_ads_bibcodes_to_bibtex( bibcodes, bibtex_fp = api.ADS_BIB_NAME,  call_size=2000,):
     ## API_extension::to_and_from_bibcodes
 
     # ADS doesn't like np arrays

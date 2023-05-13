@@ -45,6 +45,16 @@ ADS_ALLOWED_EXCEPTION = ads.exceptions.APIResponseError
 
 S2_API_NAME = 'S2'
 S2_BIB_NAME = 'cc_s2.bib'
+S2_EXTERNAL_IDS = [
+    'DOI', 
+    'ArXiv', 
+    'MAG', 
+    'ACL', 
+    'PubMed', 
+    'Medline', 
+    'PubMedCentral', 
+    'DBLP',
+    ]
 
 DEFAULT_BIB_NAME = ADS_BIB_NAME
 DEFAULT_API = ADS_API_NAME

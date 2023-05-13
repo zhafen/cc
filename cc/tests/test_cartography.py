@@ -11,6 +11,7 @@ import unittest
 import verdict
 import warnings
 
+import api
 import cc.atlas as atlas
 import cc.cartography as cartography
 import cc.api as api
@@ -706,6 +707,62 @@ class TestExplore( unittest.TestCase ):
         actual, actual_cospsis = self.c.converged_kernel_size( 5, backend='python' )
         assert actual.shape == ( 5, 4 )
         assert actual_cospsis.shape == ( 5, 4 )
+
+########################################################################
+
+class TestExploreS2( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.api_name = api.S2_API_NAME
+
+        # We want to start fresh for these tests
+        atlas_dir = './tests/data/toy_atlas'
+        self.bibtex_fp = os.path.join(atlas_dir, api.S2_BIB_NAME)
+
+        if os.path.isfile( self.bibtex_fp ):
+            os.remove( self.bibtex_fp )
+
+        self.a = atlas.Atlas( 
+            './tests/data/toy_atlas', 
+            atlas_data_format='hdf5',
+        )
+
+        # Unlike above, create cartographer from scratch.
+        # retrieve all necessary data before projecting
+        self.a.process_abstracts( api_name = self.api_name )
+        # self.a.save_data() # NOTE: failing because Paper is not json happy
+        projection = self.a.vectorize(
+            verbose = True,
+        )
+        self.c = cartography.Cartographer( **projection, )
+
+
+    ########################################################################
+
+    def tearDown(self):
+
+        ## API_extension::default_name_change
+        # We want to start fresh for these tests
+        if os.path.isfile( self.bibtex_fp ):
+            os.remove( self.bibtex_fp )
+
+
+    def test_expand_s2( self ):
+
+        n_downloaded = len( self.a['Hafen2019'].references ) + len( self.a['Hafen2019a'].references )
+        new_a = self.c.expand( 
+            self.a, 
+            center='Hafen2019',
+            n_pubs_max=n_downloaded+1, 
+            # n_pubs_max=10,
+            api_name=self.api_name,
+            bibtex_fp=self.bibtex_fp
+        )
+
+        # Check that the new atlas has the old data
+        for key, item in self.a.data.items():
+            assert new_a.data[key].abstract_str() != ''
 
 ########################################################################
 
