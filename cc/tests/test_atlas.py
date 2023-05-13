@@ -16,6 +16,8 @@ import cc.api as api
 
 import verdict
 
+import warnings
+
 ########################################################################
 
 filepath = './tests/data/arxiv_source/Hafen2019/CGM_origin.tex'
@@ -116,7 +118,6 @@ class TestFromPaperIds( unittest.TestCase ):
 
         self.a = atlas.Atlas( 
             './tests/data/example_atlas' ,
-            # bibtex_fp = os.path.join( atlas_dir, "s2example.bib" ),
             )
         
         ## API_extension::default_name_change
@@ -140,7 +141,6 @@ class TestFromPaperIds( unittest.TestCase ):
             'DOI:10.1093/mnras/staa902',
         ]
 
-        # breakpoint()
         a = atlas.Atlas.to_and_from_ids(
             self.a.atlas_dir,
             paper_ids,
@@ -150,11 +150,7 @@ class TestFromPaperIds( unittest.TestCase ):
         )
 
         # Saved in the right spot
-        # assert a.bibtex_fp == self.bibtex_fp
-        if not a.bibtex_fp == self.bibtex_fp:
-            breakpoint()
-
-        # breakpoint()
+        assert a.bibtex_fp == self.bibtex_fp
 
         # Expected values for entries
         for key in [ 'title', 'year', 'arxivid' ]:
@@ -164,7 +160,7 @@ class TestFromPaperIds( unittest.TestCase ):
             if actual != expected:
                 # breakpoint()
                 # NOTE: won't get around 2018 vs 2019, deal with it
-                pass
+                warnings.warn(f'actual bibtex entry differs from expected entry: actual={actual}, expected={expected}.')
 
         # Test we can get the abstracts
         a.process_abstracts( api_name = self.api_name )
@@ -315,6 +311,7 @@ class TestFromBibcodes( unittest.TestCase ):
 class TestToyAtlas( unittest.TestCase ):
     '''Test functionality for an unrealistic, baby atlas.'''
     # NOTE: this is probably redundant to example_atlas, I'll refactor later
+    # Actually more generally we should have almost every test be independent of api, and just have an api test module
 
     def setUp( self ):
 

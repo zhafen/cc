@@ -491,6 +491,7 @@ class Atlas( object ):
 
         # Load
         if format == 'json':
+            # breakpoint()
             data_to_load = verdict.Dict.from_json( fp )
         elif format == 'hdf5':
             data_to_load = verdict.Dict.from_hdf5( fp )
@@ -570,8 +571,6 @@ class Atlas( object ):
             handle_jagged_arrs (str):
                 How, when saving using hdf5, to handle jagged arrays.
         '''
-        # BUG: TypeError: Object of type Paper is not JSON serializable. See https://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
-        # also NOTE: ask Zach how he is serializing Publications.
 
         # Filepath
         if fp is None:
@@ -588,6 +587,9 @@ class Atlas( object ):
             # Don't try to save empty dictionaries
             if data_to_save[key] == {}:
                 del data_to_save[key]
+
+        if 'toy' in fp:
+            breakpoint()
 
         # Save
         print( 'Saving to {}'.format( fp ) )
@@ -995,7 +997,7 @@ class Atlas( object ):
         
 
         # Collect query strings to call S2 api
-        queries_data = { # NOTE something like `queries` and `query_i` ?
+        queries_data = {
             'data_keys': [],
             'ids': [],
         }        
@@ -1006,6 +1008,7 @@ class Atlas( object ):
             queries_data['ids'].append( paper_id )
 
         # Query api 
+        # TODO: Unify with to and from paperIds!
         for key in queries_data['data_keys']:
 
             paper = sch.get_paper(
