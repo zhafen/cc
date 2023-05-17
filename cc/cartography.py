@@ -1271,7 +1271,7 @@ class Cartographer( object ):
                 return group['coordinates'], group['ordered indices'], group['pairs']
 
         # Setup relation to central publication
-        i_center = self.inds[center == self.publications][0]
+        i_center = self.inds[center == self.publications][0] # NOTE: this seems like a typo?
         cospsi_0is = self.cospsi_matrix[i_center]
         sort_inds = np.argsort( cospsi_0is )[::-1]
 
