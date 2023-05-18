@@ -960,6 +960,7 @@ class Atlas( object ):
     def get_s2_data(
         self,
         fields = [ 'abstract', 'citations', 'references', 'authors', ],
+        batch = False,
         **kwargs, # probably remove this
     ):
         '''Get the Semantic Scholar data for all publications, from citations (the entries of a bibtex file).
@@ -969,6 +970,8 @@ class Atlas( object ):
         Args:
             fields (list of strs):
                 Fields to retrieve from ADS.
+
+            batch (bool): 
         '''
 
         sch = SemanticScholar()
@@ -1005,21 +1008,18 @@ class Atlas( object ):
             queries_data['ids'].append( paper_id )
 
         # Query api 
-        # TODO: Unify with to and from paperIds!
-        for key in queries_data['data_keys']:
-
-            paper = sch.get_paper(
-                paper_id=paper_id,
-                fields=fields,
+        papers = api.call_s2_api(
+            paper_ids=queries_data['ids'], 
+            batch=batch,
             )
-
+        for i, key in enumerate(queries_data['data_keys']):
             # store
             atlas_pub = self.data[key]
-            self.data[key] = store_s2_data( atlas_pub, paper )
+            self.data[key] = store_s2_data( atlas_pub, papers[i] )
 
 
     ########################################################################
-
+    # TODO: most of this is independent of atlas; should probably refactor api calling logic, and unify with other api calling parts of codebase
     def get_ads_data(
         self,
         fl = [ 'abstract', 'citation', 'reference', 'entry_date',
@@ -1783,37 +1783,13 @@ def save_ids_to_bibtex ( *args, api_name = api.DEFAULT_API, **kwargs, ):
 
 ########################################################################
 
-def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp = api.S2_BIB_NAME, **kwargs, ):
-    '''Calls S2 with paper_ids, retrieves bibtex entries, reformatting them to store ids.'''
-    sch = SemanticScholar()
-
-    paper_ids = list( paper_ids ) # in case of np
-
-    if None in paper_ids:
-        # Since we should have already dropped all Nones
-        raise Exception("Passed `paper_ids` contains None.")
-
-    # NOTE: semantic scholar will truncate total number of references, citations each at 10,000 for the entire batch.
-    fields = [
-        'abstract',
-        'externalIds', # supports ArXiv, MAG, ACL, PubMed, Medline, PubMedCentral, DBLP, DOI
-        'citations.externalIds',
-        'references.externalIds',
-        'citationStyles', # supports a very basic bibtex that we will augment
-        'publicationDate', # if available, type datetime.datetime (YYYY-MM-DD)
-    ]
-    # how external ids should be in bibtex entry
-    xids_map = {key: key.lower() for key in api.S2_EXTERNAL_IDS}
-    # arxiv could also have value 'eprint', perhaps
-    xids_map['ArXiv'] = 'arxivid'
-
-    print( f'Querying Semantic Scholar for {len(paper_ids)} papers.')
-    # Faster to query in batch, but often fails.
-    # papers = sch.get_papers(
-    #     paper_ids=paper_ids,
-    #     fields=fields,
-    # )
-    papers = [sch.get_paper(paper_id, fields=fields) for paper_id in tqdm(paper_ids)]
+def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp = api.S2_BIB_NAME, batch = False, **kwargs, ):
+    '''Calls S2 with paper_ids, retrieves bibtex entries, reformatting them to store ids.
+    
+    Args:
+        batch (bool): whether to call the SemanticScholar API using `get_paper` or `get_papers`. The latter is faster, but usually fails, and also does not have tqdm support yet.
+    '''
+    papers = api.call_s2_api(paper_ids, batch)
 
     # Get bibtex and format
     all_entries = []
@@ -1856,6 +1832,7 @@ def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp = api.S2_BIB_NAME, **kwargs
         entry['ID'] = paper_ids[i] # NOTE:for consistency, not paper.paperId.
 
         # Other identifiers
+        xids_map = api.S2_EXTERNAL_ID_TO_BIBFIELD
         if externalIds is not None:
             for xid in xids_map:
                 if xid in externalIds:

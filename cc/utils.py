@@ -264,8 +264,18 @@ def citation_to_s2_call( citation ):
             String to be used for the mandatory paperId arg for S2 query.
 
     '''
-    paper_id = f"DOI:{citation['doi']}"
-    return paper_id
+    # Parse citation for any viable s2 identifier.
+
+    # prioritize DOI and ArXiv
+    if 'doi' in citation:
+        return f"DOI:{citation['doi']}"
+    elif 'arxivid' in citation:
+        return f"ARXIV:{citation['doi']}"
+
+    # search for other viable ids
+    for xid in api.S2_BIBFIELD_TO_API_QUERY:
+        if xid in citation:
+            return f"{api.S2_BIBFIELD_TO_API_QUERY[xid]}:{citation[xid]}"
 
 ########################################################################
 
