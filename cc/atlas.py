@@ -588,9 +588,6 @@ class Atlas( object ):
             if data_to_save[key] == {}:
                 del data_to_save[key]
 
-        if 'toy' in fp:
-            breakpoint()
-
         # Save
         print( 'Saving to {}'.format( fp ) )
         if format == 'json':

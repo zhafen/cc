@@ -731,7 +731,7 @@ class TestExploreS2( unittest.TestCase ):
         # Unlike above, create cartographer from scratch.
         # retrieve all necessary data before projecting
         self.a.process_abstracts( api_name = self.api_name )
-        # self.a.save_data() # NOTE: failing because Paper is not json happy
+        self.a.save_data()
         projection = self.a.vectorize(
             verbose = True,
         )
@@ -763,6 +763,8 @@ class TestExploreS2( unittest.TestCase ):
         # Check that the new atlas has the old data
         for key, item in self.a.data.items():
             assert new_a.data[key].abstract_str() != ''
+
+        new_a.save_data()
 
 ########################################################################
 
