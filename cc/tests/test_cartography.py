@@ -11,7 +11,7 @@ import unittest
 import verdict
 import warnings
 
-import api
+# import api
 import cc.atlas as atlas
 import cc.cartography as cartography
 import cc.api as api
@@ -745,12 +745,14 @@ class TestExploreS2( unittest.TestCase ):
         ## API_extension::default_name_change
         # We want to start fresh for these tests
         if os.path.isfile( self.bibtex_fp ):
-            os.remove( self.bibtex_fp )
+            # os.remove( self.bibtex_fp )
+            pass # removed by setup anyway, nice to inspect
 
 
     def test_expand_s2( self ):
 
         n_downloaded = len( self.a['Hafen2019'].references ) + len( self.a['Hafen2019a'].references )
+        # breakpoint()
         new_a = self.c.expand( 
             self.a, 
             center='Hafen2019',

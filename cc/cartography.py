@@ -1857,19 +1857,21 @@ def get_ids_list(a: atlas.Atlas, expand_keys: list[str], center: str, n_pubs_max
         if api_name == api.S2_API_NAME:
             papers += list( a[key].references )
             papers += list( a[key].citations )
-            
+
             for paper in papers:
                 id_i = None
-                # use alternative ids if necessary
                 if paper.paperId is not None:
-                    id_i = paper.paperId
+                    id_i = paper.paperId # no id prefix
+                # use alternative ids if necessary
+                elif paper.url is not None:
+                    id_i = f"{api.S2_EXTERNAL_ID_TO_API_QUERY['URL']}:{paper.url}"
                 else:
                     externalIds = paper.externalIds
                     if externalIds is not None:
-                        for xid in api.S2_EXTERNAL_IDS:
-                            if xid in externalIds:
-                                id_i = paper.externalIds[xid]
-                                break
+                        # check them
+                        for xid in externalIds: # assumes all are worth using
+                            id_i = f"{api.S2_EXTERNAL_ID_TO_API_QUERY['URL']}:{paper.externalIds[xid]}"
+                            break
                 if id_i is None:
                     # TODO: use s2 to query based on title, as well
                     warnings.warn(f'Could not find any identifier for paper {paper}; skipping.')

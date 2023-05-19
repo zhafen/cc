@@ -114,7 +114,7 @@ class Publication( object ):
 
         # Query. Turned into a function and
         # wrapped to allow multiple attempts.
-        @utils.keep_trying( n_attempts=n_attempts )
+        @api.keep_trying( n_attempts=n_attempts )
         def get_ads_query():
             ads_query = ads.SearchQuery( fl=fl, **kwargs )
             query_list = list( ads_query )

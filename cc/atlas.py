@@ -194,7 +194,7 @@ class Atlas( object ):
 
         ## API_extension:random_publications
         ## This call may need to be changed
-        pubs = utils.random_publications(
+        pubs = api.random_publications(
             n_sample = n_sample,
             start_time = start_time,
             end_time = end_time,
@@ -960,8 +960,10 @@ class Atlas( object ):
     def get_s2_data(
         self,
         fields = [ 'abstract', 'citations', 'references', 'authors', ],
-        batch = False,
-        **kwargs, # probably remove this
+        **kwargs,
+        # batch = True,
+        # n_attempts_per_query = 10,
+        # call_size = 100,
     ):
         '''Get the Semantic Scholar data for all publications, from citations (the entries of a bibtex file).
 
@@ -970,8 +972,6 @@ class Atlas( object ):
         Args:
             fields (list of strs):
                 Fields to retrieve from ADS.
-
-            batch (bool): 
         '''
 
         sch = SemanticScholar()
@@ -1002,7 +1002,7 @@ class Atlas( object ):
             'ids': [],
         }        
         for key, item in self.data.items():
-            paper_id = utils.citation_to_s2_call( item.citation )
+            paper_id = api.citation_to_s2_call( item.citation )
 
             queries_data['data_keys'].append( key )
             queries_data['ids'].append( paper_id )
@@ -1010,7 +1010,10 @@ class Atlas( object ):
         # Query api 
         papers = api.call_s2_api(
             paper_ids=queries_data['ids'], 
-            batch=batch,
+            **kwargs,
+            # batch=batch,
+            # n_attempts_per_query=n_attempts_per_query,
+            # call_size=call_size,
             )
         for i, key in enumerate(queries_data['data_keys']):
             # store
@@ -1113,7 +1116,7 @@ class Atlas( object ):
                     ident = 'bibcode'
 
                 elif identifier == 'from_citation':
-                    q_i, ident, id = utils.citation_to_ads_call( item.citation )
+                    q_i, ident, id = api.citation_to_ads_call( item.citation )
 
                 else:
                     raise KeyError( 'Unrecognized identifier, {}'.format( identifier ))
@@ -1193,7 +1196,7 @@ class Atlas( object ):
 
             # Get publications out. Turned into a function and
             # wrapped to allow multiple attempts.
-            @utils.keep_trying( n_attempts=n_attempts_per_query )
+            @api.keep_trying( n_attempts=n_attempts_per_query )
             def get_pubs_for_query():
                 ads_query = ads.SearchQuery( query_dict=query_dict )
                 pubs = list( ads_query )
@@ -1247,7 +1250,7 @@ class Atlas( object ):
                 key = query_noid['data_key']
 
                 # Make query. Turned into a function to allow multiple attempts
-                @utils.keep_trying( n_attempts=n_attempts_per_query )
+                @api.keep_trying( n_attempts=n_attempts_per_query )
                 def get_pubs_for_noid_query():
                     ads_query = ads.SearchQuery(
                         query_dict={
@@ -1771,7 +1774,7 @@ class Atlas( object ):
 
 ########################################################################
 
-def save_ids_to_bibtex ( *args, api_name = api.DEFAULT_API, **kwargs, ):
+def save_ids_to_bibtex( *args, api_name = api.DEFAULT_API, **kwargs, ):
     '''Use ADS or S2 to convert publication identifiers into bibtex files.'''
 
     api.validate_api(api_name)
@@ -1783,13 +1786,13 @@ def save_ids_to_bibtex ( *args, api_name = api.DEFAULT_API, **kwargs, ):
 
 ########################################################################
 
-def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp = api.S2_BIB_NAME, batch = False, **kwargs, ):
+def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp = api.S2_BIB_NAME, **kwargs, ):
     '''Calls S2 with paper_ids, retrieves bibtex entries, reformatting them to store ids.
     
     Args:
         batch (bool): whether to call the SemanticScholar API using `get_paper` or `get_papers`. The latter is faster, but usually fails, and also does not have tqdm support yet.
     '''
-    papers = api.call_s2_api(paper_ids, batch)
+    papers = api.call_s2_api(paper_ids, **kwargs)
 
     # Get bibtex and format
     all_entries = []
@@ -1802,8 +1805,6 @@ def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp = api.S2_BIB_NAME, batch = 
     for i, paper in enumerate(papers):
 
         bibtex_str = paper.citationStyles['bibtex']
-
-        # breakpoint()
 
         # Format for bibtexparser
         # S2 entry types are garbage and we will replace ID anyway
@@ -1821,9 +1822,7 @@ def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp = api.S2_BIB_NAME, batch = 
         externalIds = paper.externalIds
         date = paper.publicationDate
 
-        
         # Alter the bib entry fields
-
         # Title
         title = entry['title']
         entry['title'] = f'{{{title}}}' # Zach puts double brackes around the title
@@ -1836,7 +1835,12 @@ def save_s2_paperids_to_bibtex( paper_ids, bibtex_fp = api.S2_BIB_NAME, batch = 
         if externalIds is not None:
             for xid in xids_map:
                 if xid in externalIds:
-                    entry[xids_map[xid]] = externalIds[xid]
+                    # CorpusId is originally an int, but bibtexparser needs str
+                    entry[xids_map[xid]] = str(externalIds[xid])
+        
+        # including URL
+        if paper.url is not None:
+            entry[xids_map['URL']] = paper.url
 
         # Date
         if date is not None:
@@ -1863,11 +1867,7 @@ def save_ads_bibcodes_to_bibtex( bibcodes, bibtex_fp = api.ADS_BIB_NAME,  call_s
     bibcodes = list( bibcodes )
 
     # Break into chunks
-    assert call_size <= 2000, 'Max number of calls ExportQuery can handle at a time is 2000.'
-    if len( bibcodes ) > call_size:
-        chunked_bibcodes = [ bibcodes[i:i + call_size] for i in range(0, len(bibcodes), call_size) ]
-    else:
-        chunked_bibcodes = [ bibcodes, ]
+    chunked_bibcodes = api.chunk_ids(ids=bibcodes, call_size=call_size)
 
     bibtex_str = ''
     for bibcodes in chunked_bibcodes:
