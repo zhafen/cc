@@ -760,8 +760,6 @@ class Cartographer( object ):
             sort_inds = np.argsort( cospsi )[::-1]
             expand_keys = self.publications[sort_inds]
 
-        # breakpoint()
-
         if n_sources_max is not None:
             expand_keys = expand_keys[:n_sources_max]
 
@@ -1855,6 +1853,7 @@ def get_ids_list(a: atlas.Atlas, expand_keys: list[str], center: str, n_pubs_max
         # Paper.references/citations returns Paper, not str paperId
         papers = []
         if api_name == api.S2_API_NAME:
+
             papers += list( a[key].references )
             papers += list( a[key].citations )
 

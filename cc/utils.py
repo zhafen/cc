@@ -19,8 +19,8 @@ from descartes.patch import PolygonPatch
 
 import verdict
 
-# from . import config
-import config
+from . import config # literature-topography likes this
+# import config # tests like this
 
 
 ########################################################################

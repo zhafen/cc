@@ -38,7 +38,8 @@ no_change:
 '''
 
 import ads
-import utils
+# import utils # literature-topography doesn't like
+# from . import utils
 
 import numpy as np
 import pandas as pd
@@ -101,6 +102,30 @@ S2_EXTERNAL_ID_TO_API_QUERY = {
 
 ########################################################################
 
+# NOTE: semantic scholar will truncate total number of references, citations each at 10,000 for the entire batch.
+S2_QUERY_FIELDS = [
+    'abstract',
+    'externalIds', # supports ArXiv, MAG, ACL, PubMed, Medline, PubMedCentral, DBLP, DOI
+    'url', # as a possible external id
+    'citations.externalIds',
+    'citations.url',
+    'references.externalIds',
+    'references.url',
+    'citationStyles', # supports a very basic bibtex that we will augment
+    'publicationDate', # if available, type datetime.datetime (YYYY-MM-DD)
+]
+
+# for storing the results from above, we avoid dot operator to avoid attribute error, but note that everything above will be included.
+S2_STORE_FIELDS = [
+    'abstract',
+    'externalIds', 
+    'url', 
+    'citationStyles', 
+    'publicationDate', 
+]
+
+########################################################################
+
 DEFAULT_BIB_NAME = ADS_BIB_NAME
 DEFAULT_API = ADS_API_NAME
 DEFAULT_ALLOWED_EXCEPTION = ADS_ALLOWED_EXCEPTION
@@ -160,18 +185,7 @@ def call_s2_api(
         # Since we should have already dropped all Nones
         raise Exception("Passed `paper_ids` contains None.")
 
-    # NOTE: semantic scholar will truncate total number of references, citations each at 10,000 for the entire batch.
-    fields = [
-        'abstract',
-        'externalIds', # supports ArXiv, MAG, ACL, PubMed, Medline, PubMedCentral, DBLP, DOI
-        'url', # as a possible external id
-        'citations.externalIds',
-        'citations.url',
-        'references.externalIds',
-        'references.url',
-        'citationStyles', # supports a very basic bibtex that we will augment
-        'publicationDate', # if available, type datetime.datetime (YYYY-MM-DD)
-    ]
+
     # how external ids should be in bibtex entry
 
     print( f'Querying Semantic Scholar for {len(paper_ids)} total papers.')
@@ -189,14 +203,14 @@ def call_s2_api(
                 # Faster to query in batch, but often fails.
                 result = sch.get_papers(
                     paper_ids=paper_ids,
-                    fields=fields,
+                    fields=S2_QUERY_FIELDS,
                 )
             else:
                 # typically completes about 100 queries per minute.
                 result = [
                     sch.get_paper(
                     paper_id=paper_id, 
-                    fields=fields,
+                    fields=S2_QUERY_FIELDS,
                     ) for paper_id in tqdm(paper_ids)
                 ]
             return result
@@ -243,6 +257,9 @@ def citation_to_s2_call( citation ):
     for xid in S2_BIBFIELD_TO_API_QUERY:
         if xid in citation:
             return f"{S2_BIBFIELD_TO_API_QUERY[xid]}:{citation[xid]}"
+    
+    # would return None otherwise; so what is in this entry? Probably just ads stuff?
+    breakpoint()
 
 ########################################################################
 

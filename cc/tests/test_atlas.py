@@ -359,6 +359,50 @@ class TestToyAtlas( unittest.TestCase ):
 
 ########################################################################
 
+class TestExportAtlas( unittest.TestCase ):
+    '''Test export of ADS bibtex to atlas to S2 bibtex to atlas.'''
+
+    def setUp( self ):
+        
+        self.atlas_dir = './tests/data/example_atlas'
+
+        self.read_bibtex_fp = os.path.join(self.atlas_dir, 'example.bib')
+        self.write_bibtex_fp = os.path.join(self.atlas_dir, api.S2_BIB_NAME)
+
+        # Do not remove read bibtex file, need elsewhere
+        if os.path.isfile( self.write_bibtex_fp ):
+            os.remove( self.write_bibtex_fp )
+
+        self.api_name = api.S2_API_NAME
+
+    def tearDown( self ):
+        # Do not remove read bibtex file, need elsewhere
+        if os.path.isfile( self.write_bibtex_fp ):
+            # os.remove( self.write_bibtex_fp )
+            pass
+
+        # Though we probably need to remove atlas data
+        data_fp = os.path.join( self.atlas_dir, "atlas_data.json" )
+        if os.path.isfile( data_fp ):
+            os.remove( data_fp )
+
+    def test_to_and_from_bibtex( self ):
+
+        # NOTE: I am seeing duplicate bib entries, which is inefficient, though process_abstracts correctly calls api for the correct minimum number.
+
+        # use bibcodes to get an atlas and then initial bibtex file
+
+        a = atlas.Atlas.export_ads_atlas_to_s2_via_bibtex(
+            self.atlas_dir,
+            read_bibtex_fp = self.read_bibtex_fp,
+            write_bibtex_fp = self.write_bibtex_fp,
+        )
+
+        a.process_abstracts( api_name = api.S2_API_NAME )
+        a.save_data() # may need to separate ads vs s2 data
+
+########################################################################
+
 class TestRealisticAtlas( unittest.TestCase ):
     '''Test functionality for a realistic, messy atlas.'''
 
