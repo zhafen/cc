@@ -38,6 +38,7 @@ no_change:
 '''
 
 import ads
+import semanticscholar
 # import utils # literature-topography doesn't like
 # from . import utils
 
@@ -52,12 +53,15 @@ from tqdm import tqdm
 # constants
 ADS_BIB_NAME = 'cc_ads.bib'
 ADS_API_NAME = 'ADS'
-ADS_ALLOWED_EXCEPTION = ads.exceptions.APIResponseError
+ADS_ALLOWED_EXCEPTIONS = (ads.exceptions.APIResponseError, )
 
 S2_API_NAME = 'S2'
 S2_BIB_NAME = 'cc_s2.bib'
 import requests
-S2_ALLOWED_EXCEPTION = requests.exceptions.ReadTimeout
+S2_ALLOWED_EXCEPTIONS = (
+    requests.exceptions.ReadTimeout, 
+    semanticscholar.SemanticScholarException.ObjectNotFoundExeception,
+    )
 
 ########################################################################
 # Semantic Scholar paper Identifiers. Please read https://api.semanticscholar.org/api-docs/graph#tag/Paper-Data/operation/get_graph_get_paper
@@ -120,15 +124,30 @@ S2_STORE_FIELDS = [
     'abstract',
     'externalIds', 
     'url', 
+    'citations',
+    'references',
     'citationStyles', 
     'publicationDate', 
+]
+
+# Attributes to save via save_data
+S2_ATTRS_TO_SAVE = [
+    'abstract',
+    'citations',
+    'references',
+    'bibcode',
+    'entry_date',
+    'notes',
+    'unofficial_flag',
+    'citation',
+    'stemmed_content_words',
 ]
 
 ########################################################################
 
 DEFAULT_BIB_NAME = ADS_BIB_NAME
 DEFAULT_API = ADS_API_NAME
-DEFAULT_ALLOWED_EXCEPTION = ADS_ALLOWED_EXCEPTION
+DEFAULT_ALLOWED_EXCEPTIONS = ADS_ALLOWED_EXCEPTIONS
 
 ########################################################################
 
@@ -196,7 +215,7 @@ def call_s2_api(
         if len(chunked_paper_ids) > 1:
             print( f'querying for {len(paper_ids)} papers; chunk {i+1} out of {len(chunked_paper_ids)}')
 
-        @keep_trying( n_attempts=n_attempts_per_query )
+        @keep_trying( n_attempts=n_attempts_per_query, )
         def get_papers(batch) -> list[Paper]:
             # NOTE: risk of "requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='api.semanticscholar.org', port=443): Read timed out"
             if batch:
@@ -219,6 +238,40 @@ def call_s2_api(
 
     return papers
 
+########################################################################
+
+def citation_to_s2_paper( citation: dict ) -> Paper:
+    '''Parse a bibtex entry and convert to a Semantic Scholar Paper.'''
+
+    data = {}
+
+    if 'title' in citation:
+        data['title'] = citation['title']
+
+    if 'ID' in citation:
+        data['paperId'] = citation['ID']
+
+    data['externalIds'] = {}
+    for xid in S2_EXTERNAL_ID_TO_BIBFIELD:
+        if xid == 'URl':
+            continue
+        if S2_EXTERNAL_ID_TO_BIBFIELD[xid] in citation:
+            data['externalIds'][xid] = citation[S2_EXTERNAL_ID_TO_BIBFIELD[xid]]
+
+    if 'url' in citation:
+        data['url'] = citation['url']
+
+    if 'abstract' in citation:
+        data['abstract'] = citation['abstract']
+
+    # don't bother with datetime for now
+    paper = Paper(data)
+    if not paper._data:
+        raise Exception("Empty paper.")
+
+    return paper
+
+########################################################################
 
 def citation_to_api_call( citation: dict, api_name = DEFAULT_API ) -> tuple:
     '''Given a dictionary containing a citation return a string that, when sent to S2AG, will give a unique result.
@@ -247,19 +300,27 @@ def citation_to_s2_call( citation ):
     '''
     # Parse citation for any viable s2 identifier.
 
-    # prioritize DOI and ArXiv
+    # prioritize paperid
+    if 'paperid' in citation:
+        return citation['paperid'] # no need to format
+
+    # then ArXiv
+    if 'arxivid' in citation:
+        return f"ARXIV:{citation['arxivid']}"
+
+    # then DOI (I have identified some incorrect doi strings!)
     if 'doi' in citation:
         return f"DOI:{citation['doi']}"
-    elif 'arxivid' in citation:
-        return f"ARXIV:{citation['arxivid']}"
 
     # search for other viable ids
     for xid in S2_BIBFIELD_TO_API_QUERY:
         if xid in citation:
+            print(f'Using externalId {xid} for s2 query.')
             return f"{S2_BIBFIELD_TO_API_QUERY[xid]}:{citation[xid]}"
     
     # would return None otherwise; so what is in this entry? Probably just ads stuff?
-    breakpoint()
+    # breakpoint()
+    raise Exception("citation has no viable s2 identifier")
 
 ########################################################################
 
@@ -371,7 +432,7 @@ def citation_to_ads_call( citation ):
 
 ########################################################################
 
-def keep_trying( n_attempts=5, allowed_exception=DEFAULT_ALLOWED_EXCEPTION, verbose=True ):
+def keep_trying( n_attempts=5, allowed_exceptions = DEFAULT_ALLOWED_EXCEPTIONS, verbose=True ):
     '''Sometimes we receive server errors. We don't want that to disrupt the entire process, so this decorator allow trying n_attempts times.
 
     ## API_extension::get_data_via_api
@@ -381,7 +442,7 @@ def keep_trying( n_attempts=5, allowed_exception=DEFAULT_ALLOWED_EXCEPTION, verb
         n_attempts (int):
             Number of attempts before letting the exception happen.
 
-        allowed_exception (class):
+        allowed_exceptions (tuple of class):
             Allowed exception class. Set to BaseException to keep trying regardless of exception.
 
         verbose (bool):
@@ -404,7 +465,7 @@ def keep_trying( n_attempts=5, allowed_exception=DEFAULT_ALLOWED_EXCEPTION, verb
                     if i > 0 and verbose:
                         print( 'Had to call {} {} times to get a response.'.format( f, i+1 ) )
                     return result
-                except allowed_exception:
+                except allowed_exceptions as _:
                     continue
 
             # On last attempt just let it be

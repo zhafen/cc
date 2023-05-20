@@ -32,6 +32,7 @@ import verdict
 from . import atlas
 from . import utils
 from . import api
+from . import publication
 
 ########################################################################
 
@@ -400,6 +401,7 @@ class Cartographer( object ):
             elif key_a != 'all' and key_b == 'all':
 
                 # Setup input
+                # breakpoint()
                 i_a = np.argmax( self.publications == key_a )
 
                 # Setup types
@@ -489,7 +491,6 @@ class Cartographer( object ):
         ip_ab = self.inner_product( key_a, key_b, **kwargs )
         ip_aa = self.inner_product( key_a, key_a, **kwargs )
         ip_bb = self.inner_product( key_b, key_b, **kwargs )
-
         return ip_ab / np.sqrt( ip_aa * ip_bb )
 
     ########################################################################
@@ -724,7 +725,7 @@ class Cartographer( object ):
         center=None, 
         n_pubs_max=4000, 
         n_sources_max=None, 
-        bibtex_fp = api.DEFAULT_BIB_NAME,
+        bibtex_fp = api.DEFAULT_BIB_NAME, 
     ):
         '''Expand an atlas by retrieving all publications cited by the
         the publications in the given atlas, or that reference a
@@ -756,6 +757,9 @@ class Cartographer( object ):
         if center is None:
             expand_keys = list( a.data.keys() )
         else:
+            if center not in self.publications:
+                raise Exception(f'Center {center} not in publications. Perhaps center is a different identifier from what is stored in publications.')
+
             cospsi = self.cospsi( center, 'all' )
             sort_inds = np.argsort( cospsi )[::-1]
             expand_keys = self.publications[sort_inds]
@@ -764,6 +768,7 @@ class Cartographer( object ):
             expand_keys = expand_keys[:n_sources_max]
 
         # Main expansion via collection of references and citations
+        # breakpoint()
         ids = get_ids_list(a, expand_keys, center, n_pubs_max, api_name)
 
         assert len( ids ) > 0, "Overly-restrictive search, no ids (bibcodes, etc) to retrieve."
@@ -1850,14 +1855,13 @@ def get_ids_list(a: atlas.Atlas, expand_keys: list[str], center: str, n_pubs_max
                 pass
         
         # S2 
-        # Paper.references/citations returns Paper, not str paperId
-        papers = []
         if api_name == api.S2_API_NAME:
-
-            papers += list( a[key].references )
-            papers += list( a[key].citations )
+            # use Paper, not Publication.
+            expand_paper = a[key].paper
+            papers = expand_paper.references + expand_paper.citations
 
             for paper in papers:
+                
                 id_i = None
                 if paper.paperId is not None:
                     id_i = paper.paperId # no id prefix

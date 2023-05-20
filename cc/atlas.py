@@ -36,6 +36,7 @@ from . import publication
 from . import utils
 
 from . import api
+from . import nlp
 
 ########################################################################
 
@@ -84,7 +85,11 @@ class Atlas( object ):
         load_atlas_data = True,
         data_fp = None,
         atlas_data_format = 'json',
+        api_name = api.DEFAULT_API,
     ):
+        # if bibtex_fp == '/Users/nathanielimel/data/literature_topography/regions/region_0/cc_s2.bib':
+            # breakpoint()
+
         # Make sure the atlas directory exists
         os.makedirs( atlas_dir, exist_ok=True )
         
@@ -111,7 +116,7 @@ class Atlas( object ):
                     raise IOError( 'No *.bib file found in {}'.format( atlas_dir ) )
                 bibtex_fp = bibtex_fps[0]
 
-            self.import_bibtex( bibtex_fp, entries=bibtex_entries_to_load )
+            self.import_bibtex( bibtex_fp, entries=bibtex_entries_to_load, api_name = api_name )
 
         # Load general atlas data
         if load_atlas_data:
@@ -222,6 +227,7 @@ class Atlas( object ):
         ids,
         api_name = api.DEFAULT_API,
         bibtex_fp = None,
+        overwrite_bibtex = False,
         data_fp = None,
         load_atlas_data = False,
         **kwargs
@@ -241,7 +247,9 @@ class Atlas( object ):
             bibtex_fp (str):
                 Location to save the bibliography data at and load from. Defaults to 
                 $atlas_dir/api.DEFAULT_BIB_NAME
-            ## API_extension::default_name_change
+
+            overwrite_bibtex (bool):
+                If False (default), only append to bibtex_fp.
 
             data_fp (str):
                 Location to save other atlas data at. Defaults to 
@@ -265,7 +273,12 @@ class Atlas( object ):
         if bibtex_fp is None:
             bibtex_fp = os.path.join( atlas_dir, api.DEFAULT_BIB_NAME )
 
-        save_ids_to_bibtex( ids, bibtex_fp, api_name = api_name )
+        save_ids_to_bibtex( 
+            ids, 
+            bibtex_fp = bibtex_fp, 
+            api_name = api_name,
+            overwrite_bibtex = overwrite_bibtex,
+        )
 
         result = Atlas(
             atlas_dir = atlas_dir,
@@ -285,9 +298,9 @@ class Atlas( object ):
         atlas_dir,
         read_bibtex_fp,
         write_bibtex_fp,
-        # data_fp = None,
+        data_fp = None,
         # load_atlas_data = False,
-        **kwargs
+        **kwargs,
      ):
         '''Generate an Atlas from an ADS bibliography by downloading and saving the citations from S2 as a new bibliography.
 
@@ -322,47 +335,43 @@ class Atlas( object ):
         # Make sure the atlas directory exists
         os.makedirs( atlas_dir, exist_ok=True )
 
-        # The following code 
-        # (3) calls the api for papers
-        # (5) saves the results to a new atlas.        
-
-        # (1) load an atlas from a bibtex files
-        source_atlas = Atlas(
+        # load an atlas from an ads bibtex file
+        atl = Atlas(
             atlas_dir = atlas_dir,
             load_bibtex = True,
             bibtex_fp = read_bibtex_fp,
-            # data_fp = data_fp, # no support for these yet
-            # load_atlas_data = load_atlas_data,
+            load_atlas_data = False, # we want from bib, not saved json or h5.
         )
 
-        # (2) extract the ids from each bib entry
-        # query strings to call S2 api
         ids = [
             # N.B.: item is a Publication, not a Paper
             api.citation_to_api_call( item.citation, api_name = api_name )
-            for item in source_atlas.data.values()
+            for item in atl.data.values()
         ]
+        papers = api.call_s2_api( ids )
 
-        # (3) call api
-        papers = api.call_s2_api(
-            paper_ids=ids, 
-            **kwargs,
-            )
+        # convert each entry to s2 key and paper values
+        _data = {}
+        for i, (_, item) in enumerate(atl.data.items()):
+            # N.B.: item is a Publication
+            # By adding the api result, we add the citations and refs to a Publication's Paper.
+            paper_id = papers[i].paperId
+            pub = publication.Publication( paper_id ) 
+            pub.paper = papers[i]
+            pub.citation = s2_paper_to_bib_entry(pub.paper)
+            _data[paper_id] = pub
+        # replace data
+        atl.data = _data
 
-        # (4) save the results to a different bibtex file
+        # save to a different bibtex file
         save_s2_papers_to_bibtex( papers, bibtex_fp = write_bibtex_fp )
 
-        # (5) save the results to a new atlas
-        target_atlas = Atlas(
-            atlas_dir = atlas_dir,
-            load_bibtex = True,
-            bibtex_fp = write_bibtex_fp,
-            # data_fp = data_fp,
-            # load_atlas_data = load_atlas_data, 
-            **kwargs
+        # save atlas for reloading
+        atl.save_data(
+            fp = data_fp,
         )
 
-        return target_atlas
+        return atl
 
 
     ########################################################################    
@@ -488,7 +497,7 @@ class Atlas( object ):
 
     ########################################################################
 
-    def import_bibtex( self, bibtex_fp, entries='all', process_annotations=True, verbose=True, ):
+    def import_bibtex( self, bibtex_fp, entries='all', process_annotations=True, verbose=True, api_name = api.ADS_API_NAME, ):
         '''Import publications from a BibTex file.
         
         Args:
@@ -530,7 +539,19 @@ class Atlas( object ):
             else:
                 p = publication.Publication( citation_key )
 
-            p.citation = citation
+                if api_name == api.S2_API_NAME:
+                    # construct a Paper from an S2 bib, 
+                    # then associate it with a Publicatione
+
+                    # N.B.: this is basically useless; the important thing is to get a publication associated with a paper that has citations and references. Which requires an api call.
+
+                    # NOTE: more precisely, in our export_... constructor, we call the api. So what this means is that when loading from already saved data (currently bibtex, but obviously that's not enough, we need atlas_data for refs and cites), the problem is that we're not correctly saving the full paper refs and cites, or loading it.
+
+                    # paper = api.citation_to_s2_paper( citation )
+                    # p.paper = paper # so comment this out for explicitness
+                    pass
+                
+                p.citation = citation # fine to add this to Paper
 
             if process_annotations:
                 for annote_key in [ 'annote', 'annotation' ]:
@@ -580,12 +601,18 @@ class Atlas( object ):
             # When the paper doesn't have any data stored for it
             if key not in data_to_load:
                 continue
-
+            
+            breakpoint()
             for ikey, iitem in data_to_load[key].items():
-                setattr( item, ikey, iitem )
+                try:
+                    setattr( item, ikey, iitem )
+                except AttributeError:
+                    breakpoint()
 
         # Store new data
         for key, item in tqdm( data_to_load.items() ):
+
+            # NOTE: I bet something S2 specific needs to happen here
 
             # When the atlas contains the entry skip
             if key in self.data:
@@ -656,6 +683,7 @@ class Atlas( object ):
         print( 'Preparing to save data.' )
         data_to_save = verdict.Dict( {} )
         for key, item in tqdm( self.data.items() ):
+            # breakpoint()
             data_to_save[key] = {}
             for attr in attrs_to_save:
                 if hasattr( item, attr):
@@ -1375,9 +1403,13 @@ class Atlas( object ):
 
         ## API_extension::get_data_via_api
         # self.get_ads_data( *args, **kwargs )
-        self.get_data_via_api( *args, api_name = api_name, **kwargs, )
+        # self.get_data_via_api( *args, api_name = api_name, **kwargs, ) # this might be the right thing to do for ads, but it seems really inefficient for ads.
+        if api_name == api.ADS_API_NAME:
+            self.get_and_store_s2_data( *args, **kwargs )
 
         print( '    Doing NLP...' )
+
+        # TODO: this is totally Publication specific, idk how I passed tests before. Probably in virtue of Papers getting casted to Publications without much data loss.
 
         n_err = 0
         for key, item in tqdm( self.data.items() ):
@@ -1388,11 +1420,24 @@ class Atlas( object ):
             if hasattr( item, 'abstract' ):
                 if isinstance( item.abstract, verdict.Dict ) or isinstance( item.abstract, dict ):
                     continue
-
-            abstract_str = item.abstract_str( api_name = api_name )
-            if abstract_str == '':
-                n_err += 1
-            item.process_abstract( abstract_str=abstract_str, overwrite=True )
+            
+            # what should be done
+            # item.abstract = nlp.process_abstract( item )
+            # item.stemmed_content_words = nlp.primary_stemmed_points_str(item)
+            
+            if isinstance( item, publication.Publication ):
+                abstract_str = item.abstract_str( api_name = api_name )
+                if abstract_str == '':
+                    n_err += 1
+                item.process_abstract( abstract_str=abstract_str, overwrite=True )
+            
+            if isinstance( item, api.Paper ):
+                abstract_str = item.abstract
+                item.abstract = {
+                    'str': abstract_str,
+                }
+                if abstract_str is not None:
+                    item.abstract['nltk'] = utils.tokenize_and_sort_text( abstract_str )
 
             if process_stemmed_content_words:
                 item.stemmed_content_words = item.primary_stemmed_points_str()
@@ -1877,7 +1922,8 @@ def store_s2_data( atlas_pub, paper, fields = api.S2_STORE_FIELDS ):
         atlas_pub.s2_data[field] = value
 
         attr_f = copy.copy( field )
-        setattr( atlas_pub, attr_f, value )
+
+        setattr( atlas_pub, attr_f, value ) # I'm not actually convinced that the right thing to do is to alter the Semantic Scholar paper object to have mutable fields, like title and abstract, but I'll do it until it becomes a problem.
 
     return atlas_pub 
 
@@ -1898,15 +1944,13 @@ def save_ids_to_bibtex( *args, api_name = api.DEFAULT_API, **kwargs, ):
 
 ########################################################################
 
-
 def save_s2_paperids_to_bibtex( paper_ids, **kwargs, ):
-    '''wut'''
     papers = api.call_s2_api( paper_ids, **kwargs )
     save_s2_papers_to_bibtex( papers, **kwargs )
 
 ########################################################################    
 
-def save_s2_papers_to_bibtex( papers, bibtex_fp = api.S2_BIB_NAME, **kwargs, ):
+def save_s2_papers_to_bibtex( papers, bibtex_fp = api.S2_BIB_NAME, overwrite_bibtex = False, **kwargs, ):
     '''Extracts bibtex entries from Semantic Scholar Papers, reformatting them to store ids.
     
     Args:
@@ -1915,52 +1959,9 @@ def save_s2_papers_to_bibtex( papers, bibtex_fp = api.S2_BIB_NAME, **kwargs, ):
     # Get bibtex and format
     all_entries = []
 
-    parser = BibTexParser(common_strings=False)
-    parser.ignore_nonstandard_types = False
-    parser.homogenize_fields = False
-    parser.expect_multiple_parse = True # absolutely critical
-
     for i, paper in enumerate(papers):
 
-        bibtex_str = paper.citationStyles['bibtex']
-
-        # Format for bibtexparser
-        # S2 entry types are garbage and we will replace ID anyway
-        bibtex_str = "".join(['@ARTICLE{dummy_key,'] + bibtex_str.split('\n')[1:])
-        db = bibtexparser.loads(bibtex_str, parser)
-
-        if not db.entries:
-            raise Exception(f'Bibtexparser could not parse:\n {bibtex_str}')
-        
-        entry = db.entries[-1] # one paper at a time; not optimized.
-        externalIds = paper.externalIds
-        date = paper.publicationDate
-
-        # Alter the bib entry fields
-        # Title
-        title = entry['title']
-        entry['title'] = f'{{{title}}}' # Zach puts double brackes around the title
-
-        # ID
-        entry['ID'] = paper.paperId # NOTE: possibly paper.paperId != query id!
-
-        # Other identifiers
-        xids_map = api.S2_EXTERNAL_ID_TO_BIBFIELD
-        if externalIds is not None:
-            for xid in xids_map:
-                if xid in externalIds:
-                    # CorpusId is originally an int, but bibtexparser needs str
-                    entry[xids_map[xid]] = str(externalIds[xid])
-        
-        # including URL
-        if paper.url is not None:
-            entry[xids_map['URL']] = paper.url
-
-        # Date
-        if date is not None:
-            entry['year'] = str(date.year) # year probably is there already, no harm
-            entry['month'] = str(date.month)
-            entry['day'] = str(date.day)
+        entry = s2_paper_to_bib_entry(paper)
         
         all_entries.append(entry)
     
@@ -1969,12 +1970,79 @@ def save_s2_papers_to_bibtex( papers, bibtex_fp = api.S2_BIB_NAME, **kwargs, ):
 
     # Save the bibtex
     writer = BibTexWriter()
-    with open( bibtex_fp, 'a') as bibfile:
+    if overwrite_bibtex:
+        mode = 'w'
+    else:
+        mode = 'a' # append
+    with open( bibtex_fp, mode ) as bibfile:
         bibfile.write( writer.write(db) )
+
+########################################################################    
+
+def s2_paper_to_bib_entry( paper ) -> dict:
+    '''Parse a Paper and fill out a bib entry.'''
+
+    parser = BibTexParser(common_strings=False)
+    parser.ignore_nonstandard_types = False
+    parser.homogenize_fields = False
+    parser.expect_multiple_parse = True # absolutely critical
+
+    bibtex_str = paper.citationStyles['bibtex']
+
+    # Format for bibtexparser
+    # S2 entry types are garbage and we will replace ID anyway
+    bibtex_str = "".join(['@ARTICLE{dummy_key,'] + bibtex_str.split('\n')[1:])
+    db = bibtexparser.loads(bibtex_str, parser)
+
+    if not db.entries:
+        raise Exception(f'Bibtexparser could not parse:\n {bibtex_str}')
+    
+    entry = db.entries[-1] # one paper at a time; not optimized.
+    externalIds = paper.externalIds
+    date = paper.publicationDate
+
+    # Alter the bib entry fields
+    # Title
+    title = entry['title']
+    entry['title'] = f'{{{title}}}' # Zach puts double brackes around the title
+
+    # ID
+    entry['ID'] = paper.paperId # NOTE: possibly paper.paperId != query id!
+
+    entry['paperid'] = paper.paperId # if it was found at all, it has a paperId, (I think)
+
+    # Other identifiers
+    xids_map = api.S2_EXTERNAL_ID_TO_BIBFIELD
+    if externalIds is not None:
+        for xid in xids_map:
+            if xid in externalIds:
+                # CorpusId is originally an int, but bibtexparser needs str
+                entry[xids_map[xid]] = str(externalIds[xid])
+    
+    # including URL
+    if paper.url is not None:
+        entry[xids_map['URL']] = paper.url
+
+    # Date
+    if date is not None:
+        entry['year'] = str(date.year) # year probably is there already, no harm
+        entry['month'] = str(date.month)
+        entry['day'] = str(date.day)
+
+    # Abstract (useful for recovering og string later)
+    if paper.abstract is not None:
+        entry['abstract'] = paper.abstract
+
+    return entry    
 
 ########################################################################
 
-def save_ads_bibcodes_to_bibtex( bibcodes, bibtex_fp = api.ADS_BIB_NAME,  call_size=2000,):
+def save_ads_bibcodes_to_bibtex( 
+    bibcodes, 
+    bibtex_fp = api.ADS_BIB_NAME,  
+    call_size=2000, 
+    overwrite_bibtex = False, 
+    ):
     ## API_extension::to_and_from_bibcodes
 
     # ADS doesn't like np arrays
@@ -2013,7 +2081,12 @@ def save_ads_bibcodes_to_bibtex( bibcodes, bibtex_fp = api.ADS_BIB_NAME,  call_s
         bibtex_str += '\n'.join( l )
 
     # Save the bibtex
-    with open( bibtex_fp, 'a' ) as f:
+    if overwrite_bibtex:
+        mode = 'w'
+    else:
+        mode = 'a' # append
+
+    with open( bibtex_fp, mode ) as f:
         f.write( bibtex_str )
 
 ########################################################################

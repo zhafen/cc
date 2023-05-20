@@ -84,7 +84,7 @@ class TestAPIUsage( unittest.TestCase ):
     
     def test_get_ads_data( self ):
 
-        self.a.get_ads_data( identifier='from_citation', skip_unofficial=False )
+        self.a.get_and_store_ads_data( identifier='from_citation', skip_unofficial=False )
 
 ########################################################################
     
@@ -96,7 +96,7 @@ class TestAPIUsage( unittest.TestCase ):
             conditions = { 'tcool/tff': np.array([ -np.inf, 10. ]) }
         )
 
-        self.a.get_ads_data( identifier='from_citation' )
+        self.a.get_and_store_ads_data( identifier='from_citation' )
 
 ########################################################################
 
@@ -106,7 +106,7 @@ class TestAPIUsage( unittest.TestCase ):
         for key, item in self.a.data.items():
             item.ads_data = { 'fake_dict': True }
 
-        self.a.get_ads_data( identifier='from_citation', )
+        self.a.get_and_store_ads_data( identifier='from_citation', )
 
         mock_search.assert_not_called()
 
@@ -139,6 +139,10 @@ class TestFromPaperIds( unittest.TestCase ):
             'DOI:10.1093/mnras/stz1773',
             # 'DOI:10.1093/mnras/stx952', 
             'DOI:10.1093/mnras/staa902',
+        ] # old
+
+        paper_ids = [
+            '04da6471743468b6bb1d26dd9a6eac4c03ca73ee', '0def4f553107451204b34470890d019b373798b5',
         ]
 
         a = atlas.Atlas.to_and_from_ids(
@@ -155,7 +159,8 @@ class TestFromPaperIds( unittest.TestCase ):
         # Expected values for entries
         for key in [ 'title', 'year', 'arxivid' ]:
             expected = self.a.data['Hafen2019'].citation[key]
-            actual = a.data['DOI:10.1093/mnras/stz1773'].citation[key]
+            # actual = a.data['DOI:10.1093/mnras/stz1773'].citation[key]
+            actual = a.data['04da6471743468b6bb1d26dd9a6eac4c03ca73ee'].citation[key]
             # assert actual == expected
             if actual != expected:
                 # breakpoint()
@@ -378,8 +383,7 @@ class TestExportAtlas( unittest.TestCase ):
     def tearDown( self ):
         # Do not remove read bibtex file, need elsewhere
         if os.path.isfile( self.write_bibtex_fp ):
-            # os.remove( self.write_bibtex_fp )
-            pass
+            os.remove( self.write_bibtex_fp )
 
         # Though we probably need to remove atlas data
         data_fp = os.path.join( self.atlas_dir, "atlas_data.json" )
@@ -1533,7 +1537,7 @@ class TestVectorize( unittest.TestCase ):
             os.remove( fp )
 
         # Test
-        self.a.get_ads_data( identifier='from_citation' )
+        self.a.get_and_store_ads_data( identifier='from_citation' )
         self.a.data['Hafen2019'].abstract = ''
         self.a.vectorize()
 
@@ -1710,7 +1714,7 @@ class TestVectorize( unittest.TestCase ):
             os.remove( fp )
 
         # Test
-        self.a.get_ads_data( identifier='from_citation' )
+        self.a.get_and_store_ads_data( identifier='from_citation' )
         vp = self.a.vectorize( method='stemmed content words' )
         vp_homebuilt = self.a.vectorize( method='homebuilt' )
 

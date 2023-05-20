@@ -22,7 +22,6 @@ import verdict
 from . import config # literature-topography likes this
 # import config # tests like this
 
-
 ########################################################################
 
 def uniquify_words( a, **kwargs ):

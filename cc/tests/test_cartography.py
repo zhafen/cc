@@ -484,7 +484,12 @@ class TestExplore( unittest.TestCase ):
     def test_expand( self ):
 
         n_downloaded = len( self.a['Hafen2019'].references ) + len( self.a['Hafen2019a'].references )
-        new_a = self.c.expand( self.a, center='Hafen2019', n_pubs_max=n_downloaded+1 )
+        new_a = self.c.expand( 
+            self.a, 
+            center='Hafen2019', 
+            n_pubs_max=n_downloaded+1,
+            # n_pubs_max=10,
+            )
 
         # Check that the new atlas has the old data
         for key, item in self.a.data.items():
@@ -495,7 +500,7 @@ class TestExplore( unittest.TestCase ):
         assert '2020MNRAS.498.1668W' in new_a.data
         # This is a publication cited by VandeVoort2018
         # but not by more similar publications.
-        assert '2015PhRvD..92l3526C' not in new_a.data
+        assert '2015PhRvD..92l3526C' not in new_a.data # if this fails, does it mean sorting by cos sim didn't work?
 
     ########################################################################
 

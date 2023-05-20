@@ -287,6 +287,10 @@ class Publication( object ):
     # Publication Analysis
     ########################################################################
 
+    # TODO: All of the NLP stuff should be in its own submodule
+
+    ########################################################################
+
     def process_abstract(
         self,
         abstract_str = None,
