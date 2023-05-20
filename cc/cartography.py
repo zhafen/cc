@@ -1199,9 +1199,8 @@ class Cartographer( object ):
             return np.nan
 
         cospsi = self.cospsi_matrix[i][valid_is]
-        cospsi_max = np.max( cospsi )
-        # Used to be done this way, not sure why I did
-        # cospsi_max = np.sort( cospsi )[::-1][kernel_size-1]
+        cospsi_max = np.sort( cospsi )[::-1][kernel_size-1]
+
         return np.arccos( cospsi_max )
 
     ########################################################################
