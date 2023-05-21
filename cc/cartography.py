@@ -31,8 +31,6 @@ import verdict
 
 from . import atlas
 from . import utils
-from . import api
-from . import publication
 
 ########################################################################
 
@@ -401,7 +399,6 @@ class Cartographer( object ):
             elif key_a != 'all' and key_b == 'all':
 
                 # Setup input
-                # breakpoint()
                 i_a = np.argmax( self.publications == key_a )
 
                 # Setup types
@@ -491,6 +488,7 @@ class Cartographer( object ):
         ip_ab = self.inner_product( key_a, key_b, **kwargs )
         ip_aa = self.inner_product( key_a, key_a, **kwargs )
         ip_bb = self.inner_product( key_b, key_b, **kwargs )
+
         return ip_ab / np.sqrt( ip_aa * ip_bb )
 
     ########################################################################
@@ -718,15 +716,7 @@ class Cartographer( object ):
     # Automated exploration, expansion, or otherwise updating
     ########################################################################
 
-    def expand( 
-        self, 
-        a, 
-        api_name = api.DEFAULT_API, 
-        center=None, 
-        n_pubs_max=4000, 
-        n_sources_max=None, 
-        bibtex_fp = api.DEFAULT_BIB_NAME, 
-    ):
+    def expand( self, a, center=None, n_pubs_max=4000, n_sources_max=None ):
         '''Expand an atlas by retrieving all publications cited by the
         the publications in the given atlas, or that reference a
         publication in the given atlas.
@@ -734,9 +724,6 @@ class Cartographer( object ):
         Args:
             a (atlas.Atlas):
                 Atlas to expand.
-
-            api (str):
-                The API to call to expand the publication region.
 
             center (str):
                 If given, center the search on this publication, preferentially
@@ -757,9 +744,6 @@ class Cartographer( object ):
         if center is None:
             expand_keys = list( a.data.keys() )
         else:
-            if center not in self.publications:
-                raise Exception(f'Center {center} not in publications. Perhaps center is a different identifier from what is stored in publications.')
-
             cospsi = self.cospsi( center, 'all' )
             sort_inds = np.argsort( cospsi )[::-1]
             expand_keys = self.publications[sort_inds]
@@ -767,25 +751,39 @@ class Cartographer( object ):
         if n_sources_max is not None:
             expand_keys = expand_keys[:n_sources_max]
 
-        # Main expansion via collection of references and citations
-        # breakpoint()
-        ids = get_ids_list(a, expand_keys, center, n_pubs_max, api_name)
+        # Make the bibcode list
+        existing_keys = set( a.data.keys() )
+        bibcodes = []
+        for key in expand_keys:
 
-        assert len( ids ) > 0, "Overly-restrictive search, no ids (bibcodes, etc) to retrieve."
+            bibcodes_i = []
+            try:
+                bibcodes_i += list( a[key].references )
+            except (AttributeError, TypeError) as e:
+                pass
+            try:
+                bibcodes_i += list( a[key].citations )
+            except (AttributeError, TypeError) as e:
+                pass
+
+            # Prune bibcodes_i for obvious overlap
+            bibcodes += list( set( bibcodes_i ) - existing_keys )
+
+            # Break when the search is centered and we're maxed out
+            if len( bibcodes ) > n_pubs_max and center is not None:
+                break
+        bibcodes = list( set( bibcodes ) )
+
+        assert len( bibcodes ) > 0, "Overly-restrictive search, no bibcodes to retrieve."
 
         # Sample to account for max number of publications we want to retrieve at once
-        if len( ids ) > n_pubs_max:
-            ids = np.random.choice( ids, n_pubs_max, replace=False )
+        if len( bibcodes ) > n_pubs_max:
+            bibcodes = np.random.choice( bibcodes, n_pubs_max, replace=False )
 
-        print( 'Expansion will include {} new publications.'.format( len( ids ) ) )
+        print( 'Expansion will include {} new publications.'.format( len( bibcodes ) ) )
 
         # New atlas
-        a_exp = atlas.Atlas.to_and_from_ids( 
-            a.atlas_dir, 
-            ids, 
-            api_name = api_name, 
-            bibtex_fp = bibtex_fp,
-        )
+        a_exp = atlas.Atlas.from_bibcodes( a.atlas_dir, bibcodes )
 
         # Update the new atlas
         a_exp.data._storage.update( a.data )
@@ -1201,9 +1199,8 @@ class Cartographer( object ):
             return np.nan
 
         cospsi = self.cospsi_matrix[i][valid_is]
-        cospsi_max = np.max( cospsi )
-        # Used to be done this way, not sure why I did
-        # cospsi_max = np.sort( cospsi )[::-1][kernel_size-1]
+        cospsi_max = np.sort( cospsi )[::-1][kernel_size-1]
+
         return np.arccos( cospsi_max )
 
     ########################################################################
@@ -1274,7 +1271,7 @@ class Cartographer( object ):
                 return group['coordinates'], group['ordered indices'], group['pairs']
 
         # Setup relation to central publication
-        i_center = self.inds[center == self.publications][0] # NOTE: this seems like a typo?
+        i_center = self.inds[center == self.publications][0]
         cospsi_0is = self.cospsi_matrix[i_center]
         sort_inds = np.argsort( cospsi_0is )[::-1]
 
@@ -1832,63 +1829,6 @@ class Cartographer( object ):
         return fig
 
 ########################################################################
-
-def get_ids_list(a: atlas.Atlas, expand_keys: list[str], center: str, n_pubs_max: int, api_name = api.DEFAULT_API):
-    '''For each publication corresponding to an id in `expand_keys`, collect the ids corresponding to the publication's references and citations.
-    '''
-    # Make the ids list
-    existing_keys = set( a.data.keys() )
-    ids = []
-    for key in expand_keys:
-
-        ids_i = []
-
-        # ADS
-        if api_name == api.ADS_API_NAME:
-            try:
-                ids_i += list( a[key].references )
-            except (AttributeError, TypeError) as e:
-                pass
-            try:
-                ids_i += list( a[key].citations )
-            except (AttributeError, TypeError) as e:
-                pass
-        
-        # S2 
-        if api_name == api.S2_API_NAME:
-            # use Paper, not Publication.
-            expand_paper = a[key].paper
-            papers = expand_paper.references + expand_paper.citations
-
-            for paper in papers:
-                
-                id_i = None
-                if paper.paperId is not None:
-                    id_i = paper.paperId # no id prefix
-                # use alternative ids if necessary
-                elif paper.url is not None:
-                    id_i = f"{api.S2_EXTERNAL_ID_TO_API_QUERY['URL']}:{paper.url}"
-                else:
-                    externalIds = paper.externalIds
-                    if externalIds is not None:
-                        # check them
-                        for xid in externalIds: # assumes all are worth using
-                            id_i = f"{api.S2_EXTERNAL_ID_TO_API_QUERY['URL']}:{paper.externalIds[xid]}"
-                            break
-                if id_i is None:
-                    # TODO: use s2 to query based on title, as well
-                    warnings.warn(f'Could not find any identifier for paper {paper}; skipping.')
-                    continue
-                ids_i.append(id_i)
-
-        # Prune ids_i for obvious overlap
-        ids += list( set( ids_i ) - existing_keys )
-
-        # Break when the search is centered and we're maxed out
-        if len( ids ) > n_pubs_max and center is not None:
-            break
-    ids = list( set( ids ) )  
-    return ids  
 
 def _generate_map(
     sort_inds,
