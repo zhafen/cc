@@ -61,6 +61,13 @@ class Publication( object ):
         return self._publication_date
 
     ########################################################################
+
+    @property
+    def has_s2_data( self ) -> bool:
+        '''A safer solution to checking by hand every time.'''
+        return hasattr( self, 'paper' )
+
+    ########################################################################
     # Data Retrieval
     ########################################################################
 

@@ -768,7 +768,6 @@ class Cartographer( object ):
             expand_keys = expand_keys[:n_sources_max]
 
         # Main expansion via collection of references and citations
-        # breakpoint()
         ids = get_ids_list(a, expand_keys, center, n_pubs_max, api_name)
 
         assert len( ids ) > 0, "Overly-restrictive search, no ids (bibcodes, etc) to retrieve."
@@ -780,7 +779,7 @@ class Cartographer( object ):
         print( 'Expansion will include {} new publications.'.format( len( ids ) ) )
 
         # New atlas
-        a_exp = atlas.Atlas.to_and_from_ids( 
+        a_exp = atlas.Atlas.to_and_from_ids(
             a.atlas_dir, 
             ids, 
             api_name = api_name, 
@@ -1854,7 +1853,11 @@ def get_ids_list(a: atlas.Atlas, expand_keys: list[str], center: str, n_pubs_max
         
         # S2 
         if api_name == api.S2_API_NAME:
-            # use Paper, not Publication.
+            # use the Paper associated with the Publication.
+
+            if not a[key].has_s2_data:
+                breakpoint()
+
             expand_paper = a[key].paper
             papers = expand_paper.references + expand_paper.citations
 

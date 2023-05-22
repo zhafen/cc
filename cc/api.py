@@ -132,6 +132,7 @@ S2_STORE_FIELDS = [
 
 # Attributes to save via save_data
 S2_ATTRS_TO_SAVE = [
+    'paper', 
     'abstract',
     'citations',
     'references',
@@ -237,6 +238,15 @@ def call_s2_api(
         papers.extend(get_papers(batch))
 
     return papers
+
+########################################################################
+
+def dict_to_s2_paper( item ) -> Paper:
+    '''Parse a dict and convert to a Semantic Scholar Paper; intended for loading publications from atlas_data files.'''
+    paper = Paper(item)
+    if not paper._data:
+        raise Exception("Empty paper.")
+    return paper
 
 ########################################################################
 
