@@ -149,6 +149,7 @@ class Atlas( object ):
         arxiv_class = None,
         seed = None,
         max_loops = None,
+        data_fp = None,
         load_atlas_data = True,
         load_bibtex = False,
         **kwargs
@@ -217,7 +218,13 @@ class Atlas( object ):
                 )
             )
 
-        return create_random_atlas_from_pubs( atlas_dir, pubs, fl, api_name, )
+        return create_random_atlas_from_pubs( 
+            atlas_dir, 
+            pubs, 
+            fl, 
+            api_name = api_name, 
+            data_fp = data_fp, 
+        )
 
     ########################################################################
 
@@ -314,14 +321,19 @@ class Atlas( object ):
 
             # Populate each Publication with S2 Papers
             print('Storing S2 Papers in Atlas publications.')
+            num_failures = 0
             for key in papers_dict:
                 if key not in result.data:
                     warnings.warn(f'Atlas loaded from expanded bib file does not contain corresponding expand paperIds. This suggests data loss in loading to and from bibtex. \n key = {key}')
+                    num_failures += 1
+                    continue
                 # store_s2_data
                 result.data[key] = store_s2_data( 
                     result.data[key], 
-                    papers_dict[key],
+                    papers_dict[key], 
                 )
+            if num_failures:
+                warnings.warn(f'Failed to associate {num_failures} publications with S2 papers.')
 
         return result
 
@@ -1463,12 +1475,10 @@ class Atlas( object ):
         ## API_extension::get_data_via_api
         # self.get_ads_data( *args, **kwargs )
         # self.get_data_via_api( *args, api_name = api_name, **kwargs, ) # this might be the right thing to do for ads, but it seems really inefficient for ads.
-        if api_name == api.ADS_API_NAME:
+        if api_name == api.S2_API_NAME:
             self.get_and_store_s2_data( *args, **kwargs )
 
         print( '    Doing NLP...' )
-
-        # TODO: this is totally Publication specific, idk how I passed tests before. Probably in virtue of Papers getting casted to Publications without much data loss.
 
         n_err = 0
         for key, item in tqdm( self.data.items() ):
@@ -2139,6 +2149,7 @@ def create_random_atlas_from_pubs(
     pubs, 
     fl,
     api_name = api.DEFAULT_API,
+    data_fp = None,
 ) -> Atlas:
     '''Constructs an atlas from a random list of publications, by accessing API-specific data.
     
@@ -2159,10 +2170,10 @@ def create_random_atlas_from_pubs(
         result (Atlas) the random Atlas
     '''
     api.validate_api(api_name)
-    if api_name == 'ADS':
-        return create_random_atlas_from_pubs_ads( atlas_dir, pubs, fl )
-    if api_name == 'S2':
-        return create_random_atlas_from_pubs_s2( atlas_dir, pubs, fl )
+    if api_name == api.ADS_API_NAME:
+        return create_random_atlas_from_pubs_ads( atlas_dir, pubs, fl, data_fp )
+    if api_name == api.S2_API_NAME:
+        return create_random_atlas_from_pubs_s2( atlas_dir, pubs, fl, data_fp )
 
 ########################################################################
 
@@ -2170,11 +2181,17 @@ def create_random_atlas_from_pubs_ads(
     atlas_dir, 
     pubs, 
     fl,
+    data_fp = None,
     ) -> Atlas:
     '''Constructs an atlas from a random list of publications, by accessing ADS specific data.'''
 
     bibcodes = [ _.bibcode for _ in pubs ] # ADS specifc
-    result = Atlas.to_and_from_ids( atlas_dir, bibcodes, api_name = api.ADS_API_NAME )
+    result = Atlas.to_and_from_ids( 
+        atlas_dir, 
+        bibcodes, 
+        api_name = api.ADS_API_NAME,
+        data_fp = data_fp,
+    )
     
     ## API_extension:random_publications
     ## The below code block stores already retrieved values in the atlas.

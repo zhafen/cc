@@ -60,6 +60,7 @@ S2_BIB_NAME = 'cc_s2.bib'
 import requests
 S2_ALLOWED_EXCEPTIONS = (
     requests.exceptions.ReadTimeout, 
+    requests.exceptions.ConnectionError,
     semanticscholar.SemanticScholarException.ObjectNotFoundExeception,
     )
 
