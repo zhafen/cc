@@ -11,12 +11,10 @@ import pandas as pd
 import re
 import scipy.sparse as ss
 import sklearn.feature_extraction.text as skl_text_features
+import time
 import warnings
 ## API_extension::maybe_unnecessary
 ## The imports can probably be pared down, post-extension.
-
-from semanticscholar import SemanticScholar
-from semanticscholar.Paper import Paper
 
 from bibtexparser.bparser import BibTexParser
 from bibtexparser.bwriter import BibTexWriter
@@ -26,6 +24,8 @@ from bibtexparser.bibdatabase import BibDatabase
 from functools import partial
 from tqdm import tqdm as std_tqdm
 tqdm = partial(std_tqdm, ncols=79)
+
+from multiprocessing import Pool
 
 import matplotlib.pyplot as plt
 
@@ -238,7 +238,8 @@ class Atlas( object ):
         overwrite_bibtex = False,
         data_fp = None,
         load_atlas_data = False,
-        **kwargs
+        call_size = 10,
+        **kwargs,
      ):
         '''Generate an Atlas from string ids by downloading and saving the
         citations from an API as a new bibliography.
@@ -299,7 +300,7 @@ class Atlas( object ):
         # For S2, it is most efficient to load atlas directly from papers instead of bibtex
         if api_name == api.S2_API_NAME:
             # Call papers
-            papers = api.call_s2_api( ids )
+            papers = api.call_s2_api( ids, call_size = call_size, )
             # convert to dict to ensure correct mapping when we store Papers in Publications
             papers_dict = {paper.paperId: paper for paper in papers}
 
@@ -333,14 +334,14 @@ class Atlas( object ):
                     papers_dict[key], 
                 )
             if num_failures:
-                warnings.warn(f'Failed to associate {num_failures} publications with S2 papers.')
+                warnings.warn(f'Failed to associate {num_failures}/{len(papers_dict)} publications with S2 papers.')
 
         return result
 
     ########################################################################
 
     @classmethod
-    def export_ads_atlas_to_s2_via_bibtex( 
+    def export_atlas_to_s2_via_bibtex( 
         cls,
         atlas_dir,
         read_bibtex_fp,
@@ -412,7 +413,11 @@ class Atlas( object ):
             pub.paper = papers[i]
 
             # Associate a bib entry/citation
-            pub.citation = s2_paper_to_bib_entry(pub.paper)
+            citation = s2_paper_to_bib_entry(pub.paper)
+            if citation is None:
+                print('Skipping {pub} because failed to build a citation.')
+                continue
+            pub.citation = citation
 
             # Store
             _data[paper_id] = pub
@@ -570,6 +575,8 @@ class Atlas( object ):
 
         if verbose:
             print( 'Loading bibliography entries.' )
+            start = time.time()
+
 
         # Load the database
         with open( bibtex_fp, 'r' ) as bibtex_file:
@@ -582,6 +589,8 @@ class Atlas( object ):
 
         # Store into class
         if verbose:
+            duration = (time.time() - start) / 60
+            print( f'Loaded {len(bib_database.entries)} bibliography entries in in {duration:.2f} minutes.' )
             print( 'Storing bibliography entries in Atlas.' )
 
         for citation in tqdm( bib_database.entries ):
@@ -595,19 +604,6 @@ class Atlas( object ):
                 p = self.data[citation_key]
             else:
                 p = publication.Publication( citation_key )
-
-                if api_name == api.S2_API_NAME:
-                    # construct a Paper from an S2 bib, 
-                    # then associate it with a Publicatione
-
-                    # N.B.: this is basically useless; the important thing is to get a publication associated with a paper that has citations and references. Which requires an api call.
-
-                    # NOTE: more precisely, in our export_... constructor, we call the api. So what this means is that when loading from already saved data (currently bibtex, but obviously that's not enough, we need atlas_data for refs and cites), the problem is that we're not correctly saving the full paper refs and cites, or loading it.
-
-                    # paper = api.citation_to_s2_paper( citation )
-                    # p.paper = paper # so comment this out for explicitness
-                    pass
-                
                 p.citation = citation # fine to add this to Paper
 
             if process_annotations:
@@ -616,6 +612,7 @@ class Atlas( object ):
                         p.process_bibtex_annotations( annotation_str=p.citation[annote_key] )
 
             self.data[citation_key] = p
+
 
     ########################################################################
 
@@ -1178,23 +1175,26 @@ class Atlas( object ):
         Args:
             fields (list of strs):
                 Fields to retrieve from Semantic Scholar.
+
+        Returns:
+            new_data_was_stored (bool):
+                Whether any missing data was added to atlas, and so needs to be saved to disk for progress.
         '''
         # Get only _missing_ data.
         result = self.get_s2_data(fields, **kwargs)
         queries_data = result['queries_data']
         papers = result['papers']
-
-        for i, key in enumerate(queries_data['data_keys']):
-            # store
-            atlas_pub = self.data[key]
-            self.data[key] = store_s2_data( atlas_pub, papers[i] )
-
-        # for key in self.data:
-        #     if self.data[key] is None:
-        #         breakpoint()
+        if papers:
+            for i, key in enumerate(queries_data['data_keys']):
+                # store
+                atlas_pub = self.data[key]
+                self.data[key] = store_s2_data( atlas_pub, papers[i] )
 
         # Ensure that all data has been stored
         assert all([ self.data[key].has_s2_data for key in self.data ])
+
+        # Return whether new papers were stored
+        return bool(papers)
 
     ########################################################################
     # TODO: most of this is independent of atlas; should probably refactor api calling logic, and unify with other api calling parts of codebase
@@ -1472,9 +1472,7 @@ class Atlas( object ):
             Passed to self.get_ads_data
         '''
 
-        ## API_extension::get_data_via_api
-        # self.get_ads_data( *args, **kwargs )
-        # self.get_data_via_api( *args, api_name = api_name, **kwargs, ) # this might be the right thing to do for ads, but it seems really inefficient for ads.
+        # self.get_data_via_api( *args, api_name = api_name, **kwargs, ) # this might be the right thing to do for ads, but it seems really inefficient for S2.
         if api_name == api.S2_API_NAME:
             self.get_and_store_s2_data( *args, **kwargs )
 
@@ -2003,23 +2001,39 @@ def save_ids_to_bibtex( *args, api_name = api.DEFAULT_API, **kwargs, ):
 
 ########################################################################    
 
-def save_s2_papers_to_bibtex( papers, bibtex_fp = api.S2_BIB_NAME, overwrite_bibtex = False, **kwargs, ):
+def save_s2_papers_to_bibtex( papers, bibtex_fp = api.S2_BIB_NAME, overwrite_bibtex = False, multiprocess = True, num_processes = 6, **kwargs, ):
     '''Extracts bibtex entries from Semantic Scholar Papers, reformatting them to store ids.
-    
-    Args:
-        batch (bool): whether to call the SemanticScholar API using `get_paper` or `get_papers`. The latter is faster, but usually fails, and also does not have tqdm support yet.
     '''
     # Get bibtex and format
-    all_entries = []
 
-    for i, paper in enumerate(papers):
+    if not multiprocess:
+        all_entries = []
+        # TODO: this should be parallelized
+        for i, paper in enumerate(papers):
 
-        entry = s2_paper_to_bib_entry(paper)
-        
-        all_entries.append(entry)
+            entry = s2_paper_to_bib_entry(paper)
+            if entry is None:
+                print('Skipping {pub} because failed to build a citation.')
+                continue
+            
+            all_entries.append(entry)
+    else:
+        with Pool(num_processes) as p:
+            async_results = [
+                p.apply_async(
+                    s2_paper_to_bib_entry,
+                    [paper], # args
+                )
+                for paper in papers
+            ]
+            p.close()
+            p.join()
+        all_entries = [async_result.get() for async_result in async_results]
     
     db = BibDatabase()
-    db.entries = all_entries
+    # db.entries = all_entries
+    # necessary bc of multiprocessing 
+    db.entries = [entry for entry in all_entries if entry is not None]
 
     # Save the bibtex
     writer = BibTexWriter()
@@ -2048,7 +2062,8 @@ def s2_paper_to_bib_entry( paper ) -> dict:
     db = bibtexparser.loads(bibtex_str, parser)
 
     if not db.entries:
-        raise Exception(f'Bibtexparser could not parse:\n {bibtex_str}')
+        warnings.warn(f'Bibtexparser could not parse:\n {bibtex_str}')
+        return
     
     entry = db.entries[-1] # one paper at a time; not optimized.
     externalIds = paper.externalIds

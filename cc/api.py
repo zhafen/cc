@@ -39,6 +39,7 @@ no_change:
 
 import ads
 import semanticscholar
+import time
 # import utils # literature-topography doesn't like
 # from . import utils
 
@@ -63,6 +64,9 @@ S2_ALLOWED_EXCEPTIONS = (
     requests.exceptions.ConnectionError,
     semanticscholar.SemanticScholarException.ObjectNotFoundExeception,
     )
+
+# connection error stuff
+# requests.exceptions.SSLError # the error to avoid
 
 ########################################################################
 # Semantic Scholar paper Identifiers. Please read https://api.semanticscholar.org/api-docs/graph#tag/Paper-Data/operation/get_graph_get_paper
@@ -177,9 +181,8 @@ def chunk_ids(ids: list[str], call_size = 2000):
 
 def call_s2_api(
         paper_ids, 
-        batch = False,
-        n_attempts_per_query = 10,
-        call_size = 100,
+        n_attempts_per_query = 50,
+        call_size = 10,
         **kwargs,
         ):
     '''Get papers from SemanticScholar by calling the API.
@@ -200,28 +203,31 @@ def call_s2_api(
 
     paper_ids = list( paper_ids ) # in case numpy array
 
+    if not paper_ids:
+        return []
+
+    total = len(paper_ids)
     chunked_paper_ids = chunk_ids(paper_ids, call_size = call_size)
 
     if None in paper_ids:
         # Since we should have already dropped all Nones
         raise Exception("Passed `paper_ids` contains None.")
 
-
     # how external ids should be in bibtex entry
 
     print( f'Querying Semantic Scholar for {len(paper_ids)} total papers.')
-
     papers = []
-    for i, paper_ids in enumerate(chunked_paper_ids):
+
+    # for paper_ids in tqdm(chunked_paper_ids, total=total):
+    pbar = tqdm(desc=f'progress using call_size={call_size}', total=total)
+    for paper_ids in chunked_paper_ids:
         
-        if len(chunked_paper_ids) > 1:
-            print( f'querying for {len(paper_ids)} papers; chunk {i+1} out of {len(chunked_paper_ids)}')
+        # if len(chunked_paper_ids) > 1:
+            # print( f'querying for {len(paper_ids)} papers; chunk {i+1} out of {len(chunked_paper_ids)}')
 
         @keep_trying( n_attempts=n_attempts_per_query, )
-        def get_papers(batch) -> list[Paper]:
-            # NOTE: risk of "requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='api.semanticscholar.org', port=443): Read timed out"
-            if batch:
-                # Faster to query in batch, but often fails.
+        def get_papers() -> list[Paper]:
+            if call_size > 1:
                 result = sch.get_papers(
                     paper_ids=paper_ids,
                     fields=S2_QUERY_FIELDS,
@@ -232,11 +238,13 @@ def call_s2_api(
                     sch.get_paper(
                     paper_id=paper_id, 
                     fields=S2_QUERY_FIELDS,
-                    ) for paper_id in tqdm(paper_ids)
+                    ) for paper_id in paper_ids
                 ]
             return result
 
-        papers.extend(get_papers(batch))
+        papers.extend(get_papers())
+        pbar.update(len(paper_ids))
+    pbar.close()
 
     return papers
 
@@ -443,7 +451,7 @@ def citation_to_ads_call( citation ):
 
 ########################################################################
 
-def keep_trying( n_attempts=5, allowed_exceptions = DEFAULT_ALLOWED_EXCEPTIONS, verbose=True ):
+def keep_trying( n_attempts=5, allowed_exceptions = DEFAULT_ALLOWED_EXCEPTIONS, verbose=True, sleep_after_attempt=1, ):
     '''Sometimes we receive server errors. We don't want that to disrupt the entire process, so this decorator allow trying n_attempts times.
 
     ## API_extension::get_data_via_api
@@ -455,6 +463,9 @@ def keep_trying( n_attempts=5, allowed_exceptions = DEFAULT_ALLOWED_EXCEPTIONS, 
 
         allowed_exceptions (tuple of class):
             Allowed exception class. Set to BaseException to keep trying regardless of exception.
+
+        sleep_after_attempt (int):
+            Number of seconds to wait before trying each additional attempt.
 
         verbose (bool):
             If True, be talkative.
@@ -471,6 +482,9 @@ def keep_trying( n_attempts=5, allowed_exceptions = DEFAULT_ALLOWED_EXCEPTIONS, 
         def wrapped_fn( *args, **kwargs ):
             # Loop over for n-1 attempts, trying to return
             for i in range( n_attempts - 1 ):
+                # waiting may help with connection errors?
+                time.sleep(sleep_after_attempt)
+
                 try:
                     result = f( *args, **kwargs )
                     if i > 0 and verbose:

@@ -722,8 +722,9 @@ class Cartographer( object ):
         self, 
         a, 
         api_name = api.DEFAULT_API, 
-        center=None, 
-        n_pubs_max=4000, 
+        center = None, 
+        n_pubs_max = 4000, 
+        call_size = 10,
         n_sources_max=None, 
         bibtex_fp = api.DEFAULT_BIB_NAME, 
     ):
@@ -744,6 +745,9 @@ class Cartographer( object ):
 
             n_pubs_max (int):
                 Maximum number of publications allowed in the expansion.
+
+            call_size (int):
+                How many queries to call API with when calling in chunks. ## NOTE: only for S2 rn.
 
             n_sources_max (int):
                 Maximum number of publications (already in the atlas) to draw references and citations from.
@@ -784,6 +788,7 @@ class Cartographer( object ):
             ids, 
             api_name = api_name, 
             bibtex_fp = bibtex_fp,
+            call_size = call_size,
         )
 
         # Update the new atlas
@@ -1856,8 +1861,9 @@ def get_ids_list(a: atlas.Atlas, expand_keys: list[str], center: str, n_pubs_max
             # use the Paper associated with the Publication.
 
             if not a[key].has_s2_data:
-                breakpoint()
+                raise Exception(f'Cannot expand becaause center publication {key} has no s2 paper.')
 
+            
             expand_paper = a[key].paper
             papers = expand_paper.references + expand_paper.citations
 
