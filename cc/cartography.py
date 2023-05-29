@@ -766,7 +766,7 @@ class Cartographer( object ):
 
             cospsi = self.cospsi( center, 'all' )
             sort_inds = np.argsort( cospsi )[::-1]
-            expand_keys = self.publications[sort_inds]
+            expand_keys = self.publications[sort_inds] # TODO: check these have abstracts when api is S2
 
         if n_sources_max is not None:
             expand_keys = expand_keys[:n_sources_max]

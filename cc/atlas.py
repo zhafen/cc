@@ -88,7 +88,7 @@ class Atlas( object ):
         api_name = api.DEFAULT_API,
     ):
         # Make sure the atlas directory exists
-        os.makedirs( atlas_dir, exist_ok=True )
+        os.makedirs( atlas_dir, exist_ok=True, )
         
         self.data = verdict.Dict( {} )
 

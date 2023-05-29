@@ -55,6 +55,8 @@ from tqdm import tqdm
 ADS_BIB_NAME = 'cc_ads.bib'
 ADS_API_NAME = 'ADS'
 ADS_ALLOWED_EXCEPTIONS = (ads.exceptions.APIResponseError, )
+ADS_CALL_SIZE = 2000
+ADS_NUM_ATTEMPTS_PER_QUERY = 5
 
 S2_API_NAME = 'S2'
 S2_BIB_NAME = 'cc_s2.bib'
@@ -64,6 +66,8 @@ S2_ALLOWED_EXCEPTIONS = (
     requests.exceptions.ConnectionError,
     semanticscholar.SemanticScholarException.ObjectNotFoundExeception,
     )
+S2_CALL_SIZE = 10
+S2_NUM_ATTEMPTS_PER_QUERY = 50
 
 # connection error stuff
 # requests.exceptions.SSLError # the error to avoid
@@ -181,8 +185,8 @@ def chunk_ids(ids: list[str], call_size = 2000):
 
 def call_s2_api(
         paper_ids, 
-        n_attempts_per_query = 50,
-        call_size = 10,
+        n_attempts_per_query = S2_NUM_ATTEMPTS_PER_QUERY,
+        call_size = S2_CALL_SIZE,
         **kwargs,
         ):
     '''Get papers from SemanticScholar by calling the API.
